@@ -1,0 +1,5 @@
+fastapi[standard]
+sqlalchemy
+pandas
+scikit-learn
+requests

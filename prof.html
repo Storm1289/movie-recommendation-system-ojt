@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CineStream - User Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1111d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101022",
+                        "surface-dark": "#181830",
+                        "gold": "#FFD700",
+                    },
+                    fontFamily: {
+                        "display": ["Be Vietnam Pro", "sans-serif"],
+                        "sans": ["Be Vietnam Pro", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen flex overflow-hidden">
+<aside class="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 z-50 bg-surface-dark/95 border-r border-slate-800 backdrop-blur-md overflow-y-auto">
+<div class="px-6 py-6 mb-2">
+<a class="flex items-center gap-3 text-primary dark:text-white group" href="#">
+<div class="size-8 text-primary">
+<svg class="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M39.475 21.6262C40.358 21.4363 40.6863 21.5589 40.7581 21.5934C40.7876 21.655 40.8547 21.857 40.8082 22.3336C40.7408 23.0255 40.4502 24.0046 39.8572 25.2301C38.6799 27.6631 36.5085 30.6631 33.5858 33.5858C30.6631 36.5085 27.6632 38.6799 25.2301 39.8572C24.0046 40.4502 23.0255 40.7407 22.3336 40.8082C21.8571 40.8547 21.6551 40.7875 21.5934 40.7581C21.5589 40.6863 21.4363 40.358 21.6262 39.475C21.8562 38.4054 22.4689 36.9657 23.5038 35.2817C24.7575 33.2417 26.5497 30.9744 28.7621 28.762C30.9744 26.5497 33.2417 24.7574 35.2817 23.5037C36.9657 22.4689 38.4054 21.8562 39.475 21.6262ZM4.41189 29.2403L18.7597 43.5881C19.8813 44.7097 21.4027 44.9179 22.7217 44.7893C24.0585 44.659 25.5148 44.1631 26.9723 43.4579C29.9052 42.0387 33.2618 39.5667 36.4142 36.4142C39.5667 33.2618 42.0387 29.9052 43.4579 26.9723C44.1631 25.5148 44.659 24.0585 44.7893 22.7217C44.9179 21.4027 44.7097 19.8813 43.5881 18.7597L29.2403 4.41187C27.8527 3.02428 25.8765 3.02573 24.2861 3.36776C22.6081 3.72863 20.7334 4.58419 18.8396 5.74801C16.4978 7.18716 13.9881 9.18353 11.5858 11.5858C9.18354 13.988 7.18717 16.4978 5.74802 18.8396C4.58421 20.7334 3.72865 22.6081 3.36778 24.2861C3.02574 25.8765 3.02429 27.8527 4.41189 29.2403Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-xl font-black tracking-tighter">CineStream</h2>
+</a>
+</div>
+<nav class="flex-1 px-4 space-y-2">
+<p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-widest mt-4 mb-2">Menu</p>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">home</span>
+<span class="font-semibold text-sm">Home</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">explore</span>
+<span class="font-semibold text-sm">Discover</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">trending_up</span>
+<span class="font-semibold text-sm">Popular</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">category</span>
+<span class="font-semibold text-sm">Genres</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary bg-primary/10 rounded-xl transition-colors relative group" href="#">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full"></div>
+<span class="material-symbols-outlined text-[20px]">collections_bookmark</span>
+<span class="font-semibold text-sm">My Library</span>
+</a>
+<div class="pt-6">
+<p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Top Genres</p>
+<div class="space-y-1">
+<a class="flex items-center justify-between px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-sm" href="#">
+<span>Action</span>
+<span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">120+</span>
+</a>
+<a class="flex items-center justify-between px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-sm" href="#">
+<span>Sci-Fi</span>
+<span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">85</span>
+</a>
+<a class="flex items-center justify-between px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-sm" href="#">
+<span>Comedy</span>
+<span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">200+</span>
+</a>
+</div>
+</div>
+</nav>
+<div class="p-4 mt-auto border-t border-slate-800">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-semibold text-sm">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="font-semibold text-sm">Log Out</span>
+</a>
+</div>
+</aside>
+<div class="flex-1 flex flex-col md:ml-64 min-w-0 transition-all duration-300">
+<button class="md:hidden fixed top-4 left-4 z-50 p-2 text-white bg-surface-dark/90 rounded-lg backdrop-blur-sm border border-slate-700">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<header class="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md">
+<div class="px-6 md:px-10 py-3 mx-auto max-w-[1440px]">
+<div class="flex items-center justify-between gap-4">
+<div class="flex-1"></div> 
+<div class="flex items-center justify-end gap-6 flex-1 ml-auto">
+<div class="relative w-full max-w-md hidden md:block group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full rounded-lg border-none bg-slate-100 dark:bg-surface-dark py-2 pl-10 pr-4 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-black transition-all" placeholder="Titles, people, genres" type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="md:hidden text-white">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="relative text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-background-dark"></span>
+</button>
+<button class="relative group">
+<div class="w-9 h-9 rounded-full bg-cover bg-center ring-2 ring-primary transition-all duration-300" data-alt="User profile avatar showing a young man" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBIbjOPTP7wl7NGqqUiTo2vFKOTWOWGwuuhWQxlNz9vL4P-oEEKzmVnEcFgYiQIc3EGnH_rqSj8SLc5IA3WNqal_di22Oe1gW_WZzngwNw8TNP77nLVoqkes6F3BHS5GNYNXY9WsAKr1Z4fyWu0LbKqwejVCOM1Ign2n518o6hXZqkpi3G88zL-0iKL63FNbBpjDlkVnybGx6T-qwqOWmx8LzPPzGLXL8VQgwre_WE8GMzAw25fzwuF8vU1lekcu1B_ITMRrgOVUX2G');"></div>
+<div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-background-light dark:border-background-dark rounded-full"></div>
+</button>
+</div>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-grow w-full max-w-[1440px] mx-auto pb-20 overflow-y-auto h-[calc(100vh-65px)] hide-scrollbar">
+<section class="relative w-full mb-8">
+<div class="relative w-full h-64 md:h-80 overflow-hidden">
+<div class="absolute inset-0 w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDG9MULWWap_KtK0rzedZe_-plAHPXfJD76gX9QHihaAno7mPzOdYozKyiK8bnOULi95pWzMjJFGVdScCiL3pI_b4D6qR9q1dIL8bbzEraLN262Bx25Y061J2uybYyYOBEsIEKv5KRiKJqPHziNUpo7t-x5MnYj6P2Czwft7YTUaMeUKT1BEFDXGw_NjMHf2G9tKhXUEMCaFLGUWCdnmmg9_dqXahzzXDDD_jxb3HE2Yzh9xOK_1sUvOOH1EdccqeikhwnMxINO8Il3'); opacity: 0.6;">
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/30 to-transparent"></div>
+</div>
+<div class="px-6 md:px-10 -mt-20 relative z-10">
+<div class="flex flex-col md:flex-row items-end md:items-end gap-6">
+<div class="relative group">
+<div class="w-32 h-32 md:w-40 md:h-40 rounded-2xl bg-cover bg-center ring-4 ring-background-dark shadow-2xl" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBIbjOPTP7wl7NGqqUiTo2vFKOTWOWGwuuhWQxlNz9vL4P-oEEKzmVnEcFgYiQIc3EGnH_rqSj8SLc5IA3WNqal_di22Oe1gW_WZzngwNw8TNP77nLVoqkes6F3BHS5GNYNXY9WsAKr1Z4fyWu0LbKqwejVCOM1Ign2n518o6hXZqkpi3G88zL-0iKL63FNbBpjDlkVnybGx6T-qwqOWmx8LzPPzGLXL8VQgwre_WE8GMzAw25fzwuF8vU1lekcu1B_ITMRrgOVUX2G');"></div>
+<button class="absolute bottom-2 right-2 p-1.5 bg-primary text-white rounded-lg shadow-lg hover:bg-blue-600 transition-colors" title="Edit Avatar">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+</div>
+<div class="flex-1 mb-2 text-center md:text-left">
+<h1 class="text-3xl md:text-4xl font-black text-white tracking-tight">Alex Morgan</h1>
+<p class="text-slate-400 text-sm md:text-base mt-1">Movie Enthusiast • Sci-Fi Lover • Critic</p>
+<div class="flex items-center justify-center md:justify-start gap-4 mt-3 text-sm text-slate-300">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[18px] text-gold">star</span> 24 Reviews</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[18px] text-primary">group</span> 142 Followers</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[18px] text-slate-500">location_on</span> New York, USA</span>
+</div>
+</div>
+<div class="flex gap-3 mb-2 w-full md:w-auto justify-center md:justify-end">
+<button class="px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-lg hover:bg-blue-600 transition-colors shadow-lg shadow-primary/20">Edit Profile</button>
+<button class="p-2.5 bg-surface-dark border border-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 max-w-4xl mx-auto">
+<div class="bg-surface-dark border border-slate-800 p-4 rounded-xl flex items-center justify-center gap-4">
+<div class="w-10 h-10 rounded-full bg-gold/20 text-gold flex items-center justify-center">
+<span class="material-symbols-outlined">trophy</span>
+</div>
+<div>
+<div class="text-2xl font-bold text-white">45</div>
+<div class="text-xs text-slate-400 uppercase font-bold tracking-wider">Badges Earned</div>
+</div>
+</div>
+<div class="bg-surface-dark border border-slate-800 p-4 rounded-xl flex items-center justify-center gap-4">
+<div class="w-10 h-10 rounded-full bg-pink-500/20 text-pink-400 flex items-center justify-center">
+<span class="material-symbols-outlined">favorite</span>
+</div>
+<div>
+<div class="text-2xl font-bold text-white">182</div>
+<div class="text-xs text-slate-400 uppercase font-bold tracking-wider">Favorites</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div class="px-6 md:px-10 pb-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 space-y-8">
+<section>
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-bold text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-pink-500">favorite</span> Favorites
+                        </h3>
+<a class="text-sm text-primary hover:text-white transition-colors font-medium" href="#">View All</a>
+</div>
+<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+<div class="group cursor-pointer relative">
+<div class="aspect-[2/3] rounded-lg overflow-hidden bg-surface-dark mb-2">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCBw2uOF7hT4hU_YchxQreTxfsA-t9FIOOAPcN-VSbHOB-n5wNxcafLdulJV6eS5AOVx1ic-DaU1PIIUFuBaYLraqngnredj_j6TvQlbbIgH_VnGks3Nc8v2MpvnBnMxcBhraX1xxYDEEppKmDxMQilqLdtAGQ4V2ehJ33rB6XtKhVA5qssLa9UqQh-i3IrJgy-eAYSbf6cbsAZKmYteZ8Nhtc_Uo5BN_MupVG-cMA0zR5xXhcMkkBCdiY8Xd0qgzoF3sk31PXNOX7Y');"></div>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="p-2 bg-primary text-white rounded-full"><span class="material-symbols-outlined">play_arrow</span></button>
+</div>
+</div>
+</div>
+<div class="group cursor-pointer relative">
+<div class="aspect-[2/3] rounded-lg overflow-hidden bg-surface-dark mb-2">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBmX0yFdbajLlKJpYSH5P7EcUhgBjz77rS9_Su1FGlgjYSpuF1OoNi8nimr_WTGXsZpa1NUUWjbcPuTiyjL76COxjxrIq84AFQfa_KnvQwUM99bIwGcCxGpQniR1iP6jI7m9tVMvhAvPoMMRdHcuNp_tX8bu4l3QNYx-x9mjIXbBRFjVgTCYRbFMmL1i09BKF-VHlIv0-mkAUA9k_X11W8nN3Lg5Qna8RuHe4IOsRdw8isDM_tYL3JkHe-E0Iuc7HT2XHppjq6QVan4');"></div>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="p-2 bg-primary text-white rounded-full"><span class="material-symbols-outlined">play_arrow</span></button>
+</div>
+</div>
+</div>
+<div class="group cursor-pointer relative">
+<div class="aspect-[2/3] rounded-lg overflow-hidden bg-surface-dark mb-2">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCS3lL95wXRWyiKDxVK1AV334BMTfIf2uLj0rAGdWxhsT9hKkl82qAqTEorv7k3d50myRclIQ9Llj0glGKuijnd2VJ6-O6A1QjRbBlODbIkYFmuAc9tFyBrXP_NKbsx_JvmYO3dwWYDWq8H9gI_nhRDWPTtrPqOX-fi_QJsz9j1G4zEmEcEUsL2gsm5KME1wIPZ2RqaFpqEPVf6KZsNS_hu3Mw-eKPp4P3KRDqh3YsfkGoQLewVZ8mD4CUzJqP-0PP7Z-MCvPQeeU3j');"></div>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="p-2 bg-primary text-white rounded-full"><span class="material-symbols-outlined">play_arrow</span></button>
+</div>
+</div>
+</div>
+<div class="group cursor-pointer relative">
+<div class="aspect-[2/3] rounded-lg overflow-hidden bg-surface-dark mb-2">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBMdrp9sR9TIAB1Mi7-h4Zi70EPpeBIr_Dg-8Cv6CK4jPXkIwmMEITFBTBfOi3_0G475f6OmV-mSmtAmYhBT_ni2ZqhIY5GqWFecWTmksq_uiOIj_BlvhC6yisV2jLWuiSALhxOVHbvliTb9JBGPOwzoNlC4-msv3CpPfXvCMPs-j07qyB8sumdCQq4JFtsS33tCsJLwdmv5vmh-0ku6MfZYR57Ymf-FK2uyFw6mallzA51Wa3a_-PSnvBqJIdds1xi43X66MZ198Su');"></div>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="p-2 bg-primary text-white rounded-full"><span class="material-symbols-outlined">play_arrow</span></button>
+</div>
+</div>
+</div>
+<div class="group cursor-pointer relative hidden sm:block">
+<div class="aspect-[2/3] rounded-lg overflow-hidden bg-surface-dark mb-2">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_LPrx1bCE2YBZUghISiJEZt3sQ74X8eeeLTsxI5UNxpZi8ZCtzYSOA30Xk0pHTpuHqAvZZtImYAaqKIOqeC60qVNLUcJkUV0nuyQABx4YpEWvrqJkNV-xN0M9f6Kt65yPmpyAkBMjfRni_RRJf-rKrVb_DWmVpJN420kGmmbJGkzgrSq_y9Wjh4kCkm8QQsZCta7kRjj5g01Dh1PkcPQ9o5wfrTtHmXyYwsAgCAYKzPUGy9fT-DWnLimqbXhnlgYnQwGVMljZ5iUO');"></div>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<button class="p-2 bg-primary text-white rounded-full"><span class="material-symbols-outlined">play_arrow</span></button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section>
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-bold text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">bookmark</span> Watchlist
+                        </h3>
+<a class="text-sm text-primary hover:text-white transition-colors font-medium" href="#">View All</a>
+</div>
+<div class="space-y-4">
+<div class="flex gap-4 p-4 rounded-xl bg-surface-dark/50 border border-slate-800 hover:border-slate-700 transition-colors group">
+<div class="w-20 h-28 flex-shrink-0 rounded-lg bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDbY-8xkqEK89Yej1Dw6_4LTmF0ffw0fWNn5zbRRrOAk20pPpS1W-7wuWF-PI06CuY6lAiZuW3OTzxhlIOA7UrJWfy1lXVuEd4uFCRxgAFGI8SrYiF5A5aBa4H4r6SiIUIR_XArlyGz-ycblADs5BcG6G9V9-aUJ3VqyYZzUt3iXmfw5XFEriYC92Y-F50wfKekexo4_T9aOKwbxI-BjA2kriQjpRlG8prDIUPmFZpScT0niADbfBPuZzYxQ3lmRRGaacRPGvEu3J4j');"></div>
+<div class="flex-1 py-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-lg font-bold text-white group-hover:text-primary transition-colors">Oppenheimer</h4>
+<p class="text-slate-400 text-sm">2023 • Biography, Drama</p>
+</div>
+<button class="text-slate-500 hover:text-red-500"><span class="material-symbols-outlined">delete</span></button>
+</div>
+<p class="text-slate-500 text-sm mt-2 line-clamp-2">The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.</p>
+<div class="mt-3 flex gap-3">
+<span class="px-2 py-0.5 bg-slate-800 text-gold text-xs font-bold rounded flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">star</span> 8.4</span>
+<span class="px-2 py-0.5 bg-slate-800 text-slate-400 text-xs rounded">3h 0min</span>
+</div>
+</div>
+</div>
+<div class="flex gap-4 p-4 rounded-xl bg-surface-dark/50 border border-slate-800 hover:border-slate-700 transition-colors group">
+<div class="w-20 h-28 flex-shrink-0 rounded-lg bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBaf7GT53GhneyXM6uQstuKU-YjB2vnKnwDaEMa2lYpzYDd-sFafb76KwOZUqFGimJa0IDnu2hIdK4tLWeCSIrAiEsWldsH96ydhp95A1ZQ3APxqENgmllS41TZJRiXofh3rDVX8pUFTO2oe9kQpEhjallk9gpdlbKIhk6rEM-u1J0mQZMlNFxjyCDXSGa03P3RtM3PbJDYIjWE5kLOdenL9nxv5aDLMbmx35hh2NE4DthbZ2q8Yni9HQnmBEQzLby9lkNkaFY_h6oy');"></div>
+<div class="flex-1 py-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-lg font-bold text-white group-hover:text-primary transition-colors">Blade Runner 2049</h4>
+<p class="text-slate-400 text-sm">2017 • Sci-Fi, Action</p>
+</div>
+<button class="text-slate-500 hover:text-red-500"><span class="material-symbols-outlined">delete</span></button>
+</div>
+<p class="text-slate-500 text-sm mt-2 line-clamp-2">Young Blade Runner K's discovery of a long-buried secret leads him to track down former Blade Runner Rick Deckard, who's been missing for thirty years.</p>
+<div class="mt-3 flex gap-3">
+<span class="px-2 py-0.5 bg-slate-800 text-gold text-xs font-bold rounded flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">star</span> 8.0</span>
+<span class="px-2 py-0.5 bg-slate-800 text-slate-400 text-xs rounded">2h 44min</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<div class="space-y-8">
+<section class="bg-surface-dark border border-slate-800 rounded-2xl p-6">
+<h3 class="text-lg font-bold text-white mb-6">Preferred Genres</h3>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="text-slate-300">Sci-Fi</span>
+<span class="text-primary font-bold">85%</span>
+</div>
+<div class="w-full bg-slate-800 rounded-full h-2">
+<div class="bg-primary h-2 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="text-slate-300">Action</span>
+<span class="text-blue-400 font-bold">65%</span>
+</div>
+<div class="w-full bg-slate-800 rounded-full h-2">
+<div class="bg-blue-400 h-2 rounded-full" style="width: 65%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="text-slate-300">Thriller</span>
+<span class="text-purple-400 font-bold">40%</span>
+</div>
+<div class="w-full bg-slate-800 rounded-full h-2">
+<div class="bg-purple-400 h-2 rounded-full" style="width: 40%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="text-slate-300">Comedy</span>
+<span class="text-green-400 font-bold">25%</span>
+</div>
+<div class="w-full bg-slate-800 rounded-full h-2">
+<div class="bg-green-400 h-2 rounded-full" style="width: 25%"></div>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-surface-dark border border-slate-800 rounded-2xl p-6">
+<h3 class="text-lg font-bold text-white mb-6">Recent Activity</h3>
+<div class="space-y-6 relative">
+<div class="absolute left-3.5 top-2 bottom-2 w-0.5 bg-slate-800"></div>
+<div class="relative flex gap-4">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center relative z-10 ring-4 ring-surface-dark shrink-0">
+<span class="material-symbols-outlined text-white text-[16px]">visibility</span>
+</div>
+<div>
+<p class="text-sm text-slate-300"><span class="text-white font-bold">Watched</span> <a class="text-primary hover:underline" href="#">Dune: Part Two</a></p>
+<p class="text-xs text-slate-500 mt-1">2 hours ago</p>
+</div>
+</div>
+<div class="relative flex gap-4">
+<div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center relative z-10 ring-4 ring-surface-dark shrink-0">
+<span class="material-symbols-outlined text-white text-[16px]">rate_review</span>
+</div>
+<div>
+<p class="text-sm text-slate-300"><span class="text-white font-bold">Reviewed</span> <a class="text-primary hover:underline" href="#">Poor Things</a></p>
+<div class="flex text-gold text-[12px] my-1">
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px] fill-current">star</span>
+<span class="material-symbols-outlined text-[14px]">star</span>
+</div>
+<p class="text-xs text-slate-500">1 day ago</p>
+</div>
+</div>
+<div class="relative flex gap-4">
+<div class="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center relative z-10 ring-4 ring-surface-dark shrink-0">
+<span class="material-symbols-outlined text-white text-[16px]">favorite</span>
+</div>
+<div>
+<p class="text-sm text-slate-300"><span class="text-white font-bold">Liked</span> <a class="text-primary hover:underline" href="#">Barbie</a></p>
+<p class="text-xs text-slate-500 mt-1">2 days ago</p>
+</div>
+</div>
+<div class="relative flex gap-4">
+<div class="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center relative z-10 ring-4 ring-surface-dark shrink-0">
+<span class="material-symbols-outlined text-white text-[16px]">bookmark</span>
+</div>
+<div>
+<p class="text-sm text-slate-300"><span class="text-white font-bold">Added to Watchlist</span></p>
+<p class="text-xs text-slate-500 mt-1">Killers of the Flower Moon</p>
+<p class="text-xs text-slate-500 mt-1">3 days ago</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+<footer class="bg-background-dark border-t border-white/5 py-12 px-10">
+<div class="max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex flex-col gap-2 text-center md:text-left">
+<h4 class="text-lg font-bold text-white">CineStream</h4>
+<p class="text-slate-500 text-sm">© 2024 CineStream. All rights reserved.</p>
+</div>
+<div class="flex gap-6">
+<a class="text-slate-400 hover:text-white text-sm transition-colors" href="#">Privacy Policy</a>
+<a class="text-slate-400 hover:text-white text-sm transition-colors" href="#">Terms of Service</a>
+<a class="text-slate-400 hover:text-white text-sm transition-colors" href="#">Help Center</a>
+</div>
+</div>
+</footer>
+</main>
+</div>
+</body></html>

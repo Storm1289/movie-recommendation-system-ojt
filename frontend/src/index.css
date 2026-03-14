@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1111d4;
+  --color-primary-hover: #0a0aa8;
+  --color-bg-dark: #101022;
+  --color-surface-dark: #181830;
+  --color-surface-card: #1f1f3a;
+  --color-gold: #FFD700;
+  --color-electric-blue: #00f3ff;
+  --font-display: "Be Vietnam Pro", sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-display);
+    background-color: var(--color-bg-dark);
+    color: #e2e8f0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+  }
+  *::-webkit-scrollbar { width: 6px; height: 6px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+}
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Sidebar transitions */
+.sidebar-transition { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.content-transition { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* Hero slider fade */
+.hero-slide { animation: fadeIn 0.8s ease-in-out; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Auto-scroll for top 10 */
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.auto-scroll { animation: scroll-left 30s linear infinite; }
+.auto-scroll:hover { animation-play-state: paused; }
+
+/* Shimmer loading effect */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, var(--color-surface-dark) 25%, var(--color-surface-card) 50%, var(--color-surface-dark) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
