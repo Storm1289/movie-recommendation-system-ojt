@@ -97,6 +97,8 @@ def resolve_movie_or_fail(movie_id: str, db: Session) -> Movie:
                             movie.poster_path = details["poster_path"]
                         if details.get("genre"):
                             movie.genre = details["genre"]
+                        if details.get("franchise"):
+                            movie.franchise = details["franchise"]
                             
                         movie.wiki_summary = details.get("wiki_summary")
                         movie.wiki_plot = details.get("wiki_plot")
