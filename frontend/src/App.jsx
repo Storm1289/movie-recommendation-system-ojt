@@ -9,24 +9,28 @@ import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
 import CategoryPage from './pages/CategoryPage';
+import Landing from './pages/Landing';
 
 export default function App() {
   return (
     <AppProvider>
       <BrowserRouter>
         <Routes>
+          {/* Landing page — no sidebar/navbar */}
+          <Route path="/" element={<Landing />} />
+          
           {/* Login page — no sidebar/navbar */}
           <Route path="/login" element={<Login />} />
 
           {/* Main app layout */}
           <Route path="*" element={
-            <div className="flex flex-col min-h-screen bg-bg-dark">
+            <div className="flex flex-col min-h-screen bg-surface">
               <Navbar />
               <div className="flex flex-1 min-w-0">
                 <Sidebar />
                 <main className="flex-1 content-transition min-w-0">
                   <Routes>
-                    <Route path="/" element={<Home />} />
+                    <Route path="/home" element={<Home />} />
                     <Route path="/discover" element={<Discover />} />
                     <Route path="/popular" element={<Discover />} />
                     <Route path="/genres" element={<Discover />} />

@@ -32,7 +32,7 @@ export default function Login() {
                 avatar: formData.name?.[0]?.toUpperCase() || formData.email[0].toUpperCase(),
             });
             setLoading(false);
-            navigate('/');
+            navigate('/home');
         }, 800);
     };
 

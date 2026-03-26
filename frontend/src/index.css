@@ -1,24 +1,85 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #1111d4;
-  --color-primary-hover: #0a0aa8;
-  --color-bg-dark: #101022;
-  --color-surface-dark: #181830;
-  --color-surface-card: #1f1f3a;
-  --color-gold: #FFD700;
-  --color-electric-blue: #00f3ff;
-  --font-display: "Be Vietnam Pro", sans-serif;
+  --color-secondary-fixed: #ffca4d;
+  --color-secondary-container: #785900;
+  --color-on-tertiary-fixed-variant: #54197f;
+  --color-primary-fixed: #ff7668;
+  --color-tertiary-container: #cb8ff9;
+  --color-on-secondary-container: #fff6ec;
+  --color-on-tertiary-container: #43006d;
+  --color-secondary: #fdc003;
+  --color-on-primary: #650003;
+  --color-error-container: #a70138;
+  --color-background: #0e0e0e;
+  --color-primary-dim: #e80f16;
+  --color-secondary-fixed-dim: #f7ba00;
+  --color-surface-container-lowest: #000000;
+  --color-surface-variant: #262626;
+  --color-on-primary-fixed-variant: #610003;
+  --color-on-surface-variant: #adaaaa;
+  --color-surface-bright: #2c2c2c;
+  --color-on-tertiary-fixed: #290045;
+  --color-tertiary-dim: #c085ed;
+  --color-primary-container: #ff7668;
+  --color-secondary-dim: #ecb200;
+  --color-outline-variant: #484847;
+  --color-tertiary-fixed: #d398ff;
+  --color-on-primary-container: #4f0002;
+  --color-surface-container: #1a1a1a;
+  --color-surface: #0e0e0e;
+  --color-surface-container-low: #131313;
+  --color-on-background: #ffffff;
+  --color-outline: #767575;
+  --color-primary-fixed-dim: #ff5b4c;
+  --color-error-dim: #d73357;
+  --color-on-secondary: #553e00;
+  --color-error: #ff6e84;
+  --color-surface-container-highest: #262626;
+  --color-surface-container-high: #20201f;
+  --color-tertiary: #d7a0ff;
+  --color-surface-dim: #0e0e0e;
+  --color-on-primary-fixed: #000000;
+  --color-primary: #ff8e80;
+  --color-inverse-on-surface: #565555;
+  --color-on-error: #490013;
+  --color-inverse-primary: #c1000c;
+  --color-on-tertiary: #4f127a;
+  --color-on-secondary-fixed: #443100;
+  --color-on-surface: #ffffff;
+  --color-surface-tint: #ff8e80;
+  --color-on-secondary-fixed-variant: #674c00;
+  --color-tertiary-fixed-dim: #c68af3;
+  --color-on-error-container: #ffb2b9;
+  --color-inverse-surface: #fcf9f8;
+
+  --font-headline: "Epilogue", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Inter", sans-serif;
+
+  /* Additional config logic that mimics border radius from the script */
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+  --radius-full: 0.75rem;
+
+  /* Overriding these layout vars in case previous CSS was dependent on them */
+  --color-bg-dark: #0e0e0e;
 }
 
 @layer base {
   body {
-    font-family: var(--font-display);
-    background-color: var(--color-bg-dark);
-    color: #e2e8f0;
+    font-family: var(--font-body);
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
     min-height: 100vh;
     overflow-x: hidden;
   }
+  
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+
   * {
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.1) transparent;
@@ -31,23 +92,35 @@
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Sidebar transitions */
+/* Custom Text Shadows and Utilities from Stitch */
+.text-shadow-glow {
+  text-shadow: 0 0 20px rgba(232, 15, 22, 0.4);
+}
+
+.hero-gradient {
+  background: linear-gradient(to bottom, rgba(14, 14, 14, 0.4) 0%, rgba(14, 14, 14, 1) 90%);
+}
+
+.glass-nav {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* Sidebar and content transitions */
 .sidebar-transition { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 .content-transition { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
-/* Hero slider fade */
+/* Slide and Shimmer effect */
 .hero-slide { animation: fadeIn 0.8s ease-in-out; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* Sidebar transitions */
-
-/* Shimmer loading effect */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 .shimmer {
-  background: linear-gradient(90deg, var(--color-surface-dark) 25%, var(--color-surface-card) 50%, var(--color-surface-dark) 75%);
+  background: linear-gradient(90deg, var(--color-surface-container) 25%, var(--color-surface-container-high) 50%, var(--color-surface-container) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
+

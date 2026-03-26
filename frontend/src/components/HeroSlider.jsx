@@ -8,14 +8,13 @@ export default function HeroSlider({ movies }) {
 
     if (!movies.length) {
         return (
-            <div className="relative w-full px-4 md:px-10 py-6">
-                <div className="w-full rounded-2xl overflow-hidden shadow-2xl aspect-[21/9] bg-surface-dark shimmer" />
+            <div className="relative w-full h-[870px] overflow-hidden">
+                <div className="w-full h-full bg-surface-container shimmer" />
             </div>
         );
     }
 
-    // Limit to top 10 movies as requested
-    const displayMovies = movies.slice(0, 10);
+    const displayMovies = movies.slice(0, 5);
 
     const scrollLeft = () => {
         if (scrollContainerRef.current) {
@@ -30,11 +29,10 @@ export default function HeroSlider({ movies }) {
     };
 
     return (
-        <section className="relative w-full px-4 md:px-10 py-6 group">
-            {/* Scroll Container */}
+        <section className="relative h-[600px] md:h-[870px] w-full overflow-hidden group">
             <div
                 ref={scrollContainerRef}
-                className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar rounded-2xl shadow-2xl"
+                className="flex h-full overflow-x-auto snap-x snap-mandatory hide-scrollbar"
                 style={{ scrollBehavior: 'smooth' }}
             >
                 {displayMovies.map((movie, index) => {
@@ -44,8 +42,6 @@ export default function HeroSlider({ movies }) {
                         : rawPath
                             ? `https://image.tmdb.org/t/p/original${rawPath}`
                             : null;
-                    const year = movie.release_date?.split('-')[0] || '';
-                    const genre = movie.genre || '';
                     const inList = isInWatchlist(movie.id);
 
                     const handleWatchlist = (e) => {
@@ -55,111 +51,75 @@ export default function HeroSlider({ movies }) {
                         else addToWatchlist(movie);
                     };
 
-                    const hasBackdrop = !!movie.backdrop_path;
-                    const posterUrl = movie.poster_path?.startsWith('http')
-                        ? movie.poster_path
-                        : movie.poster_path
-                            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                            : null;
-
                     return (
-                        <div
-                            key={movie.id}
-                            className="relative min-w-full min-h-[500px] md:min-h-[600px] snap-center flex-shrink-0"
-                        >
-                            {/* Background */}
+                        <div key={movie.id} className="relative min-w-full h-full snap-center flex-shrink-0 flex flex-col justify-end">
+                            {/* Background Image */}
                             <div
-                                className={`absolute inset-0 w-full h-full bg-cover bg-center ${!hasBackdrop ? 'md:blur-3xl md:opacity-40 blur-xl opacity-50 transform scale-110' : ''}`}
-                                style={{ backgroundImage: backdropUrl ? `url('${backdropUrl}')` : 'none', backgroundColor: '#181830' }}
+                                className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] ease-linear hover:scale-110"
+                                style={{ backgroundImage: backdropUrl ? `url('${backdropUrl}')` : 'none', backgroundColor: '#0e0e0e' }}
                             />
-                            <div className={`absolute inset-0 bg-gradient-to-t ${!hasBackdrop ? 'from-bg-dark via-bg-dark/80 to-bg-dark/40' : 'from-bg-dark via-bg-dark/60 to-transparent'}`} />
-                            <div className="absolute inset-0 bg-gradient-to-r from-bg-dark via-bg-dark/40 to-transparent" />
+                            
+                            {/* Cinematic Gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/80 to-transparent"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-surface/90 via-surface/40 to-transparent"></div>
 
-                            {/* Content Grid */}
-                            <div className="relative z-10 flex flex-col md:flex-row h-full w-full">
-                                {/* Left Content */}
-                                <div className={`flex flex-col justify-end md:justify-center h-full p-6 md:p-12 w-full ${!hasBackdrop ? 'md:w-3/5 lg:w-1/2' : 'lg:w-2/3'}`}>
-                                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/30 text-primary text-xs font-bold uppercase tracking-wider w-fit mb-4 backdrop-blur-sm shadow-lg">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--color-primary),0.8)]" />
-                                        Trending #{index + 1}
+                            {/* Content */}
+                            <div className="relative z-10 p-8 md:p-20 w-full max-w-5xl">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <span className="bg-secondary text-on-secondary px-3 py-1 rounded-lg font-label text-[10px] font-bold tracking-widest uppercase shadow-lg">
+                                        Spotlight #{index + 1}
                                     </span>
-
-                                    <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-white leading-tight mb-4 tracking-tight drop-shadow-2xl">
-                                        {movie.title}
-                                    </h1>
-
-                                    <div className="flex items-center gap-4 text-sm md:text-base text-slate-300 mb-6 font-medium backdrop-blur-sm bg-black/10 w-fit px-4 py-2 rounded-lg border border-white/5">
-                                        <span className="text-green-400 font-bold drop-shadow">
-                                            {movie.rating ? movie.rating.toFixed(1) : 'NR'} Rating
+                                    <div className="flex items-center gap-1 bg-surface-container/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
+                                        <span className="material-symbols-outlined text-secondary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                                        <span className="text-xs font-bold font-label text-white">
+                                            {movie.rating ? movie.rating.toFixed(1) : 'NR'}
                                         </span>
-                                        <span>•</span>
-                                        <span>{year}</span>
-                                        <span>•</span>
-                                        <span className="px-2 py-0.5 border border-slate-500 rounded text-xs text-slate-400">PG-13</span>
-                                        {genre && (
-                                            <>
-                                                <span>•</span>
-                                                <span className="text-slate-200">{genre}</span>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    <p className="text-slate-200 text-sm md:text-lg leading-relaxed mb-8 max-w-2xl line-clamp-3 md:line-clamp-4 drop-shadow-xl font-medium">
-                                        {movie.overview}
-                                    </p>
-
-                                    <div className="flex flex-wrap items-center gap-4">
-                                        <Link
-                                            to={`/movie/${movie.id}`}
-                                            className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-8 py-3.5 rounded-lg font-bold text-base transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(var(--color-primary),0.4)]"
-                                        >
-                                            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
-                                            Movie Info
-                                        </Link>
-                                        <button
-                                            onClick={handleWatchlist}
-                                            className={`flex items-center justify-center gap-2 backdrop-blur-md border px-8 py-3.5 rounded-lg font-bold text-base transition-all ${inList ? 'bg-primary/20 border-primary text-primary hover:bg-red-500/20 hover:border-red-500 hover:text-red-400 shadow-[0_0_15px_rgba(var(--color-primary),0.2)]' : 'bg-black/40 hover:bg-white/10 border-white/20 text-white hover:border-white/40 shadow-xl'}`}
-                                        >
-                                            <span className="material-symbols-outlined">{inList ? 'check' : 'add'}</span>
-                                            {inList ? 'In Watchlist' : 'Add in Watchlist'}
-                                        </button>
                                     </div>
                                 </div>
-
-                                {/* Right Poster (Only visible on desktop if no backdrop exists) */}
-                                {!hasBackdrop && posterUrl && (
-                                    <div className="hidden md:flex flex-1 flex-col justify-center items-center py-12 pr-12 lg:pr-24">
-                                        <div className="relative group perspective-1000">
-                                            <img 
-                                                src={posterUrl} 
-                                                alt={movie.title} 
-                                                className="w-full max-w-[320px] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] border border-white/10 transform transition-transform duration-700 hover:rotate-y-12 hover:scale-105"
-                                            />
-                                            {/* Glow effect behind poster */}
-                                            <div className="absolute inset-0 bg-primary/20 blur-3xl -z-10 rounded-full transform scale-90 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                                        </div>
-                                    </div>
-                                )}
+                                
+                                <h1 className="text-5xl md:text-7xl lg:text-8xl font-black font-headline tracking-tighter mb-6 uppercase leading-tight text-white drop-shadow-2xl">
+                                    {/* Make title split beautifully if long */}
+                                    {movie.title.split(' ').map((word, i) => (
+                                        i === movie.title.split(' ').length - 1 ? 
+                                        <span key={i} className="text-primary-dim">{word}</span> : 
+                                        <span key={i}>{word} </span>
+                                    ))}
+                                </h1>
+                                
+                                <p className="text-lg md:text-xl text-on-surface-variant max-w-2xl mb-10 font-body leading-relaxed drop-shadow-md line-clamp-3">
+                                    {movie.overview}
+                                </p>
+                                
+                                <div className="flex flex-col sm:flex-row items-center gap-4">
+                                    <Link to={`/movie/${movie.id}`} className="w-full sm:w-auto bg-primary-dim text-on-primary-fixed px-10 py-4 rounded-full font-headline font-bold flex justify-center items-center gap-3 hover:scale-105 transition-transform shadow-[0_0_20px_rgba(232,15,22,0.4)]">
+                                        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                                        Watch Now
+                                    </Link>
+                                    <button onClick={handleWatchlist} className="w-full sm:w-auto bg-surface-container/40 backdrop-blur-md border border-white/10 text-white px-10 py-4 rounded-full font-headline font-bold hover:bg-white/10 transition-colors flex justify-center items-center gap-2">
+                                        <span className="material-symbols-outlined">{inList ? 'check' : 'add'}</span>
+                                        {inList ? 'In Watchlist' : 'Add to List'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     );
                 })}
             </div>
 
-            {/* Nav arrows - Outside the scroll container but positioned absolutely over it */}
+            {/* Nav arrows */}
             <button
                 onClick={scrollLeft}
-                className="absolute left-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-black/60 backdrop-blur text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:scale-110 shadow-xl"
-                aria-label="Previous movie"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 bg-surface-container-highest/60 backdrop-blur-md border border-white/10 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary-dim hover:scale-110 hover:shadow-[0_0_20px_rgba(232,15,22,0.4)]"
+                aria-label="Previous Spotlight"
             >
-                <span className="material-symbols-outlined text-2xl">chevron_left</span>
+                <span className="material-symbols-outlined text-3xl">chevron_left</span>
             </button>
             <button
                 onClick={scrollRight}
-                className="absolute right-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-black/60 backdrop-blur text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:scale-110 shadow-xl"
-                aria-label="Next movie"
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 bg-surface-container-highest/60 backdrop-blur-md border border-white/10 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary-dim hover:scale-110 hover:shadow-[0_0_20px_rgba(232,15,22,0.4)]"
+                aria-label="Next Spotlight"
             >
-                <span className="material-symbols-outlined text-2xl">chevron_right</span>
+                <span className="material-symbols-outlined text-3xl">chevron_right</span>
             </button>
         </section>
     );
