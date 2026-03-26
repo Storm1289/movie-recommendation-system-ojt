@@ -36,6 +36,9 @@ class Movie(Base):
     # NEW: Monthly ranking score
     monthly_score = Column(Float, default=0.0)
 
+    # NEW: Cinematic Universe Franchise
+    franchise = Column(String(255), nullable=True)
+
     def to_dict(self):
         # Compute display rating: if users have rated, use their average; else use original
         if self.user_rating_count and self.user_rating_count > 0:
@@ -48,6 +51,7 @@ class Movie(Base):
             "tmdb_id": self.tmdb_id,
             "title": self.title,
             "genre": self.genre,
+            "franchise": self.franchise,
             "overview": self.overview,
             "rating": display_rating,
             "original_rating": self.rating,

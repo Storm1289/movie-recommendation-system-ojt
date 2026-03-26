@@ -46,6 +46,8 @@ def fetch_wiki_details(movie_title: str, release_year: str = "") -> dict:
         "wiki_box_office": None,
         "wiki_runtime": None,
         "poster_path": None,
+        "genre": None,
+        "franchise": None,
     }
 
     # Search for the movie article
@@ -67,13 +69,15 @@ def fetch_wiki_details(movie_title: str, release_year: str = "") -> dict:
         if summary_data["extract"]:
             result["wiki_summary"] = summary_data["extract"]
             
-            # Predict genre using Gemini
+            # Predict genre and franchise using Gemini
             if GEMINI_AVAILABLE:
                 try:
                     model = genai.GenerativeModel("gemini-2.5-flash")
-                    prompt = f"Analyze this movie summary and return a comma-separated list of up to 3 genres for it. Output nothing but the genres (e.g. Action, Sci-Fi, Thriller):\n\n{summary_data['extract']}"
-                    resp = model.generate_content(prompt)
-                    result["genre"] = resp.text.strip()
+                    prompt = f"Analyze this movie summary and return a JSON object with keys 'genre' (comma-separated string, max 3) and 'franchise' (string of the Cinematic Universe or Franchise it belongs to, e.g. 'Marvel Cinematic Universe'. Set to null if standalone):\n\n{summary_data['extract']}"
+                    resp = model.generate_content(prompt, generation_config=genai.types.GenerationConfig(response_mime_type="application/json"))
+                    data = json.loads(resp.text)
+                    result["genre"] = data.get("genre")
+                    result["franchise"] = data.get("franchise")
                 except Exception:
                     pass
             
@@ -88,6 +92,11 @@ def fetch_wiki_details(movie_title: str, release_year: str = "") -> dict:
             result["wiki_budget"] = _extract_infobox_field(full_text, ["Budget"])
             result["wiki_box_office"] = _extract_infobox_field(full_text, ["Box office", "Gross"])
             result["wiki_runtime"] = _extract_infobox_field(full_text, ["Running time", "Runtime"])
+            
+            # Extract genre from Wikipedia info box if Gemini failed or wasn't available
+            wiki_genre = _extract_infobox_field(full_text, ["Genre", "Genres"])
+            if wiki_genre and not result.get("genre"):
+                result["genre"] = wiki_genre.strip()[:100] # Ensure it doesn't overflow
 
             # Extract cast
             cast_text = _extract_section(full_text, ["Cast", "Cast and characters"])
@@ -109,26 +118,45 @@ def search_wiki_movies(query: str) -> list[dict]:
         try:
             model = genai.GenerativeModel("gemini-2.5-flash")
             prompt = f"""You are a movie and TV recommendation expert. The user searched for: "{query}".
-Return a JSON array of up to 8 EXACT Wikipedia article titles for movies or TV shows that match this query.
+Return a JSON array of up to 8 objects containing exact Wikipedia article titles and their primary genres that match this query.
 CRITICAL RULES:
 1. ALWAYS use the exact English Wikipedia article title (e.g., "The Lord of the Rings: The Fellowship of the Ring", "The Avengers (2012 film)"). Make sure disambiguations like "(film)" are included if required by Wikipedia.
 2. If the query is a franchise (like "Avengers" or "Batman" or "Lord of the Rings"), return the titles of the main movies in that franchise!
-3. ONLY return movies, films, or TV series. Do not return characters, cast members, or soundtracks.
-4. Output NOTHING but a valid JSON array of strings."""
-
-            response = model.generate_content(prompt)
+3. ONLY return movies, films, or TV series.
+4. Output NOTHING but a valid JSON array of objects with keys "title" (exact wiki title), "genre" (comma-separated, max 3, e.g. "Action, Sci-Fi"), and "franchise" (string of the Cinematic Universe or Franchise it belongs to, like "Marvel Cinematic Universe" or "The Conjuring Universe". Set to null if it's a standalone movie)."""
+            response = model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    response_mime_type="application/json"
+                )
+            )
             
-            # Extract JSON
+            # Extract JSON block using regex to handle variations
+            import re
             text = response.text.strip()
-            if "```json" in text:
-                text = text.split("```json")[1].split("```")[0].strip()
-            elif "```" in text:
-                text = text.split("```")[1].split("```")[0].strip()
-                
-            titles = json.loads(text)
+            # Try to find array brackets even if not wrapped in markdown
+            match = re.search(r"\[.*\]", text, re.DOTALL)
+            if match:
+                text = match.group(0)
+            else:
+                text = text.replace("```json", "").replace("```", "").strip()
+            
+            print("GEMINI TEXT:", text)
+            items = json.loads(text)
             
             results = []
-            for title in titles:
+            for item in items:
+                # Handle cases where Gemini still returns a list of strings by accident
+                if isinstance(item, str):
+                    title = item
+                    genre = ""
+                else:
+                    title = item.get("title")
+                    genre = item.get("genre", "")
+                    
+                if not title:
+                    continue
+                    
                 # Fetch exact summary for each title
                 summary_data = _get_summary(title)
                 if not summary_data or not summary_data.get("extract"):
@@ -142,7 +170,7 @@ CRITICAL RULES:
                     "backdrop_path": None,
                     "rating": 0.0,
                     "release_date": "",
-                    "genre": "",
+                    "genre": genre,
                     "popularity": 0
                 })
             
@@ -151,7 +179,9 @@ CRITICAL RULES:
                 return results
                 
         except Exception as e:
-            print(f"Gemini search error: {e}, falling back to standard Wikipedia search.")
+            import traceback
+            traceback.print_exc()
+            return [{"title": f"ERROR: {str(e)}", "genre": "ERROR"}]
             
     # 2. Fallback to standard explicit Wikipedia Search if no key or Gemini fails
     params = {

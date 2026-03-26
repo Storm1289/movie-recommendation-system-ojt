@@ -60,12 +60,14 @@ export function AppProvider({ children }) {
     const updateSettings = (newSettings) => {
         setSettings(prev => ({ ...prev, ...newSettings }));
     };
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     return (
         <AppContext.Provider value={{
             user, login, logout,
             watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist,
             settings, updateSettings,
+            isSidebarOpen, setIsSidebarOpen
         }}>
             {children}
         </AppContext.Provider>

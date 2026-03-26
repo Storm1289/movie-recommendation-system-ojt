@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
@@ -17,10 +17,9 @@ const genres = [
 ];
 
 export default function Sidebar() {
-    const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
-    const { user, logout } = useApp();
+    const { user, logout, isSidebarOpen: isOpen } = useApp();
 
     const handleLogout = () => {
         logout();
@@ -29,22 +28,8 @@ export default function Sidebar() {
 
     return (
         <aside
-            className={`hidden md:flex flex-col h-screen fixed left-0 top-0 z-50 bg-surface-dark/95 border-r border-slate-800 backdrop-blur-md overflow-hidden sidebar-transition ${isOpen ? 'w-64' : 'w-20'}`}
+            className={`hidden md:flex flex-col h-[calc(100vh-65px)] sticky left-0 top-[65px] z-30 bg-surface-dark/95 border-r border-slate-800 backdrop-blur-md overflow-hidden sidebar-transition ${isOpen ? 'w-64' : 'w-20'}`}
         >
-            {/* Logo Area */}
-            <div className={`py-4 mb-2 flex items-center transition-all ${isOpen ? 'px-6 justify-start' : 'px-0 justify-center'}`}>
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/5 transition-colors"
-                >
-                    <span className="material-symbols-outlined">menu</span>
-                </button>
-                {isOpen && (
-                    <Link to="/" className="flex items-center gap-3 text-white ml-3">
-                        <h2 className="text-xl font-black tracking-tighter whitespace-nowrap">CineStream</h2>
-                    </Link>
-                )}
-            </div>
 
             {/* Nav Items */}
             <nav className="flex-1 px-2 space-y-1 overflow-y-auto hide-scrollbar">

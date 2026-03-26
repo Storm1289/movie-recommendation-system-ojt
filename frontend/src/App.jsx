@@ -8,6 +8,7 @@ import MovieDetail from './pages/MovieDetail';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
+import CategoryPage from './pages/CategoryPage';
 
 export default function App() {
   return (
@@ -19,16 +20,17 @@ export default function App() {
 
           {/* Main app layout */}
           <Route path="*" element={
-            <div className="flex min-h-screen">
-              <Sidebar />
-              <div className="flex-1 md:ml-20 content-transition min-w-0">
-                <Navbar />
-                <main className="min-h-[calc(100vh-65px)]">
+            <div className="flex flex-col min-h-screen bg-bg-dark">
+              <Navbar />
+              <div className="flex flex-1 min-w-0">
+                <Sidebar />
+                <main className="flex-1 content-transition min-w-0">
                   <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/discover" element={<Discover />} />
                     <Route path="/popular" element={<Discover />} />
                     <Route path="/genres" element={<Discover />} />
+                    <Route path="/category/:id" element={<CategoryPage />} />
                     <Route path="/movie/:id" element={<MovieDetail />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/settings" element={<Settings />} />

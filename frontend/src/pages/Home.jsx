@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { fetchTrending, fetchTopMonth, fetchMovies } from '../api/api';
 import HeroSlider from '../components/HeroSlider';
+import MovieRow from '../components/MovieRow';
 import MovieCard from '../components/MovieCard';
 
 export default function Home() {
@@ -13,95 +13,42 @@ export default function Home() {
     useEffect(() => {
         fetchTrending().then(res => setTrending(res.data.movies)).catch(console.error);
         fetchTopMonth().then(res => setTopMonth(res.data.movies)).catch(console.error);
-        fetchMovies({ sort_by: 'rating', per_page: 6 }).then(res => setRecommended(res.data.movies)).catch(console.error);
-        fetchMovies({ sort_by: 'release_date', per_page: 6 }).then(res => setNewReleases(res.data.movies)).catch(console.error);
+        fetchMovies({ sort_by: 'rating', per_page: 12 }).then(res => setRecommended(res.data.movies)).catch(console.error);
+        fetchMovies({ sort_by: 'release_date', per_page: 12 }).then(res => setNewReleases(res.data.movies)).catch(console.error);
     }, []);
 
     return (
-        <div>
+        <div className="pb-20">
             {/* Hero Slider */}
             <HeroSlider movies={trending} />
 
-            <div className="px-4 md:px-10 mt-8 space-y-12">
-                {/* Top 10 of the Month - Auto-scrolling */}
-                <section>
-                    <div className="flex items-center justify-between mb-4 px-1">
-                        <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                            🔥 Top 10 Movies of the Month
-                            <span className="text-primary text-sm font-normal opacity-80 ml-2">March 2026</span>
-                        </h2>
-                        <Link to="/discover" className="text-sm font-semibold text-primary hover:text-white transition-colors flex items-center gap-1 group">
-                            View all
-                            <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
-                        </Link>
-                    </div>
+            <div className="px-4 md:px-10 mt-8 space-y-12 mb-20">
+                <MovieRow 
+                    title="🔥 Top 10 Movies of the Month" 
+                    subTitle="March 2026"
+                    movies={topMonth} 
+                    showRank={true}
+                    linkTo="/category/top-month" 
+                />
 
-                    {/* Auto-scrolling container */}
-                    <div className="overflow-hidden relative">
-                        <div className="auto-scroll flex gap-4 w-max">
-                            {/* Duplicate for seamless loop */}
-                            {[...topMonth, ...topMonth].map((movie, i) => (
-                                <div key={`${movie.id}-${i}`} className="min-w-[160px] md:min-w-[200px]">
-                                    <MovieCard movie={movie} rank={i < topMonth.length ? i + 1 : undefined} />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
+                <MovieRow 
+                    title="Based on your recent watch" 
+                    subTitle="Because you watched Inception"
+                    movies={recommended} 
+                    linkTo="/category/recommended" 
+                />
 
-                {/* Recommended for You */}
-                <section>
-                    <div className="flex items-center justify-between mb-4 px-1">
-                        <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                            Based on your recent watch
-                            <span className="text-primary text-sm font-normal opacity-80 ml-2">Because you watched Inception</span>
-                        </h2>
-                        <Link to="/discover" className="text-sm font-semibold text-primary hover:text-white transition-colors flex items-center gap-1 group">
-                            View all
-                            <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
-                        </Link>
-                    </div>
-                    <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x">
-                        {recommended.map((movie) => (
-                            <div key={movie.id} className="min-w-[160px] md:min-w-[200px] snap-start">
-                                <MovieCard movie={movie} />
-                            </div>
-                        ))}
-                    </div>
-                </section>
+                <MovieRow 
+                    title="Trending Now" 
+                    movies={trending} 
+                    linkTo="/category/trending" 
+                />
 
-                {/* Trending */}
-                <section>
-                    <div className="flex items-center justify-between mb-4 px-1">
-                        <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                            Trending Now
-                            <span className="text-red-500 animate-pulse material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-                        </h2>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        {trending.map((movie, i) => (
-                            <MovieCard key={movie.id} movie={movie} rank={i + 1} />
-                        ))}
-                    </div>
-                </section>
-
-                {/* New Releases */}
-                <section className="pb-8">
-                    <div className="flex items-center justify-between mb-4 px-1">
-                        <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight">New Releases</h2>
-                        <Link to="/discover?sort=release_date" className="text-sm font-semibold text-primary hover:text-white transition-colors flex items-center gap-1 group">
-                            View all
-                            <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
-                        </Link>
-                    </div>
-                    <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x">
-                        {newReleases.map((movie) => (
-                            <div key={movie.id} className="min-w-[160px] md:min-w-[200px] snap-start">
-                                <MovieCard movie={movie} />
-                            </div>
-                        ))}
-                    </div>
-                </section>
+                <MovieRow 
+                    title="New Releases" 
+                    movies={newReleases} 
+                    linkTo="/category/new-releases" 
+                />
             </div>
 
             {/* Footer */}
