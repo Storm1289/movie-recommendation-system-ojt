@@ -126,29 +126,9 @@ def search(q: str = "", db: Session = Depends(get_db)):
     if not q:
         return {"movies": []}
         
-    local_titles = set()
-    local_results = []
-    
-    # Local DB search
+    # Local DB search only (no external/wiki augmentation)
     local_movies = db.query(Movie).filter(Movie.title.ilike(f"%{q}%")).all()
-    for m in local_movies:
-        title_lower = m.title.lower()
-        if title_lower not in local_titles:
-            local_titles.add(title_lower)
-            local_results.append(m.to_dict())
-    
-    # Wikipedia search
-    from wiki_service import search_wiki_movies
-    wiki_results = search_wiki_movies(q)
-    
-    # Combine, avoiding duplicates by title
-    for item in wiki_results:
-        title_lower = item["title"].lower()
-        if title_lower not in local_titles:
-            local_titles.add(title_lower)
-            local_results.append(item)
-            
-    return {"movies": local_results}
+    return {"movies": [m.to_dict() for m in local_movies]}
 
 @app.get("/api/movies")
 def list_movies(

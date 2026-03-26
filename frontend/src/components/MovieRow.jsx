@@ -42,7 +42,7 @@ export default function MovieRow({ title, subTitle, movies, linkTo, showRank = f
                 {/* Left Arrow */}
                 <button
                     onClick={scrollLeft}
-                    className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-surface-container-highest/80 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all hover:bg-primary-dim hover:scale-110 text-white shadow-xl pointer-events-auto"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-surface-container-highest/80 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all hover:bg-primary-dim hover:scale-110 text-white shadow-xl pointer-events-auto"
                     aria-label="Scroll left"
                 >
                     <span className="material-symbols-outlined text-2xl">chevron_left</span>

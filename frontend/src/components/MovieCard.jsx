@@ -23,7 +23,7 @@ export default function MovieCard({ movie, rank, showMatch }) {
 
     return (
         <Link to={`/movie/${movie.id}`} className="group/card cursor-pointer block">
-            <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 transition-all duration-300 group-hover/card:scale-105 group-hover/card:shadow-[0_0_30px_rgba(232,15,22,0.3)] bg-surface-container">
+            <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 transition-all duration-300 group-hover/card:scale-110 group-hover/card:shadow-[0_0_40px_rgba(232,15,22,0.5)] bg-surface-container z-10 group-hover/card:z-50">
                 {/* Rank badge */}
                 {rank && (
                     <div className="absolute -left-2 -top-2 z-20 flex items-center justify-center font-black text-5xl text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] italic font-headline">
@@ -46,7 +46,7 @@ export default function MovieCard({ movie, rank, showMatch }) {
                 )}
 
                 {/* Rating badge */}
-                <div className="absolute top-3 right-3 bg-secondary-container/90 text-on-secondary-fixed px-2 py-1 rounded-lg text-xs font-bold font-label flex items-center gap-1 backdrop-blur-md">
+                <div className="absolute top-3 right-3 bg-secondary text-black px-2 py-1 rounded-lg text-xs font-black font-label flex items-center gap-1 shadow-[0_0_15px_rgba(253,192,3,0.5)] z-10">
                     <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                     {movie.rating ? movie.rating.toFixed(1) : 'NR'}
                 </div>
@@ -60,8 +60,8 @@ export default function MovieCard({ movie, rank, showMatch }) {
                 )}
 
                 {/* Hover overlay for actions */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity bg-black/60 backdrop-blur-sm gap-3 z-30">
-                    <span className="bg-white text-on-surface rounded-full px-5 py-2 text-xs font-bold hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-lg font-headline tracking-wide">
+                <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity bg-black/40 gap-3 z-30">
+                    <span className="bg-white text-black rounded-full px-5 py-2 text-xs font-black hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.4)] font-headline tracking-wide">
                         <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>info</span> Info
                     </span>
                     <button
