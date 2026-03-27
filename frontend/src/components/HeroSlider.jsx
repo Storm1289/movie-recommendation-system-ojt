@@ -44,11 +44,15 @@ export default function HeroSlider({ movies }) {
                             : null;
                     const inList = isInWatchlist(movie.id);
 
-                    const handleWatchlist = (e) => {
+                    const handleWatchlist = async (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        if (inList) removeFromWatchlist(movie.id);
-                        else addToWatchlist(movie);
+                        try {
+                            if (inList) await removeFromWatchlist(movie.id);
+                            else await addToWatchlist(movie);
+                        } catch (error) {
+                            console.error(error);
+                        }
                     };
 
                     return (

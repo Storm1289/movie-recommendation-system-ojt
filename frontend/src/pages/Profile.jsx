@@ -10,12 +10,12 @@ export default function Profile() {
             {/* SideNavBar Component */}
             <aside className="hidden lg:flex w-64 border-r border-white/5 bg-[#131313] flex-col py-8 z-40 h-screen sticky top-0 shrink-0">
                 <div className="px-6 mb-10">
-                    <Link to="/home" className="text-xl font-black text-primary font-headline uppercase tracking-tighter hover:opacity-80 transition-opacity">CineAuteur</Link>
+                    <Link to="/home" className="text-xl font-black text-primary font-headline uppercase tracking-tighter hover:opacity-80 transition-opacity">CineStream</Link>
                 </div>
                 
                 <div className="px-6 mb-8">
                     <h2 className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Account</h2>
-                    <p className="text-xs text-secondary font-medium">{user ? 'Digital Auteur' : 'Guest'}</p>
+                    <p className="text-xs text-secondary font-medium">{user ? 'Digital Streamer' : 'Guest'}</p>
                 </div>
                 
                 <nav className="flex-1 space-y-1">
@@ -38,7 +38,7 @@ export default function Profile() {
             <main className="flex-1 min-h-[100vh] relative flex flex-col">
                 {/* Mobile Header */}
                 <header className="lg:hidden flex justify-between items-center px-6 py-4 bg-[#0e0e0e]/80 backdrop-blur-2xl sticky top-0 z-50 border-b border-white/5">
-                    <Link to="/home" className="text-xl font-black text-primary font-headline uppercase tracking-tighter">CineAuteur</Link>
+                    <Link to="/home" className="text-xl font-black text-primary font-headline uppercase tracking-tighter">CineStream</Link>
                     <button className="material-symbols-outlined text-white">menu</button>
                 </header>
 
@@ -120,7 +120,7 @@ export default function Profile() {
                 {/* Minimal Footer for Profile Page */}
                 <footer className="w-full py-8 px-6 lg:px-12 text-center border-t border-white/5 mt-auto bg-[#0e0e0e]">
                     <p className="text-on-surface-variant font-inter text-[10px] tracking-widest uppercase mb-2">
-                        © {new Date().getFullYear()} CineAuteur. The Digital Auteur Experience.
+                        © {new Date().getFullYear()} CineStream. The Digital Streaming Experience.
                     </p>
                 </footer>
             </main>

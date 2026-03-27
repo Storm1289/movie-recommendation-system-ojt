@@ -3,14 +3,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 export default function Login() {
-    const { login } = useApp();
+    const { login, signup } = useApp();
     const navigate = useNavigate();
     const [isSignup, setIsSignup] = useState(false);
     const [formData, setFormData] = useState({ name: '', email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
 
@@ -24,16 +24,25 @@ export default function Login() {
         }
 
         setLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            login({
-                name: formData.name || formData.email.split('@')[0],
-                email: formData.email,
-                avatar: formData.name?.[0]?.toUpperCase() || formData.email[0].toUpperCase(),
-            });
-            setLoading(false);
+        try {
+            if (isSignup) {
+                await signup({
+                    name: formData.name.trim(),
+                    email: formData.email.trim(),
+                    password: formData.password,
+                });
+            } else {
+                await login({
+                    email: formData.email.trim(),
+                    password: formData.password,
+                });
+            }
             navigate('/home');
-        }, 800);
+        } catch (err) {
+            setError(err?.response?.data?.detail || 'Unable to sign in right now');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleChange = (e) => {

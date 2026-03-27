@@ -6,6 +6,21 @@ Plain Python classes that convert between MongoDB docs and API-friendly dicts.
 from datetime import datetime, timezone
 
 
+DEFAULT_USER_SETTINGS = {
+    "darkMode": True,
+    "autoplay": True,
+    "notifications": True,
+    "emailDigest": False,
+    "language": "English",
+    "quality": "Auto",
+}
+
+DEFAULT_USER_STATS = {
+    "rated_movie_ids": [],
+    "comment_count": 0,
+}
+
+
 class Movie:
     """Represents a movie document in the 'movies' collection."""
 
@@ -94,4 +109,44 @@ class Comment:
             "content": doc.get("content"),
             "rating": doc.get("rating"),
             "created_at": created_at,
+        }
+
+
+class User:
+    """Represents a user document in the 'users' collection."""
+
+    @staticmethod
+    def settings_from_doc(doc: dict) -> dict:
+        settings = DEFAULT_USER_SETTINGS.copy()
+        settings.update(doc.get("settings") or {})
+        return settings
+
+    @staticmethod
+    def stats_from_doc(doc: dict) -> dict:
+        stats = DEFAULT_USER_STATS.copy()
+        stats.update(doc.get("stats") or {})
+        return {
+            "ratedMovieIds": [str(movie_id) for movie_id in stats.get("rated_movie_ids", [])],
+            "commentCount": stats.get("comment_count", 0),
+        }
+
+    @staticmethod
+    def from_doc(doc: dict) -> dict:
+        if not doc:
+            return None
+
+        created_at = doc.get("created_at")
+        updated_at = doc.get("updated_at")
+        if isinstance(created_at, datetime):
+            created_at = created_at.isoformat()
+        if isinstance(updated_at, datetime):
+            updated_at = updated_at.isoformat()
+
+        return {
+            "id": doc.get("id"),
+            "name": doc.get("name"),
+            "email": doc.get("email"),
+            "avatar": doc.get("avatar"),
+            "created_at": created_at,
+            "updated_at": updated_at,
         }

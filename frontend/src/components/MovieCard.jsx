@@ -13,12 +13,17 @@ export default function MovieCard({ movie, rank, showMatch }) {
     const year = movie.release_date?.split('-')[0] || '';
     const genre = movie.genre?.split(',')[0]?.trim() || '';
     const inList = isInWatchlist(movie.id);
+    const matchScore = movie.match_score ?? 70 + ((Number(movie.id) || 0) * 13 % 28);
 
-    const handleWatchlist = (e) => {
+    const handleWatchlist = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (inList) removeFromWatchlist(movie.id);
-        else addToWatchlist(movie);
+        try {
+            if (inList) await removeFromWatchlist(movie.id);
+            else await addToWatchlist(movie);
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return (
@@ -55,7 +60,7 @@ export default function MovieCard({ movie, rank, showMatch }) {
                 {showMatch && (
                     <div className="absolute top-3 left-3 z-10 bg-primary-dim/90 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg backdrop-blur-md flex items-center gap-1 font-label uppercase tracking-wider">
                         <span className="material-symbols-outlined text-[12px]">thumb_up</span>
-                        {Math.floor(70 + Math.random() * 28)}% Match
+                        {matchScore}% Match
                     </div>
                 )}
 

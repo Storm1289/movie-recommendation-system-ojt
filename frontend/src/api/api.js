@@ -12,6 +12,14 @@ export const fetchRecommendations = (id, topN = 10) => API.get(`/movies/${id}/re
 export const searchMovies = (query) => API.get('/search', { params: { q: query } });
 export const fetchGenres = () => API.get('/genres');
 
+// Auth and user state
+export const signupUser = (data) => API.post('/auth/signup', data);
+export const loginUser = (data) => API.post('/auth/login', data);
+export const fetchUserState = (userId) => API.get(`/users/${userId}/state`);
+export const updateUserSettings = (userId, data) => API.put(`/users/${userId}/settings`, data);
+export const addMovieToWatchlist = (userId, movieId) => API.post(`/users/${userId}/watchlist/${movieId}`);
+export const removeMovieFromWatchlist = (userId, movieId) => API.delete(`/users/${userId}/watchlist/${movieId}`);
+
 // Wikipedia details (cached in DB)
 export const fetchWikiDetails = (id) => API.get(`/movies/${id}/wiki`);
 

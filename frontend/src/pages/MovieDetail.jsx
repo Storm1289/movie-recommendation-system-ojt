@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchMovie, fetchRecommendations, fetchWikiDetails, fetchComments, postComment, rateMovie, fetchStreaming } from '../api/api';
+import { fetchMovie, fetchRecommendations, fetchWikiDetails, fetchComments, postComment, fetchStreaming } from '../api/api';
 import { useApp } from '../context/AppContext';
 import MovieCard from '../components/MovieCard';
 
@@ -14,7 +14,6 @@ export default function MovieDetail() {
     const [streaming, setStreaming] = useState([]);
     const [streamingCountry, setStreamingCountry] = useState('');
     const [loading, setLoading] = useState(true);
-    const [wikiLoading, setWikiLoading] = useState(true);
     const [showTrailer, setShowTrailer] = useState(false);
 
     // Comment form
@@ -23,19 +22,13 @@ export default function MovieDetail() {
     const [hoverRating, setHoverRating] = useState(0);
     const [submitting, setSubmitting] = useState(false);
 
-    // User star rating (standalone)
-    const [userRating, setUserRating] = useState(0);
-    const [userRatingHover, setUserRatingHover] = useState(0);
-
-    const { addToWatchlist, removeFromWatchlist, isInWatchlist, user, markMovieRated, incrementCommentCount } = useApp();
+    const { addToWatchlist, removeFromWatchlist, isInWatchlist, user, incrementCommentCount } = useApp();
 
     useEffect(() => {
         setLoading(true);
-        setWikiLoading(true);
         setShowTrailer(false);
         setCommentText('');
         setCommentRating(0);
-        setUserRating(0);
         window.scrollTo(0, 0);
 
         fetchMovie(id)
@@ -47,8 +40,8 @@ export default function MovieDetail() {
             .catch(console.error);
 
         fetchWikiDetails(id)
-            .then(res => { setWiki(res.data); setWikiLoading(false); })
-            .catch(() => setWikiLoading(false));
+            .then(res => { setWiki(res.data); })
+            .catch(console.error);
 
         fetchComments(id)
             .then(res => { setComments(res.data.comments || []); setCommentCount(res.data.count || 0); })
@@ -79,6 +72,7 @@ export default function MovieDetail() {
         setSubmitting(true);
         try {
             const res = await postComment(id, {
+                user_id: user?.id || null,
                 user_name: user?.name || 'Anonymous',
                 user_email: user?.email || null,
                 content: commentText.trim(),
@@ -100,24 +94,6 @@ export default function MovieDetail() {
             console.error(err);
         }
         setSubmitting(false);
-    };
-
-    const handleRateMovie = async (rating) => {
-        setUserRating(rating);
-        try {
-            const res = await rateMovie(id, {
-                user_id: user?.email || 'anonymous',
-                rating,
-            });
-            markMovieRated(String(id));
-            setMovie(prev => ({
-                ...prev,
-                rating: res.data.rating,
-                user_rating_count: res.data.user_rating_count,
-            }));
-        } catch (err) {
-            console.error(err);
-        }
     };
 
     if (loading) {
@@ -154,9 +130,13 @@ export default function MovieDetail() {
     const trailerSearchQuery = encodeURIComponent(`${movie.title} ${year} official trailer`);
     const youtubeEmbedUrl = `https://www.youtube.com/embed?listType=search&list=${trailerSearchQuery}&autoplay=1`;
 
-    const handleWatchlist = () => {
-        if (inList) removeFromWatchlist(movie.id);
-        else addToWatchlist(movie);
+    const handleWatchlist = async () => {
+        try {
+            if (inList) await removeFromWatchlist(movie.id);
+            else await addToWatchlist(movie);
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     // Parse wiki cast
@@ -264,7 +244,6 @@ export default function MovieDetail() {
                                 {castList.slice(0, 8).map((person, i) => {
                                     const names = person.split(' ');
                                     const lastName = names.length > 1 ? names[names.length - 1] : person;
-                                    const roleName = "Cast Member";
                                     return (
                                         <div key={i} className="bg-surface-container-low p-4 rounded-xl group hover:bg-surface-container transition-all">
                                             <div className="aspect-square rounded-lg overflow-hidden mb-4 bg-surface-container-high flex flex-col items-center justify-center text-on-surface-variant">

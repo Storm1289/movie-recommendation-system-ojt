@@ -1,13 +1,18 @@
-from fastapi import FastAPI, Depends, Query, Request
+from fastapi import FastAPI, Depends, Query, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 import json
 import threading
 import re
+import hashlib
+import secrets
+from datetime import datetime, timezone
+
+from pymongo.errors import DuplicateKeyError
 
 from database import get_db, get_next_id
-from models import Movie, Comment
+from models import Movie, Comment, User, DEFAULT_USER_SETTINGS, DEFAULT_USER_STATS
 from recommendation import load_model, get_recommendations
 from ranking import recalculate_all_scores, update_movie_score
 
@@ -22,6 +27,26 @@ app.add_middleware(
 )
 
 
+def ensure_unique_index(collection, keys, name: str):
+    expected_key = dict(keys)
+    existing_indexes = list(collection.list_indexes())
+
+    for index in existing_indexes:
+        if dict(index.get("key", {})) != expected_key:
+            continue
+
+        if index.get("unique") is True:
+            if index.get("name") != name:
+                collection.drop_index(index["name"])
+                collection.create_index(keys, name=name, unique=True)
+            return
+
+        collection.drop_index(index["name"])
+        break
+
+    collection.create_index(keys, name=name, unique=True)
+
+
 # ─── LOAD RECOMMENDATION MODEL ─────────────────────
 model_loaded = False
 
@@ -29,6 +54,14 @@ model_loaded = False
 def startup():
     global model_loaded
     similarity, df = load_model()
+    db = get_db()
+    ensure_unique_index(db.users, [("email", 1)], "users_email_unique")
+    ensure_unique_index(
+        db.user_ratings,
+        [("movie_id", 1), ("user_id", 1)],
+        "user_ratings_movie_user_unique",
+    )
+
     if similarity is not None and df is not None:
         model_loaded = True
         print(f"✅ Model loaded on startup ({len(df)} movies)")
@@ -43,6 +76,7 @@ def startup():
 # ─── PYDANTIC SCHEMAS ──────────────────────────────
 
 class CommentCreate(BaseModel):
+    user_id: Optional[int] = None
     user_name: str = "Anonymous"
     user_email: Optional[str] = None
     content: str
@@ -51,6 +85,206 @@ class CommentCreate(BaseModel):
 class RatingCreate(BaseModel):
     user_id: str = "anonymous"
     rating: float  # 1-10
+
+
+class SignupCreate(BaseModel):
+    name: str
+    email: str
+    password: str
+
+
+class LoginCreate(BaseModel):
+    email: str
+    password: str
+
+
+class SettingsUpdate(BaseModel):
+    darkMode: Optional[bool] = None
+    autoplay: Optional[bool] = None
+    notifications: Optional[bool] = None
+    emailDigest: Optional[bool] = None
+    language: Optional[str] = None
+    quality: Optional[str] = None
+
+
+def normalize_email(email: str) -> str:
+    return (email or "").strip().lower()
+
+
+def hash_password(password: str, salt: Optional[str] = None) -> tuple[str, str]:
+    salt = salt or secrets.token_hex(16)
+    password_hash = hashlib.pbkdf2_hmac(
+        "sha256",
+        password.encode("utf-8"),
+        salt.encode("utf-8"),
+        120000,
+    ).hex()
+    return salt, password_hash
+
+
+def verify_password(password: str, user_doc: dict) -> bool:
+    salt = user_doc.get("password_salt")
+    expected_hash = user_doc.get("password_hash")
+    if not salt or not expected_hash:
+        return False
+    _, password_hash = hash_password(password, salt)
+    return password_hash == expected_hash
+
+
+def make_avatar(name: str, email: str) -> str:
+    source = (name or "").strip() or normalize_email(email)
+    return source[:1].upper() if source else "C"
+
+
+def build_user_state(user_doc: dict, db) -> dict:
+    watchlist_ids = user_doc.get("watchlist_ids") or []
+    watchlist_movies = []
+
+    if watchlist_ids:
+        movies = list(db.movies.find({"id": {"$in": watchlist_ids}}))
+        movies_by_id = {movie["id"]: movie for movie in movies}
+        watchlist_movies = [
+            Movie.from_doc(movies_by_id[movie_id])
+            for movie_id in watchlist_ids
+            if movie_id in movies_by_id
+        ]
+
+    return {
+        "user": User.from_doc(user_doc),
+        "watchlist": watchlist_movies,
+        "settings": User.settings_from_doc(user_doc),
+        "stats": User.stats_from_doc(user_doc),
+    }
+
+
+def get_user_or_404(user_id: int, db) -> dict:
+    user_doc = db.users.find_one({"id": user_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user_doc
+
+
+# ─── USER ENDPOINTS ────────────────────────────────
+
+@app.post("/api/auth/signup")
+def signup(payload: SignupCreate, db=Depends(get_db)):
+    name = payload.name.strip()
+    email = normalize_email(payload.email)
+    password = payload.password.strip()
+
+    if not name:
+        raise HTTPException(status_code=400, detail="Name is required")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+    if len(password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    salt, password_hash = hash_password(password)
+    now = datetime.now(timezone.utc)
+    new_user = {
+        "id": get_next_id("users"),
+        "name": name,
+        "email": email,
+        "avatar": make_avatar(name, email),
+        "password_salt": salt,
+        "password_hash": password_hash,
+        "watchlist_ids": [],
+        "settings": DEFAULT_USER_SETTINGS.copy(),
+        "stats": DEFAULT_USER_STATS.copy(),
+        "created_at": now,
+        "updated_at": now,
+    }
+
+    try:
+        db.users.insert_one(new_user)
+    except DuplicateKeyError:
+        raise HTTPException(status_code=409, detail="An account with this email already exists")
+
+    return build_user_state(new_user, db)
+
+
+@app.post("/api/auth/login")
+def login(payload: LoginCreate, db=Depends(get_db)):
+    email = normalize_email(payload.email)
+    user_doc = db.users.find_one({"email": email})
+
+    if not user_doc or not verify_password(payload.password, user_doc):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    return build_user_state(user_doc, db)
+
+
+@app.get("/api/users/{user_id}/state")
+def get_user_state(user_id: int, db=Depends(get_db)):
+    user_doc = get_user_or_404(user_id, db)
+    return build_user_state(user_doc, db)
+
+
+@app.put("/api/users/{user_id}/settings")
+def update_user_settings(user_id: int, payload: SettingsUpdate, db=Depends(get_db)):
+    user_doc = get_user_or_404(user_id, db)
+    next_settings = User.settings_from_doc(user_doc)
+    updates = payload.dict(exclude_none=True)
+    next_settings.update(updates)
+
+    db.users.update_one(
+        {"id": user_id},
+        {
+            "$set": {
+                "settings": next_settings,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        },
+    )
+
+    refreshed_user = db.users.find_one({"id": user_id})
+    return {
+        "settings": User.settings_from_doc(refreshed_user),
+        "stats": User.stats_from_doc(refreshed_user),
+    }
+
+
+@app.post("/api/users/{user_id}/watchlist/{movie_id}")
+def add_watchlist_item(user_id: int, movie_id: str, db=Depends(get_db)):
+    user_doc = get_user_or_404(user_id, db)
+    movie = resolve_movie_or_fail(movie_id, db)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    watchlist_ids = user_doc.get("watchlist_ids") or []
+    if movie["id"] not in watchlist_ids:
+        watchlist_ids.append(movie["id"])
+        db.users.update_one(
+            {"id": user_id},
+            {
+                "$set": {
+                    "watchlist_ids": watchlist_ids,
+                    "updated_at": datetime.now(timezone.utc),
+                }
+            },
+        )
+
+    refreshed_user = db.users.find_one({"id": user_id})
+    return {"watchlist": build_user_state(refreshed_user, db)["watchlist"]}
+
+
+@app.delete("/api/users/{user_id}/watchlist/{movie_id}")
+def remove_watchlist_item(user_id: int, movie_id: str, db=Depends(get_db)):
+    get_user_or_404(user_id, db)
+    movie = resolve_movie_or_fail(movie_id, db)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    db.users.update_one(
+        {"id": user_id},
+        {
+            "$pull": {"watchlist_ids": movie["id"]},
+            "$set": {"updated_at": datetime.now(timezone.utc)},
+        },
+    )
+
+    refreshed_user = db.users.find_one({"id": user_id})
+    return {"watchlist": build_user_state(refreshed_user, db)["watchlist"]}
 
 
 # ─── MOVIE ENDPOINTS ───────────────────────────────
@@ -323,9 +557,8 @@ def get_comments(movie_id: str, db=Depends(get_db)):
 def post_comment(movie_id: str, comment: CommentCreate, db=Depends(get_db)):
     movie = resolve_movie_or_fail(movie_id, db)
     if not movie:
-        return {"error": "Movie not found"}, 404
+        raise HTTPException(status_code=404, detail="Movie not found")
 
-    from datetime import datetime, timezone
     new_comment = {
         "id": get_next_id("comments"),
         "movie_id": movie["id"],
@@ -346,6 +579,15 @@ def post_comment(movie_id: str, comment: CommentCreate, db=Depends(get_db)):
         # Recalculate global top 10 score dynamically based on the new rating
         threading.Thread(target=update_movie_score, args=(movie["id"],), daemon=True).start()
 
+    if comment.user_id is not None:
+        db.users.update_one(
+            {"id": comment.user_id},
+            {
+                "$inc": {"stats.comment_count": 1},
+                "$set": {"updated_at": datetime.now(timezone.utc)},
+            },
+        )
+
     # Re-fetch movie for updated rating
     updated_movie = db.movies.find_one({"id": movie["id"]})
     return {
@@ -361,10 +603,10 @@ def post_comment(movie_id: str, comment: CommentCreate, db=Depends(get_db)):
 def rate_movie(movie_id: str, rating_data: RatingCreate, db=Depends(get_db)):
     movie = resolve_movie_or_fail(movie_id, db)
     if not movie:
-        return {"error": "Movie not found"}, 404
+        raise HTTPException(status_code=404, detail="Movie not found")
 
     if not (1 <= rating_data.rating <= 10):
-        return {"error": "Rating must be between 1 and 10"}
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 10")
 
     # Check if user already rated
     existing = db.user_ratings.find_one({
@@ -385,7 +627,6 @@ def rate_movie(movie_id: str, rating_data: RatingCreate, db=Depends(get_db)):
         )
     else:
         # New rating
-        from datetime import datetime, timezone
         new_rating = {
             "id": get_next_id("user_ratings"),
             "movie_id": movie["id"],
@@ -397,6 +638,20 @@ def rate_movie(movie_id: str, rating_data: RatingCreate, db=Depends(get_db)):
         db.movies.update_one(
             {"id": movie["id"]},
             {"$inc": {"user_rating_sum": rating_data.rating, "user_rating_count": 1}}
+        )
+
+    try:
+        parsed_user_id = int(rating_data.user_id)
+    except (TypeError, ValueError):
+        parsed_user_id = None
+
+    if parsed_user_id is not None:
+        db.users.update_one(
+            {"id": parsed_user_id},
+            {
+                "$addToSet": {"stats.rated_movie_ids": movie["id"]},
+                "$set": {"updated_at": datetime.now(timezone.utc)},
+            },
         )
 
     # Recalculate dynamic tracking score for this movie since rating changed
