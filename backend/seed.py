@@ -3,8 +3,7 @@ Seed the database with a curated collection of popular movies.
 Run once: python seed.py
 """
 
-from database import engine, SessionLocal, Base
-from models import Movie
+from database import get_db, get_next_id
 from recommendation import build_recommendation_model
 
 # Curated movie dataset - 60 popular movies with real data
@@ -77,57 +76,75 @@ MOVIES_DATA = [
 
 def seed_database():
     """Main seeding function."""
-    print("🎬 CineStream Database Seeder")
+    print("🎬 CineStream Database Seeder (MongoDB)")
     print("=" * 40)
 
-    # Create tables
-    Base.metadata.create_all(bind=engine)
-    print("✅ Database tables created")
+    db = get_db()
 
-    # Insert movies
-    db = SessionLocal()
+    # Drop existing data for a clean seed
+    db.movies.drop()
+    db.counters.delete_one({"_id": "movies"})
+    print("✅ Cleared existing movies collection")
+
+    # Insert movies with auto-incrementing integer IDs
     inserted = 0
-    try:
-        for movie_data in MOVIES_DATA:
-            existing = db.query(Movie).filter(Movie.tmdb_id == movie_data["tmdb_id"]).first()
-            if existing:
-                continue
+    for movie_data in MOVIES_DATA:
+        # Check for duplicate by tmdb_id
+        existing = db.movies.find_one({"tmdb_id": movie_data["tmdb_id"]})
+        if existing:
+            continue
 
-            db_movie = Movie(**movie_data)
-            db.add(db_movie)
-            inserted += 1
+        new_id = get_next_id("movies")
+        doc = {
+            "id": new_id,
+            **movie_data,
+            "user_rating_sum": 0.0,
+            "user_rating_count": 0,
+            "monthly_score": 0.0,
+            "franchise": None,
+            "wiki_summary": None,
+            "wiki_plot": None,
+            "wiki_cast": None,
+            "wiki_director": None,
+            "wiki_budget": None,
+            "wiki_box_office": None,
+            "wiki_runtime": None,
+            "wiki_fetched": False,
+        }
+        db.movies.insert_one(doc)
+        inserted += 1
 
-        db.commit()
-        print(f"✅ Inserted {inserted} new movies into database")
-    except Exception as e:
-        db.rollback()
-        print(f"❌ Error inserting movies: {e}")
-        raise
-    finally:
-        db.close()
+    print(f"✅ Inserted {inserted} new movies into MongoDB")
+
+    # Create indexes for performance
+    db.movies.create_index("id", unique=True)
+    db.movies.create_index("tmdb_id", unique=True)
+    db.movies.create_index("title")
+    db.movies.create_index([("popularity", -1)])
+    db.movies.create_index([("monthly_score", -1)])
+    db.movies.create_index([("rating", -1)])
+    db.user_ratings.create_index([("movie_id", 1), ("user_id", 1)])
+    db.comments.create_index([("movie_id", 1)])
+    print("✅ Created indexes")
 
     # Build recommendation model
     print("\n🧠 Building recommendation model with Pickle + TF-IDF...")
-    db = SessionLocal()
-    try:
-        all_movies = db.query(Movie).all()
-        movies_for_model = [
-            {
-                "id": m.id,
-                "title": m.title,
-                "genre": m.genre or "",
-                "overview": m.overview or "",
-                "rating": m.rating,
-                "release_date": m.release_date,
-                "poster_path": m.poster_path,
-                "backdrop_path": m.backdrop_path,
-                "popularity": m.popularity,
-            }
-            for m in all_movies
-        ]
-        build_recommendation_model(movies_for_model)
-    finally:
-        db.close()
+    all_movies = list(db.movies.find())
+    movies_for_model = [
+        {
+            "id": m["id"],
+            "title": m["title"],
+            "genre": m.get("genre", ""),
+            "overview": m.get("overview", ""),
+            "rating": m.get("rating", 0.0),
+            "release_date": m.get("release_date"),
+            "poster_path": m.get("poster_path"),
+            "backdrop_path": m.get("backdrop_path"),
+            "popularity": m.get("popularity", 0.0),
+        }
+        for m in all_movies
+    ]
+    build_recommendation_model(movies_for_model)
 
     print("\n🎉 Seeding complete! Run: uvicorn main:app --reload")
 

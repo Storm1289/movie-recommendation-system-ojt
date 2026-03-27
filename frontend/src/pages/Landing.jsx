@@ -55,7 +55,7 @@ export default function Landing() {
           <Link to="/login" className="hidden sm:block px-6 py-2 text-white/70 hover:text-white transition-all font-label text-xs tracking-widest uppercase">
             Login
           </Link>
-          <Link to="/login" className="bg-primary-dim text-on-primary-fixed px-8 py-2 rounded-full font-label text-xs font-bold tracking-widest uppercase hover:scale-105 transition-all shadow-[0_0_20px_rgba(232,15,22,0.3)]">
+          <Link to="/login" className="bg-primary-dim text-on-primary-fixed px-8 py-2 rounded-full font-label text-xs font-bold tracking-widest uppercase hover:scale-105 transition-all shadow-[0_0_20px_rgba(139,125,255,0.3)]">
             Sign Up
           </Link>
         </div>
@@ -111,7 +111,7 @@ export default function Landing() {
               Experience cinema through an editorial lens. Curated collections, deep metadata, and a community of auteurs awaiting your discovery.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Link to="/login" className="w-full sm:w-auto px-12 py-5 bg-gradient-to-r from-primary-dim to-primary rounded-full font-headline font-bold text-on-primary-fixed text-lg hover:scale-105 active:scale-95 transition-all shadow-[0_10px_40px_rgba(232,15,22,0.4)] block text-center">
+              <Link to="/login" className="w-full sm:w-auto px-12 py-5 bg-gradient-to-r from-primary-dim to-primary rounded-full font-headline font-bold text-on-primary-fixed text-lg hover:scale-105 active:scale-95 transition-all shadow-[0_10px_40px_rgba(139,125,255,0.35)] block text-center">
                 Sign Up
               </Link>
               <Link to="/home" className="w-full sm:w-auto px-12 py-5 bg-surface-container/50 backdrop-blur-md rounded-full font-headline font-bold text-on-surface text-lg border border-outline-variant/20 hover:bg-surface-bright transition-all block text-center">
@@ -178,8 +178,8 @@ export default function Landing() {
         {/* CTA Section */}
         <section id="pricing" className="py-32 bg-surface relative">
           <div className="max-w-7xl mx-auto px-8">
-            <div className="bg-primary-dim rounded-3xl p-12 md:p-24 flex flex-col md:flex-row items-center justify-between relative overflow-hidden shadow-[0_0_80px_rgba(232,15,22,0.2)] hover:shadow-[0_0_120px_rgba(232,15,22,0.4)] transition-shadow duration-700">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,142,128,0.4),transparent)]"></div>
+            <div className="bg-primary-dim rounded-3xl p-12 md:p-24 flex flex-col md:flex-row items-center justify-between relative overflow-hidden shadow-[0_0_80px_rgba(139,125,255,0.18)] hover:shadow-[0_0_120px_rgba(86,207,255,0.24)] transition-shadow duration-700">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,125,255,0.4),transparent)]"></div>
               <div className="relative z-10 mb-12 md:mb-0 text-center md:text-left">
                 <h2 className="font-headline font-black text-4xl md:text-6xl text-on-primary-fixed mb-6 leading-none">Ready for your <br />first screening?</h2>
                 <p className="font-body text-on-primary-container text-lg max-w-md">Join 50,000+ auteurs and start building your ultimate cinema library today.</p>

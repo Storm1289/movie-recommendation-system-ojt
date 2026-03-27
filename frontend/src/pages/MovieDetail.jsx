@@ -27,7 +27,7 @@ export default function MovieDetail() {
     const [userRating, setUserRating] = useState(0);
     const [userRatingHover, setUserRatingHover] = useState(0);
 
-    const { addToWatchlist, removeFromWatchlist, isInWatchlist, user } = useApp();
+    const { addToWatchlist, removeFromWatchlist, isInWatchlist, user, markMovieRated, incrementCommentCount } = useApp();
 
     useEffect(() => {
         setLoading(true);
@@ -86,6 +86,7 @@ export default function MovieDetail() {
             });
             setComments(prev => [res.data.comment, ...prev]);
             setCommentCount(prev => prev + 1);
+            incrementCommentCount();
             if (res.data.movie_rating) {
                 setMovie(prev => ({
                     ...prev,
@@ -108,6 +109,7 @@ export default function MovieDetail() {
                 user_id: user?.email || 'anonymous',
                 rating,
             });
+            markMovieRated(String(id));
             setMovie(prev => ({
                 ...prev,
                 rating: res.data.rating,
@@ -173,7 +175,7 @@ export default function MovieDetail() {
             {/* Trailer Modal */}
             {showTrailer && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md" onClick={() => setShowTrailer(false)}>
-                    <div className="relative w-full max-w-5xl mx-4 aspect-video shadow-[0_0_50px_rgba(232,15,22,0.3)]" onClick={e => e.stopPropagation()}>
+                    <div className="relative w-full max-w-5xl mx-4 aspect-video shadow-[0_0_50px_rgba(139,125,255,0.25)]" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setShowTrailer(false)} className="absolute -top-12 right-0 text-white hover:text-primary transition-colors flex items-center gap-2 text-sm font-bold font-headline uppercase tracking-widest">
                             <span className="material-symbols-outlined">close</span> Close
                         </button>
@@ -223,7 +225,7 @@ export default function MovieDetail() {
                     </div>
                     
                     <div className="flex flex-wrap gap-4 mt-8">
-                        <button onClick={() => setShowTrailer(true)} className="bg-gradient-to-r from-primary-dim to-primary text-on-primary-fixed px-10 py-4 rounded-full font-headline font-black text-lg flex items-center gap-3 hover:scale-105 transition-transform active:scale-95 shadow-[0_0_30px_rgba(232,15,22,0.4)]">
+                        <button onClick={() => setShowTrailer(true)} className="bg-gradient-to-r from-primary-dim to-primary text-on-primary-fixed px-10 py-4 rounded-full font-headline font-black text-lg flex items-center gap-3 hover:scale-105 transition-transform active:scale-95 shadow-[0_0_30px_rgba(139,125,255,0.35)]">
                             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
                             WATCH NOW
                         </button>
@@ -363,7 +365,7 @@ export default function MovieDetail() {
                 <div className="lg:col-span-4 space-y-12">
                     
                     {/* Rating Card */}
-                    <div className="bg-surface-container p-8 rounded-2xl border border-white/5 relative overflow-hidden shadow-[0_0_40px_rgba(232,15,22,0.05)]">
+                    <div className="bg-surface-container p-8 rounded-2xl border border-white/5 relative overflow-hidden shadow-[0_0_40px_rgba(139,125,255,0.08)]">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary-dim/20 blur-3xl rounded-full -mr-16 -mt-16"></div>
                         <p className="text-on-surface-variant text-[10px] uppercase font-bold tracking-[0.3em] mb-4">Global Resonance</p>
                         <div className="flex items-baseline gap-2 mb-6">
@@ -432,7 +434,7 @@ export default function MovieDetail() {
 
                     {/* Poster Info Card */}
                     {posterUrl && (
-                        <div className="bg-gradient-to-br from-[#1a1a1a] to-black p-8 rounded-2xl border-l-4 border-secondary shadow-[0_0_30px_rgba(253,192,3,0.1)]">
+                        <div className="bg-gradient-to-br from-[#101427] to-black p-8 rounded-2xl border-l-4 border-secondary shadow-[0_0_30px_rgba(86,207,255,0.12)]">
                             <div className="flex justify-between items-start mb-6">
                                 <div>
                                     <span className="text-secondary text-[10px] font-black tracking-[0.2em] uppercase">Official Poster</span>

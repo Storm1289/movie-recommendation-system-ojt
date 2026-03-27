@@ -3,14 +3,14 @@ import { useApp } from '../context/AppContext';
 import MovieCard from '../components/MovieCard';
 
 export default function Profile() {
-    const { user, watchlist } = useApp();
+    const { user, watchlist, userStats } = useApp();
 
     return (
         <div className="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary min-h-screen flex">
             {/* SideNavBar Component */}
             <aside className="hidden lg:flex w-64 border-r border-white/5 bg-[#131313] flex-col py-8 z-40 h-screen sticky top-0 shrink-0">
                 <div className="px-6 mb-10">
-                    <Link to="/home" className="text-xl font-black text-red-600 dark:text-red-500 font-headline uppercase tracking-tighter hover:opacity-80 transition-opacity">CineAuteur</Link>
+                    <Link to="/home" className="text-xl font-black text-primary font-headline uppercase tracking-tighter hover:opacity-80 transition-opacity">CineAuteur</Link>
                 </div>
                 
                 <div className="px-6 mb-8">
@@ -19,7 +19,7 @@ export default function Profile() {
                 </div>
                 
                 <nav className="flex-1 space-y-1">
-                    <div className="bg-red-500/10 text-red-500 border-r-4 border-red-500 flex items-center gap-3 px-6 py-4 font-manrope text-sm font-semibold cursor-pointer" onClick={() => window.scrollTo(0,0)}>
+                    <div className="bg-primary/10 text-primary border-r-4 border-primary flex items-center gap-3 px-6 py-4 font-manrope text-sm font-semibold cursor-pointer" onClick={() => window.scrollTo(0,0)}>
                         <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
                         Profile Overview
                     </div>
@@ -38,7 +38,7 @@ export default function Profile() {
             <main className="flex-1 min-h-[100vh] relative flex flex-col">
                 {/* Mobile Header */}
                 <header className="lg:hidden flex justify-between items-center px-6 py-4 bg-[#0e0e0e]/80 backdrop-blur-2xl sticky top-0 z-50 border-b border-white/5">
-                    <Link to="/home" className="text-xl font-black text-red-600 font-headline uppercase tracking-tighter">CineAuteur</Link>
+                    <Link to="/home" className="text-xl font-black text-primary font-headline uppercase tracking-tighter">CineAuteur</Link>
                     <button className="material-symbols-outlined text-white">menu</button>
                 </header>
 
@@ -60,9 +60,6 @@ export default function Profile() {
                                     user?.name?.[0]?.toUpperCase() || 'A'
                                 )}
                             </div>
-                            <Link to="/settings" className="absolute -bottom-3 -right-3 bg-primary-dim text-on-primary p-3 rounded-full shadow-lg hover:scale-110 transition-transform flex items-center justify-center">
-                                <span className="material-symbols-outlined text-sm">edit</span>
-                            </Link>
                         </div>
                         
                         <div className="flex-1 pb-2 w-full">
@@ -73,16 +70,16 @@ export default function Profile() {
                             
                             <div className="flex flex-wrap gap-6 mt-8">
                                 <div className="flex flex-col">
-                                    <span className="text-primary-dim font-headline font-black text-3xl">142</span>
-                                    <span className="text-xs uppercase tracking-widest text-on-surface-variant font-label">Watched</span>
+                                    <span className="text-primary-dim font-headline font-black text-3xl">{watchlist.length}</span>
+                                    <span className="text-xs uppercase tracking-widest text-on-surface-variant font-label">Saved</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-primary-dim font-headline font-black text-3xl">56</span>
+                                    <span className="text-primary-dim font-headline font-black text-3xl">{userStats?.ratedMovieIds?.length || 0}</span>
                                     <span className="text-xs uppercase tracking-widest text-on-surface-variant font-label">Ratings</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-primary-dim font-headline font-black text-3xl">{watchlist.length}</span>
-                                    <span className="text-xs uppercase tracking-widest text-on-surface-variant font-label">Watchlist</span>
+                                    <span className="text-primary-dim font-headline font-black text-3xl">{userStats?.commentCount || 0}</span>
+                                    <span className="text-xs uppercase tracking-widest text-on-surface-variant font-label">Reviews</span>
                                 </div>
                             </div>
                         </div>
@@ -113,7 +110,7 @@ export default function Profile() {
                             <span className="material-symbols-outlined text-6xl text-on-surface-variant mb-6 opacity-40 block">movie</span>
                             <p className="text-white font-headline text-2xl font-black uppercase tracking-tight mb-2">Your Watchlist is Empty</p>
                             <p className="text-on-surface-variant text-base mb-8 max-w-md mx-auto">Discover new cinematic masterpieces and add them to your collection.</p>
-                            <Link to="/home" className="inline-block px-10 py-4 bg-secondary text-on-secondary font-headline font-black text-xs uppercase tracking-widest rounded-full hover:scale-105 transition-transform shadow-[0_0_20px_rgba(253,192,3,0.2)]">
+                            <Link to="/home" className="inline-block px-10 py-4 bg-secondary text-on-secondary font-headline font-black text-xs uppercase tracking-widest rounded-full hover:scale-105 transition-transform shadow-[0_0_20px_rgba(86,207,255,0.18)]">
                                 Browse Films
                             </Link>
                         </div>

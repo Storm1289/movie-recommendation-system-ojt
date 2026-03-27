@@ -1,5 +1,5 @@
 fastapi[standard]
-sqlalchemy
+pymongo
 pandas
 scikit-learn
 requests

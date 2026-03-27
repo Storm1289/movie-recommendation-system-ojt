@@ -91,7 +91,7 @@ export default function HeroSlider({ movies }) {
                                 </p>
                                 
                                 <div className="flex flex-col sm:flex-row items-center gap-4">
-                                    <Link to={`/movie/${movie.id}`} className="w-full sm:w-auto bg-primary-dim text-on-primary-fixed px-10 py-4 rounded-full font-headline font-bold flex justify-center items-center gap-3 hover:scale-105 transition-transform shadow-[0_0_20px_rgba(232,15,22,0.4)]">
+                                    <Link to={`/movie/${movie.id}`} className="w-full sm:w-auto bg-primary-dim text-on-primary-fixed px-10 py-4 rounded-full font-headline font-bold flex justify-center items-center gap-3 hover:scale-105 transition-transform shadow-[0_0_20px_rgba(139,125,255,0.35)]">
                                         <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
                                         Movie Info
                                     </Link>
@@ -109,14 +109,14 @@ export default function HeroSlider({ movies }) {
             {/* Nav arrows */}
             <button
                 onClick={scrollLeft}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 bg-surface-container-highest/60 backdrop-blur-md border border-white/10 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary-dim hover:scale-110 hover:shadow-[0_0_20px_rgba(232,15,22,0.4)]"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 bg-surface-container-highest/60 backdrop-blur-md border border-white/10 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary-dim hover:scale-110 hover:shadow-[0_0_20px_rgba(139,125,255,0.35)]"
                 aria-label="Previous Spotlight"
             >
                 <span className="material-symbols-outlined text-3xl">chevron_left</span>
             </button>
             <button
                 onClick={scrollRight}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 bg-surface-container-highest/60 backdrop-blur-md border border-white/10 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary-dim hover:scale-110 hover:shadow-[0_0_20px_rgba(232,15,22,0.4)]"
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 bg-surface-container-highest/60 backdrop-blur-md border border-white/10 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary-dim hover:scale-110 hover:shadow-[0_0_20px_rgba(139,125,255,0.35)]"
                 aria-label="Next Spotlight"
             >
                 <span className="material-symbols-outlined text-3xl">chevron_right</span>

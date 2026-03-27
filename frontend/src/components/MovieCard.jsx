@@ -23,7 +23,7 @@ export default function MovieCard({ movie, rank, showMatch }) {
 
     return (
         <Link to={`/movie/${movie.id}`} className="group/card cursor-pointer block">
-            <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 transition-all duration-300 group-hover/card:scale-110 group-hover/card:shadow-[0_0_40px_rgba(232,15,22,0.5)] bg-surface-container z-10 group-hover/card:z-50">
+            <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 transition-all duration-300 group-hover/card:scale-110 group-hover/card:shadow-[0_0_40px_rgba(139,125,255,0.45)] bg-surface-container z-10 group-hover/card:z-50">
                 {/* Rank badge */}
                 {rank && (
                     <div className="absolute -left-2 -top-2 z-20 flex items-center justify-center font-black text-5xl text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] italic font-headline">
@@ -46,7 +46,7 @@ export default function MovieCard({ movie, rank, showMatch }) {
                 )}
 
                 {/* Rating badge */}
-                <div className="absolute top-3 right-3 bg-secondary text-black px-2 py-1 rounded-lg text-xs font-black font-label flex items-center gap-1 shadow-[0_0_15px_rgba(253,192,3,0.5)] z-10">
+                <div className="absolute top-3 right-3 bg-secondary text-black px-2 py-1 rounded-lg text-xs font-black font-label flex items-center gap-1 shadow-[0_0_15px_rgba(86,207,255,0.35)] z-10">
                     <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                     {movie.rating ? movie.rating.toFixed(1) : 'NR'}
                 </div>

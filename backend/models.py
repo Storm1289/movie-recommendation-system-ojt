@@ -1,106 +1,97 @@
-from sqlalchemy import Column, Integer, String, Float, Text, DateTime, Boolean
-from sqlalchemy.sql import func
-from database import Base
+"""
+MongoDB document models for CineStream.
+Plain Python classes that convert between MongoDB docs and API-friendly dicts.
+"""
+
+from datetime import datetime, timezone
 
 
-class Movie(Base):
-    __tablename__ = "movies"
+class Movie:
+    """Represents a movie document in the 'movies' collection."""
 
-    id = Column(Integer, primary_key=True, index=True)
-    tmdb_id = Column(Integer, unique=True, index=True)
-    title = Column(String(255), nullable=False, index=True)
-    genre = Column(String(255))
-    overview = Column(Text)
-    rating = Column(Float, default=0.0)
-    release_date = Column(String(20))
-    poster_path = Column(String(255))
-    backdrop_path = Column(String(255))
-    popularity = Column(Float, default=0.0)
-    vote_count = Column(Integer, default=0)
-    created_at = Column(DateTime, server_default=func.now())
+    @staticmethod
+    def from_doc(doc: dict) -> dict:
+        """Convert a MongoDB document to an API-friendly dictionary."""
+        if not doc:
+            return None
 
-    # Extended info from Wikipedia (cached)
-    wiki_summary = Column(Text, nullable=True)
-    wiki_plot = Column(Text, nullable=True)
-    wiki_cast = Column(Text, nullable=True)  # JSON string
-    wiki_director = Column(String(255), nullable=True)
-    wiki_budget = Column(String(100), nullable=True)
-    wiki_box_office = Column(String(100), nullable=True)
-    wiki_runtime = Column(String(50), nullable=True)
-    wiki_fetched = Column(Boolean, default=False)
+        # Compute display rating
+        user_rating_count = doc.get("user_rating_count", 0) or 0
+        user_rating_sum = doc.get("user_rating_sum", 0.0) or 0.0
+        original_rating = doc.get("rating", 0.0)
 
-    # Aggregated user rating
-    user_rating_sum = Column(Float, default=0.0)
-    user_rating_count = Column(Integer, default=0)
-
-    # NEW: Monthly ranking score
-    monthly_score = Column(Float, default=0.0)
-
-    # NEW: Cinematic Universe Franchise
-    franchise = Column(String(255), nullable=True)
-
-    def to_dict(self):
-        # Compute display rating: if users have rated, use their average; else use original
-        if self.user_rating_count and self.user_rating_count > 0:
-            display_rating = round(self.user_rating_sum / self.user_rating_count, 1)
+        if user_rating_count > 0:
+            display_rating = round(user_rating_sum / user_rating_count, 1)
         else:
-            display_rating = self.rating
+            display_rating = original_rating
+
+        poster_path = doc.get("poster_path")
+        if poster_path and not poster_path.startswith("http"):
+            poster_path = f"https://image.tmdb.org/t/p/w500{poster_path}"
+
+        backdrop_path = doc.get("backdrop_path")
+        if backdrop_path and not backdrop_path.startswith("http"):
+            backdrop_path = f"https://image.tmdb.org/t/p/original{backdrop_path}"
 
         return {
-            "id": self.id,
-            "tmdb_id": self.tmdb_id,
-            "title": self.title,
-            "genre": self.genre,
-            "franchise": self.franchise,
-            "overview": self.overview,
+            "id": doc.get("id"),
+            "tmdb_id": doc.get("tmdb_id"),
+            "title": doc.get("title"),
+            "genre": doc.get("genre"),
+            "franchise": doc.get("franchise"),
+            "overview": doc.get("overview"),
             "rating": display_rating,
-            "original_rating": self.rating,
-            "user_rating_count": self.user_rating_count or 0,
-            "release_date": self.release_date,
-            "poster_path": f"https://image.tmdb.org/t/p/w500{self.poster_path}" if self.poster_path and not self.poster_path.startswith("http") else self.poster_path,
-            "backdrop_path": f"https://image.tmdb.org/t/p/original{self.backdrop_path}" if self.backdrop_path and not self.backdrop_path.startswith("http") else self.backdrop_path,
-            "popularity": self.popularity,
-            "vote_count": self.vote_count,
-            "monthly_score": self.monthly_score,
+            "original_rating": original_rating,
+            "user_rating_count": user_rating_count,
+            "release_date": doc.get("release_date"),
+            "poster_path": poster_path,
+            "backdrop_path": backdrop_path,
+            "popularity": doc.get("popularity", 0.0),
+            "vote_count": doc.get("vote_count", 0),
+            "monthly_score": doc.get("monthly_score", 0.0),
             # Wiki fields
-            "wiki_summary": self.wiki_summary,
-            "wiki_plot": self.wiki_plot,
-            "wiki_cast": self.wiki_cast,
-            "wiki_director": self.wiki_director,
-            "wiki_budget": self.wiki_budget,
-            "wiki_box_office": self.wiki_box_office,
-            "wiki_runtime": self.wiki_runtime,
-            "wiki_fetched": self.wiki_fetched or False,
+            "wiki_summary": doc.get("wiki_summary"),
+            "wiki_plot": doc.get("wiki_plot"),
+            "wiki_cast": doc.get("wiki_cast"),
+            "wiki_director": doc.get("wiki_director"),
+            "wiki_budget": doc.get("wiki_budget"),
+            "wiki_box_office": doc.get("wiki_box_office"),
+            "wiki_runtime": doc.get("wiki_runtime"),
+            "wiki_fetched": doc.get("wiki_fetched", False),
         }
 
 
-class UserRating(Base):
-    __tablename__ = "user_ratings"
+class UserRating:
+    """Represents a user rating document in the 'user_ratings' collection."""
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String(100), default="anonymous")
-    movie_id = Column(Integer, index=True)
-    rating = Column(Float, nullable=False)
-    created_at = Column(DateTime, server_default=func.now())
-
-
-class Comment(Base):
-    __tablename__ = "comments"
-
-    id = Column(Integer, primary_key=True, index=True)
-    movie_id = Column(Integer, index=True, nullable=False)
-    user_name = Column(String(100), default="Anonymous")
-    user_email = Column(String(255), nullable=True)
-    content = Column(Text, nullable=False)
-    rating = Column(Float, nullable=True)  # Rating attached to comment (1-10)
-    created_at = Column(DateTime, server_default=func.now())
-
-    def to_dict(self):
+    @staticmethod
+    def from_doc(doc: dict) -> dict:
+        if not doc:
+            return None
         return {
-            "id": self.id,
-            "movie_id": self.movie_id,
-            "user_name": self.user_name,
-            "content": self.content,
-            "rating": self.rating,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "id": doc.get("id"),
+            "user_id": doc.get("user_id", "anonymous"),
+            "movie_id": doc.get("movie_id"),
+            "rating": doc.get("rating"),
+            "created_at": doc.get("created_at"),
+        }
+
+
+class Comment:
+    """Represents a comment document in the 'comments' collection."""
+
+    @staticmethod
+    def from_doc(doc: dict) -> dict:
+        if not doc:
+            return None
+        created_at = doc.get("created_at")
+        if isinstance(created_at, datetime):
+            created_at = created_at.isoformat()
+        return {
+            "id": doc.get("id"),
+            "movie_id": doc.get("movie_id"),
+            "user_name": doc.get("user_name", "Anonymous"),
+            "content": doc.get("content"),
+            "rating": doc.get("rating"),
+            "created_at": created_at,
         }

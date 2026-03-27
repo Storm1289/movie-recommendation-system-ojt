@@ -1,57 +1,57 @@
 @import "tailwindcss";
 
 @theme {
-  --color-secondary-fixed: #ffca4d;
-  --color-secondary-container: #785900;
-  --color-on-tertiary-fixed-variant: #54197f;
-  --color-primary-fixed: #ff7668;
-  --color-tertiary-container: #cb8ff9;
-  --color-on-secondary-container: #fff6ec;
-  --color-on-tertiary-container: #43006d;
-  --color-secondary: #fdc003;
-  --color-on-primary: #650003;
+  --color-secondary-fixed: #96e2ff;
+  --color-secondary-container: #103652;
+  --color-on-tertiary-fixed-variant: #3d2670;
+  --color-primary-fixed: #a89dff;
+  --color-tertiary-container: #382056;
+  --color-on-secondary-container: #eef9ff;
+  --color-on-tertiary-container: #f4e9ff;
+  --color-secondary: #56cfff;
+  --color-on-primary: #f7f5ff;
   --color-error-container: #a70138;
-  --color-background: #0e0e0e;
-  --color-primary-dim: #e80f16;
-  --color-secondary-fixed-dim: #f7ba00;
-  --color-surface-container-lowest: #000000;
-  --color-surface-variant: #262626;
-  --color-on-primary-fixed-variant: #610003;
-  --color-on-surface-variant: #adaaaa;
-  --color-surface-bright: #2c2c2c;
-  --color-on-tertiary-fixed: #290045;
-  --color-tertiary-dim: #c085ed;
-  --color-primary-container: #ff7668;
-  --color-secondary-dim: #ecb200;
-  --color-outline-variant: #484847;
-  --color-tertiary-fixed: #d398ff;
-  --color-on-primary-container: #4f0002;
-  --color-surface-container: #1a1a1a;
-  --color-surface: #0e0e0e;
-  --color-surface-container-low: #131313;
+  --color-background: #080b16;
+  --color-primary-dim: #5668ff;
+  --color-secondary-fixed-dim: #65d7ff;
+  --color-surface-container-lowest: #04050d;
+  --color-surface-variant: #2a3350;
+  --color-on-primary-fixed-variant: #e6e0ff;
+  --color-on-surface-variant: #a9b4d3;
+  --color-surface-bright: #25304c;
+  --color-on-tertiary-fixed: #f0e5ff;
+  --color-tertiary-dim: #bb7cff;
+  --color-primary-container: #766cff;
+  --color-secondary-dim: #34c3ff;
+  --color-outline-variant: #3a4565;
+  --color-tertiary-fixed: #d6a9ff;
+  --color-on-primary-container: #ffffff;
+  --color-surface-container: #11172b;
+  --color-surface: #080b16;
+  --color-surface-container-low: #0c1120;
   --color-on-background: #ffffff;
-  --color-outline: #767575;
-  --color-primary-fixed-dim: #ff5b4c;
+  --color-outline: #7280a7;
+  --color-primary-fixed-dim: #8c82ff;
   --color-error-dim: #d73357;
-  --color-on-secondary: #553e00;
+  --color-on-secondary: #04131d;
   --color-error: #ff6e84;
-  --color-surface-container-highest: #262626;
-  --color-surface-container-high: #20201f;
-  --color-tertiary: #d7a0ff;
-  --color-surface-dim: #0e0e0e;
-  --color-on-primary-fixed: #000000;
-  --color-primary: #ff8e80;
-  --color-inverse-on-surface: #565555;
+  --color-surface-container-highest: #202a44;
+  --color-surface-container-high: #171f35;
+  --color-tertiary: #cb94ff;
+  --color-surface-dim: #080b16;
+  --color-on-primary-fixed: #ffffff;
+  --color-primary: #8b7dff;
+  --color-inverse-on-surface: #5a6488;
   --color-on-error: #490013;
-  --color-inverse-primary: #c1000c;
-  --color-on-tertiary: #4f127a;
-  --color-on-secondary-fixed: #443100;
+  --color-inverse-primary: #8ba9ff;
+  --color-on-tertiary: #1d0d34;
+  --color-on-secondary-fixed: #05141e;
   --color-on-surface: #ffffff;
-  --color-surface-tint: #ff8e80;
-  --color-on-secondary-fixed-variant: #674c00;
-  --color-tertiary-fixed-dim: #c68af3;
+  --color-surface-tint: #8b7dff;
+  --color-on-secondary-fixed-variant: #0f2f49;
+  --color-tertiary-fixed-dim: #c88fff;
   --color-on-error-container: #ffb2b9;
-  --color-inverse-surface: #fcf9f8;
+  --color-inverse-surface: #eef2ff;
 
   --font-headline: "Epilogue", sans-serif;
   --font-body: "Manrope", sans-serif;
@@ -63,7 +63,7 @@
   --radius-full: 0.75rem;
 
   /* Overriding these layout vars in case previous CSS was dependent on them */
-  --color-bg-dark: #0e0e0e;
+  --color-bg-dark: #080b16;
 }
 
 @layer base {
@@ -94,7 +94,7 @@
 
 /* Custom Text Shadows and Utilities from Stitch */
 .text-shadow-glow {
-  text-shadow: 0 0 20px rgba(232, 15, 22, 0.4);
+  text-shadow: 0 0 22px rgba(139, 125, 255, 0.45);
 }
 
 .hero-gradient {

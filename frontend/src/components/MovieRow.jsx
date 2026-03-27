@@ -13,9 +13,17 @@ export default function MovieRow({
 }) {
     const scrollContainerRef = useRef(null);
     const [isAutoPaused, setIsAutoPaused] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
     const safeMovies = movies || [];
+    const dragStateRef = useRef({
+        isActive: false,
+        startX: 0,
+        startScrollLeft: 0,
+    });
+
+    const isBox = variant === 'box';
 
     const updateScrollState = () => {
         const el = scrollContainerRef.current;
@@ -26,19 +34,55 @@ export default function MovieRow({
         setCanScrollRight(el.scrollLeft < maxScrollLeft - 4);
     };
 
-    const scrollLeft = () => {
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollBy({ left: -scrollContainerRef.current.clientWidth * 0.75, behavior: 'smooth' });
+    const stopDragging = () => {
+        dragStateRef.current.isActive = false;
+        setIsDragging(false);
+    };
+
+    const handleMouseDown = (e) => {
+        const el = scrollContainerRef.current;
+        if (!el || e.button !== 0) return;
+
+        dragStateRef.current = {
+            isActive: true,
+            startX: e.clientX,
+            startScrollLeft: el.scrollLeft,
+        };
+        setIsDragging(true);
+    };
+
+    const handleMouseMove = (e) => {
+        const el = scrollContainerRef.current;
+        if (!el || !dragStateRef.current.isActive) return;
+
+        const deltaX = e.clientX - dragStateRef.current.startX;
+        el.scrollLeft = dragStateRef.current.startScrollLeft - deltaX;
+    };
+
+    const handleWheel = (e) => {
+        const el = scrollContainerRef.current;
+        if (!el) return;
+
+        const hasHorizontalOverflow = el.scrollWidth > el.clientWidth;
+        if (!hasHorizontalOverflow) return;
+
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+            e.preventDefault();
+            el.scrollLeft += e.deltaY;
         }
+    };
+
+    const scrollLeft = () => {
+        const el = scrollContainerRef.current;
+        if (!el) return;
+        el.scrollBy({ left: -el.clientWidth * 0.8, behavior: 'smooth' });
     };
 
     const scrollRight = () => {
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollBy({ left: scrollContainerRef.current.clientWidth * 0.75, behavior: 'smooth' });
-        }
+        const el = scrollContainerRef.current;
+        if (!el) return;
+        el.scrollBy({ left: el.clientWidth * 0.8, behavior: 'smooth' });
     };
-
-    const isBox = variant === 'box';
 
     useEffect(() => {
         if (!autoScroll || safeMovies.length === 0) return;
@@ -61,6 +105,13 @@ export default function MovieRow({
 
         return () => window.clearInterval(id);
     }, [autoScroll, isAutoPaused, safeMovies.length]);
+
+    useEffect(() => {
+        const handleWindowMouseUp = () => stopDragging();
+        window.addEventListener('mouseup', handleWindowMouseUp);
+
+        return () => window.removeEventListener('mouseup', handleWindowMouseUp);
+    }, []);
 
     useEffect(() => {
         const el = scrollContainerRef.current;
@@ -103,46 +154,55 @@ export default function MovieRow({
                 )}
             </div>
 
-            <div className="relative">
-                {/* Left Arrow */}
+            <div className="relative -mx-4 md:-mx-6 xl:-mx-8">
                 <button
                     onClick={scrollLeft}
-                    className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 w-11 h-11 md:w-12 md:h-12 bg-surface-container-highest/85 backdrop-blur-md rounded-full flex items-center justify-center text-white shadow-xl transition-all ${
+                    className={`absolute left-[calc((100vw-100%)/-2)] top-0 bottom-0 z-20 hidden w-16 items-center justify-start bg-gradient-to-r from-black/90 via-black/70 to-transparent pl-2 text-white transition-all duration-300 md:flex ${
                         canScrollLeft
-                            ? 'opacity-100 md:opacity-0 md:group-hover/row:opacity-100 hover:bg-primary-dim hover:scale-110 pointer-events-auto'
-                            : 'opacity-0 pointer-events-none'
+                            ? 'opacity-100 hover:from-black hover:via-black/80'
+                            : 'pointer-events-none opacity-0'
                     }`}
                     aria-label="Scroll left"
                     disabled={!canScrollLeft}
                 >
-                    <span className="material-symbols-outlined text-2xl">chevron_left</span>
+                    <span className="material-symbols-outlined text-6xl font-light drop-shadow-[0_0_12px_rgba(0,0,0,0.9)]">
+                        chevron_left
+                    </span>
                 </button>
 
                 {/* Scroll Container */}
                 <div
                     ref={scrollContainerRef}
-                    className="flex gap-6 overflow-x-auto snap-x hide-scrollbar py-4 -mx-4 px-4"
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={stopDragging}
+                    onMouseUp={stopDragging}
+                    onWheel={handleWheel}
+                    className={`flex gap-6 overflow-x-auto snap-x hide-scrollbar py-4 -mx-4 px-4 select-none ${
+                        isDragging ? 'cursor-grabbing' : 'cursor-grab'
+                    }`}
                     style={{ scrollBehavior: 'smooth' }}
                 >
                     {safeMovies.map((movie, i) => (
-                        <div key={`${movie.id}-${i}`} className="min-w-[160px] md:min-w-[220px] lg:min-w-[240px] snap-start flex-shrink-0">
+                        <div key={`${movie.id}-${i}`} className="w-[160px] md:w-[220px] lg:w-[240px] snap-start flex-shrink-0">
                             <MovieCard movie={movie} rank={showRank ? i + 1 : undefined} />
                         </div>
                     ))}
                 </div>
 
-                {/* Right Arrow */}
                 <button
                     onClick={scrollRight}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 w-11 h-11 md:w-12 md:h-12 bg-surface-container-highest/85 backdrop-blur-md rounded-full flex items-center justify-center text-white shadow-xl transition-all ${
+                    className={`absolute right-[calc((100vw-100%)/-2)] top-0 bottom-0 z-20 hidden w-16 items-center justify-end bg-gradient-to-l from-black/90 via-black/70 to-transparent pr-2 text-white transition-all duration-300 md:flex ${
                         canScrollRight
-                            ? 'opacity-100 md:opacity-0 md:group-hover/row:opacity-100 hover:bg-primary-dim hover:scale-110 pointer-events-auto'
-                            : 'opacity-0 pointer-events-none'
+                            ? 'opacity-100 hover:from-black hover:via-black/80'
+                            : 'pointer-events-none opacity-0'
                     }`}
                     aria-label="Scroll right"
                     disabled={!canScrollRight}
                 >
-                    <span className="material-symbols-outlined text-2xl">chevron_right</span>
+                    <span className="material-symbols-outlined text-6xl font-light drop-shadow-[0_0_12px_rgba(0,0,0,0.9)]">
+                        chevron_right
+                    </span>
                 </button>
             </div>
         </section>

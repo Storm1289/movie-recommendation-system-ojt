@@ -27,6 +27,8 @@ export default function Navbar() {
     const searchRef = useRef(null);
     const inputRef = useRef(null);
     const searchTimeout = useRef(null);
+    const desktopNavRef = useRef(null);
+    const mobileNavRef = useRef(null);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -109,6 +111,19 @@ export default function Navbar() {
         return location.pathname === pathname;
     };
 
+    const handleNavWheel = (ref) => (e) => {
+        const el = ref.current;
+        if (!el) return;
+
+        const hasHorizontalOverflow = el.scrollWidth > el.clientWidth;
+        if (!hasHorizontalOverflow) return;
+
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+            e.preventDefault();
+            el.scrollLeft += e.deltaY;
+        }
+    };
+
     return (
         <header
             className={`top-0 z-40 w-full transition-all duration-300 ${
@@ -125,7 +140,11 @@ export default function Navbar() {
                         <h1 className="text-xl font-black tracking-tight text-white md:text-[1.35rem]">CineStream</h1>
                     </Link>
 
-                    <nav className="hidden min-w-0 flex-1 items-center gap-5 overflow-x-auto whitespace-nowrap text-[0.82rem] font-medium text-white/80 lg:flex">
+                    <nav
+                        ref={desktopNavRef}
+                        onWheel={handleNavWheel(desktopNavRef)}
+                        className="hidden min-w-0 flex-1 items-center gap-5 overflow-x-auto whitespace-nowrap text-[0.82rem] font-medium text-white/80 lg:flex"
+                    >
                         {primaryNavItems.map((item) => (
                             <Link
                                 key={item.label}
@@ -275,7 +294,11 @@ export default function Navbar() {
                     </div>
                 </div>
 
-                <nav className="mt-4 flex gap-4 overflow-x-auto whitespace-nowrap text-[0.8rem] font-medium text-white/75 lg:hidden">
+                <nav
+                    ref={mobileNavRef}
+                    onWheel={handleNavWheel(mobileNavRef)}
+                    className="mt-4 flex gap-4 overflow-x-auto whitespace-nowrap text-[0.8rem] font-medium text-white/75 lg:hidden"
+                >
                     {primaryNavItems.map((item) => (
                         <Link
                             key={item.label}

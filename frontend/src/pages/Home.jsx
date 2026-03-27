@@ -23,7 +23,7 @@ export default function Home() {
             {/* Hero Slider */}
             <HeroSlider movies={trending} />
 
-            <div className="relative z-10 -mt-10 px-6 md:px-12 pb-20 space-y-16 max-w-[1600px] mx-auto">
+            <div className="relative z-10 -mt-10 w-full px-4 md:px-6 xl:px-8 pb-20 space-y-16">
                 {/* Welcome Header */}
                 <header>
                     <h2 className="text-4xl font-black font-headline tracking-tight">
