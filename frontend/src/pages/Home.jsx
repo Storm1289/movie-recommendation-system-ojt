@@ -47,6 +47,7 @@ export default function Home() {
                     movies={trending} 
                     linkTo="/category/trending"
                     variant="box" 
+                    autoScroll={true}
                 />
 
                 <MovieRow 

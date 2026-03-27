@@ -92,8 +92,8 @@ export default function HeroSlider({ movies }) {
                                 
                                 <div className="flex flex-col sm:flex-row items-center gap-4">
                                     <Link to={`/movie/${movie.id}`} className="w-full sm:w-auto bg-primary-dim text-on-primary-fixed px-10 py-4 rounded-full font-headline font-bold flex justify-center items-center gap-3 hover:scale-105 transition-transform shadow-[0_0_20px_rgba(232,15,22,0.4)]">
-                                        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-                                        Watch Now
+                                        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
+                                        Movie Info
                                     </Link>
                                     <button onClick={handleWatchlist} className="w-full sm:w-auto bg-surface-container/40 backdrop-blur-md border border-white/10 text-white px-10 py-4 rounded-full font-headline font-bold hover:bg-white/10 transition-colors flex justify-center items-center gap-2">
                                         <span className="material-symbols-outlined">{inList ? 'check' : 'add'}</span>

@@ -62,7 +62,13 @@ export default function MovieCard({ movie, rank, showMatch }) {
                 {/* Hover overlay for actions */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity bg-black/40 gap-3 z-30">
                     <span className="bg-white text-black rounded-full px-5 py-2 text-xs font-black hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.4)] font-headline tracking-wide">
-                        <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>info</span> Info
+                        <span
+                            className="material-symbols-outlined text-[16px] transition-transform group-hover/card:animate-spin"
+                            style={{ fontVariationSettings: "'FILL' 1", animationDuration: '1.6s' }}
+                        >
+                            info
+                        </span>
+                        Info
                     </span>
                     <button
                         onClick={handleWatchlist}

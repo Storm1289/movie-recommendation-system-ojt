@@ -173,25 +173,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Testimonial Section */}
-        <section className="py-32 bg-surface-container-low/50 relative">
-          <div className="absolute inset-0 hero-gradient opacity-20 pointer-events-none"></div>
-          <div className="relative max-w-4xl mx-auto px-8 text-center glass-nav p-12 rounded-3xl border border-white/5">
-            <span className="text-primary-dim font-label text-xs tracking-[0.3em] uppercase mb-8 block">Member Highlight</span>
-            <blockquote className="font-headline font-bold text-3xl md:text-5xl text-on-surface leading-tight mb-12">
-              "CineStream isn't a streaming service; it's a digital archive for those who live and breathe the silver screen. The interface finally matches the beauty of the films it catalogs."
-            </blockquote>
-            <div className="flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full overflow-hidden mb-4 ring-2 ring-primary-dim ring-offset-4 ring-offset-surface">
-                <img className="w-full h-full object-cover" alt="Member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1LVikKti3A-ODh1aMaCltpVmOuWvubmh3e8cZgtJ1cNPW6QZNnowUt0ZvTOBEA_Oq01ywCh_yjng1z8KoMFz0mZ74qtnKcsBxj88YHEohPSnimU60Qq5_xvfZpC_PQZLt_iKOartaqHXgoECCvX-ucdb9JJhvd6ldVMWnaOGKxDjZp4k5YGeI6CyfMm3vuhjnL-mm2M7EL1smSejPaRJyOVslG9AVkxmORh4SjAgXJ9IGmAa83bb2mYjdzNkcKA5tOebuHESvxts" />
-              </div>
-              <cite className="not-italic">
-                <div className="font-headline font-bold text-on-surface">Julian Thorne</div>
-                <div className="font-label text-xs text-on-surface-variant uppercase tracking-widest">Independent Director & Member</div>
-              </cite>
-            </div>
-          </div>
-        </section>
+        {/* Testimonial Section removed */}
 
         {/* CTA Section */}
         <section id="pricing" className="py-32 bg-surface relative">

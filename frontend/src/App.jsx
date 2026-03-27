@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
-import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Discover from './pages/Discover';
@@ -26,21 +25,18 @@ export default function App() {
           <Route path="*" element={
             <div className="flex flex-col min-h-screen bg-surface">
               <Navbar />
-              <div className="flex flex-1 min-w-0">
-                <Sidebar />
-                <main className="flex-1 content-transition min-w-0">
-                  <Routes>
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/discover" element={<Discover />} />
-                    <Route path="/popular" element={<Discover />} />
-                    <Route path="/genres" element={<Discover />} />
-                    <Route path="/category/:id" element={<CategoryPage />} />
-                    <Route path="/movie/:id" element={<MovieDetail />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/settings" element={<Settings />} />
-                  </Routes>
-                </main>
-              </div>
+              <main className="flex-1 min-w-0">
+                <Routes>
+                  <Route path="/home" element={<Home />} />
+                  <Route path="/discover" element={<Discover />} />
+                  <Route path="/popular" element={<Discover />} />
+                  <Route path="/genres" element={<Discover />} />
+                  <Route path="/category/:id" element={<CategoryPage />} />
+                  <Route path="/movie/:id" element={<MovieDetail />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Routes>
+              </main>
             </div>
           } />
         </Routes>
