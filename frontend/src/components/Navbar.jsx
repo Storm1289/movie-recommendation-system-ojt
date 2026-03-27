@@ -22,6 +22,7 @@ export default function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
     const { user, logout } = useApp();
+    const isHomePage = location.pathname === '/home';
 
     const searchRef = useRef(null);
     const inputRef = useRef(null);
@@ -110,8 +111,10 @@ export default function Navbar() {
 
     return (
         <header
-            className={`sticky top-0 z-40 w-full transition-all duration-300 ${
-                isScrolled
+            className={`top-0 z-40 w-full transition-all duration-300 ${
+                isHomePage ? 'fixed left-0 right-0' : 'sticky'
+            } ${
+                isScrolled || !isHomePage
                     ? 'bg-[#111111]/96 shadow-[0_16px_48px_rgba(0,0,0,0.45)] backdrop-blur-md'
                     : 'bg-gradient-to-b from-black/85 via-black/35 to-transparent'
             }`}
