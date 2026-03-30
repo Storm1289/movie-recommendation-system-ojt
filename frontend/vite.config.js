@@ -1,12 +1,72 @@
-import { defineConfig } from 'vite'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  server: {
-    proxy: {
-      '/api': 'http://localhost:8000'
+const currentDir = path.dirname(fileURLToPath(import.meta.url))
+
+const readEnvFile = (filePath) => {
+  if (!fs.existsSync(filePath)) {
+    return {}
+  }
+
+  return fs
+    .readFileSync(filePath, 'utf8')
+    .split(/\r?\n/)
+    .reduce((acc, line) => {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('#')) {
+        return acc
+      }
+
+      const separatorIndex = trimmed.indexOf('=')
+      if (separatorIndex === -1) {
+        return acc
+      }
+
+      const key = trimmed.slice(0, separatorIndex).trim()
+      const value = trimmed.slice(separatorIndex + 1).trim()
+
+      if (key) {
+        acc[key] = value
+      }
+
+      return acc
+    }, {})
+}
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const backendDir = path.resolve(currentDir, '../backend')
+  const backendEnv = {
+    ...readEnvFile(path.join(backendDir, '.env.example')),
+    ...readEnvFile(path.join(backendDir, '.env')),
+  }
+
+  const googleClientId =
+    env.VITE_GOOGLE_CLIENT_ID ||
+    env.GOOGLE_CLIENT_ID ||
+    backendEnv.GOOGLE_CLIENT_ID ||
+    ''
+
+  const facebookAppId =
+    env.VITE_FACEBOOK_APP_ID ||
+    env.FACEBOOK_APP_ID ||
+    backendEnv.FACEBOOK_APP_ID ||
+    ''
+
+  return {
+    define: {
+      'import.meta.env.VITE_GOOGLE_CLIENT_ID': JSON.stringify(googleClientId),
+      'import.meta.env.VITE_FACEBOOK_APP_ID': JSON.stringify(facebookAppId),
+    },
+    plugins: [react(), tailwindcss()],
+    server: {
+      proxy: {
+        '/api': 'http://localhost:8000'
+      }
     }
   }
 })

@@ -8,7 +8,12 @@ from datetime import datetime, timezone
 
 import requests
 from dotenv import load_dotenv
+from pathlib import Path
 from fastapi import FastAPI, Depends, Query, Request, HTTPException
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
+load_dotenv(BASE_DIR / ".env.example")
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
@@ -21,8 +26,6 @@ from database import get_db, get_next_id
 from models import Movie, Comment, User, DEFAULT_USER_SETTINGS, DEFAULT_USER_STATS
 from recommendation import load_model, get_recommendations
 from ranking import recalculate_all_scores, update_movie_score
-
-load_dotenv()
 
 app = FastAPI(title="CineStream API")
 
@@ -199,29 +202,53 @@ def provider_field_name(provider: str) -> str:
 def verify_google_credential(credential: str) -> dict:
     client_id = get_required_env("GOOGLE_CLIENT_ID")
 
-    try:
-        token_info = google_id_token.verify_oauth2_token(
-            credential,
-            google_requests.Request(),
-            client_id,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=401, detail="Invalid Google sign-in token") from exc
+    # If it's a JWT (contains dots), try ID token verification
+    if credential.count(".") == 2:
+        try:
+            token_info = google_id_token.verify_oauth2_token(
+                credential,
+                google_requests.Request(),
+                client_id,
+            )
+            issuer = token_info.get("iss")
+            if issuer not in {"accounts.google.com", "https://accounts.google.com"}:
+                raise HTTPException(status_code=401, detail="Invalid Google token issuer")
 
-    issuer = token_info.get("iss")
-    if issuer not in {"accounts.google.com", "https://accounts.google.com"}:
-        raise HTTPException(status_code=401, detail="Invalid Google token issuer")
+            if not token_info.get("email_verified"):
+                raise HTTPException(status_code=400, detail="Google account email is not verified")
 
-    if not token_info.get("email_verified"):
-        raise HTTPException(status_code=400, detail="Google account email is not verified")
+            return {
+                "provider": "google",
+                "provider_user_id": token_info.get("sub"),
+                "email": token_info.get("email"),
+                "name": token_info.get("name"),
+                "avatar": token_info.get("picture"),
+            }
+        except ValueError as exc:
+            raise HTTPException(status_code=401, detail="Invalid Google sign-in id_token") from exc
+    else:
+        # Otherwise, treat it as an OAuth access token and fetch userinfo
+        try:
+            resp = requests.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {credential}"},
+                timeout=10,
+            )
+            resp.raise_for_status()
+            userinfo = resp.json()
+        except requests.RequestException as exc:
+            raise HTTPException(status_code=401, detail="Invalid Google sign-in access_token") from exc
 
-    return {
-        "provider": "google",
-        "provider_user_id": token_info.get("sub"),
-        "email": token_info.get("email"),
-        "name": token_info.get("name"),
-        "avatar": token_info.get("picture"),
-    }
+        if not userinfo.get("email_verified"):
+            raise HTTPException(status_code=400, detail="Google account email is not verified")
+
+        return {
+            "provider": "google",
+            "provider_user_id": userinfo.get("sub"),
+            "email": userinfo.get("email"),
+            "name": userinfo.get("name"),
+            "avatar": userinfo.get("picture"),
+        }
 
 
 def verify_facebook_access_token(access_token: str) -> dict:
