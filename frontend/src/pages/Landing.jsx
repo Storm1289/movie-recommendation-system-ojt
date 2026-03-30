@@ -49,13 +49,12 @@ export default function Landing() {
             Browse
           </Link>
           <a className="text-white/70 hover:text-white transition-colors font-headline tracking-tight" href="#features">Features</a>
-          <a className="text-white/70 hover:text-white transition-colors font-headline tracking-tight" href="#pricing">Pricing</a>
         </div>
         <div className="flex items-center gap-4">
-          <Link to="/login" className="hidden sm:block px-6 py-2 text-white/70 hover:text-white transition-all font-label text-xs tracking-widest uppercase">
+          <Link to="/login" className="hidden sm:block px-6 py-2 text-white/70 hover:text-white border border-transparent hover:border-white/20 rounded-full transition-all font-label text-xs tracking-widest uppercase">
             Login
           </Link>
-          <Link to="/login" className="bg-primary-dim text-on-primary-fixed px-8 py-2 rounded-full font-label text-xs font-bold tracking-widest uppercase hover:scale-105 transition-all shadow-[0_0_20px_rgba(139,125,255,0.3)]">
+          <Link to="/login?mode=signup" className="bg-primary-dim text-on-primary-fixed px-8 py-2.5 rounded-full font-label text-xs font-bold tracking-widest uppercase hover:bg-primary transition-all shadow-lg hover:shadow-primary/40">
             Sign Up
           </Link>
         </div>
@@ -102,20 +101,21 @@ export default function Landing() {
 
           {/* Hero Content */}
           <div className="relative z-20 text-center px-6 max-w-5xl">
-            <h1 className="font-headline font-black text-6xl md:text-8xl lg:text-9xl leading-[0.9] tracking-tighter text-on-surface mb-8">
-              Your Movie <br />
-              <span className="text-primary-dim text-shadow-glow">Adventure</span> <br />
-              Starts Here
+            <h2 className="font-label font-bold text-primary-dim tracking-[0.3em] uppercase mb-4 text-sm md:text-base">
+              Your Movie Adventure Starts Here
+            </h2>
+            <h1 className="font-headline font-black text-6xl md:text-8xl lg:text-9xl leading-[0.9] tracking-tighter text-on-surface mb-8 text-shadow-glow">
+              CINESTREAM
             </h1>
             <p className="font-body text-on-surface-variant text-lg md:text-xl max-w-2xl mx-auto mb-12">
               Experience cinema through an editorial lens. Curated collections, deep metadata, and a community of auteurs awaiting your discovery.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Link to="/login" className="w-full sm:w-auto px-12 py-5 bg-gradient-to-r from-primary-dim to-primary rounded-full font-headline font-bold text-on-primary-fixed text-lg hover:scale-105 active:scale-95 transition-all shadow-[0_10px_40px_rgba(139,125,255,0.35)] block text-center">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12">
+              <Link to="/login?mode=signup" className="w-full sm:w-auto px-12 py-4 bg-primary text-white rounded-full font-headline font-bold text-lg hover:bg-primary-hover active:scale-95 transition-all shadow-lg shadow-primary/30 block text-center border border-primary">
                 Sign Up
               </Link>
-              <Link to="/home" className="w-full sm:w-auto px-12 py-5 bg-surface-container/50 backdrop-blur-md rounded-full font-headline font-bold text-on-surface text-lg border border-outline-variant/20 hover:bg-surface-bright transition-all block text-center">
-                Browse as Guest
+              <Link to="/login" className="w-full sm:w-auto px-12 py-4 bg-transparent backdrop-blur-md rounded-full font-headline font-bold text-white text-lg border border-white/20 hover:bg-white/10 transition-all block text-center">
+                Login
               </Link>
             </div>
           </div>
@@ -150,23 +150,36 @@ export default function Landing() {
               </div>
 
               {/* Feature 3: Ratings */}
-              <div className="glass-nav md:col-span-4 bg-surface-container/60 border border-white/5 rounded-xl p-10 flex flex-col justify-end hover:bg-surface-container transition-colors">
+              <div className="glass-nav md:col-span-4 bg-surface-container/60 border border-white/5 rounded-xl p-10 flex flex-col justify-end hover:bg-surface-container transition-colors group">
                 <div className="flex gap-1 mb-6">
-                  {[1,2,3,4].map(i => <span key={i} className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>)}
-                  <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 0" }}>star</span>
+                  {[1,2,3,4].map(i => (
+                    <span key={i} className="material-symbols-outlined text-yellow-500 text-3xl group-hover:scale-110 transition-transform origin-bottom" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                  ))}
+                  <span className="material-symbols-outlined text-yellow-500/30 text-3xl group-hover:scale-110 transition-transform origin-bottom" style={{ fontVariationSettings: "'FILL' 0" }}>star</span>
                 </div>
                 <h3 className="font-headline font-bold text-2xl mb-2">Deep Ratings</h3>
                 <p className="text-on-surface-variant text-sm">Rate more than just stars. Grade cinematography, score, and narrative depth.</p>
               </div>
 
               {/* Feature 4: Community */}
-              <div className="glass-nav md:col-span-8 bg-surface-container-highest/60 border border-white/5 rounded-xl p-10 flex flex-col sm:flex-row items-center gap-8 group hover:bg-surface-container-highest transition-colors">
-                <div className="w-full sm:w-1/3 overflow-hidden rounded-xl">
-                  <img className="object-cover h-full group-hover:scale-110 transition-transform duration-700" alt="Community feature" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7CPHcoF7pxHlE1ByAReZTadEwAXIlDYe5yQZdmh548Y6cUW4cexIbbjz6NDXxW-3AwPMQXyaHw_CV4Ps7DyUcsrhHPUG-rhDYa1j1RUm1DQ-415Gs0XLaU6PPfsxc16qEssax6nR2lZLoWUAQgVT0UcJTVroH5ozuAOMbbwF1-xDV10o59skZkf7W1oW0RZd7I7A-jeml95X0MajnHrHIFkrwcLyJVht3eiSQsUadrU9Sq6jfYGHFFe3aWzjrdewRcWA0diBrcf0" />
+              <div className="glass-nav md:col-span-8 bg-surface-container-highest/60 border border-white/5 rounded-xl p-10 flex flex-col sm:flex-row items-center gap-10 group hover:bg-surface-container-highest transition-colors">
+                <div className="w-full sm:w-1/3 overflow-hidden rounded-xl h-full shadow-lg">
+                  <img className="object-cover h-full w-full group-hover:scale-110 transition-transform duration-700" alt="Community feature" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7CPHcoF7pxHlE1ByAReZTadEwAXIlDYe5yQZdmh548Y6cUW4cexIbbjz6NDXxW-3AwPMQXyaHw_CV4Ps7DyUcsrhHPUG-rhDYa1j1RUm1DQ-415Gs0XLaU6PPfsxc16qEssax6nR2lZLoWUAQgVT0UcJTVroH5ozuAOMbbwF1-xDV10o59skZkf7W1oW0RZd7I7A-jeml95X0MajnHrHIFkrwcLyJVht3eiSQsUadrU9Sq6jfYGHFFe3aWzjrdewRcWA0diBrcf0" />
                 </div>
-                <div className="w-full sm:w-2/3">
-                  <h3 className="font-headline font-bold text-2xl mb-4">The Digital Auteur</h3>
-                  <p className="text-on-surface-variant text-sm italic">"A community that treats film criticism as an art form itself."</p>
+                <div className="w-full sm:w-2/3 flex flex-col justify-center">
+                  <span className="material-symbols-outlined text-primary-dim text-4xl mb-4 opacity-50">format_quote</span>
+                  <blockquote className="font-headline font-bold text-2xl md:text-3xl text-white mb-6 leading-tight">
+                    "A community that treats film criticism as an art form itself."
+                  </blockquote>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary-dim/30">
+                      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1LVikKti3A-ODh1aMaCltpVmOuWvubmh3e8cZgtJ1cNPW6QZNnowUt0ZvTOBEA_Oq01ywCh_yjng1z8KoMFz0mZ74qtnKcsBxj88YHEohPSnimU60Qq5_xvfZpC_PQZLt_iKOartaqHXgoECCvX-ucdb9JJhvd6ldVMWnaOGKxDjZp4k5YGeI6CyfMm3vuhjnL-mm2M7EL1smSejPaRJyOVslG9AVkxmORh4SjAgXJ9IGmAa83bb2mYjdzNkcKA5tOebuHESvxts" alt="Julian Thorne" className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-white text-sm">Julian Thorne</div>
+                      <div className="text-primary-dim text-xs uppercase tracking-widest font-label mt-0.5">The Digital Auteur</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -182,13 +195,22 @@ export default function Landing() {
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,125,255,0.4),transparent)]"></div>
               <div className="relative z-10 mb-12 md:mb-0 text-center md:text-left">
                 <h2 className="font-headline font-black text-4xl md:text-6xl text-on-primary-fixed mb-6 leading-none">Ready for your <br />first screening?</h2>
-                <p className="font-body text-on-primary-container text-lg max-w-md">Join 50,000+ auteurs and start building your ultimate cinema library today.</p>
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="flex -space-x-3">
+                    {/* Social proof avatars */}
+                    <img className="w-10 h-10 rounded-full border-2 border-primary-dim" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQeYk6g0N23R3u_N8qBcxr4nOaT2p8F0R_2yV7ZJ2V2U4KZZyXXd9jO5hGxtw3Y35Z5E9eJ0gU-P3S2b-pU3pT_7KZZ2W9yXXd9jO5hGxtw3Y35Z5E9eJ0gU-P3S2b-p" alt="" onError={(e) => {e.target.style.display='none'}} />
+                    <div className="w-10 h-10 rounded-full border-2 border-primary-dim bg-surface flex items-center justify-center text-xs font-bold text-white uppercase">JD</div>
+                    <div className="w-10 h-10 rounded-full border-2 border-primary-dim bg-purple-600 flex items-center justify-center text-xs font-bold text-white uppercase">AL</div>
+                    <div className="w-10 h-10 rounded-full border-2 border-primary-dim pl-1 bg-surface-container flex items-center justify-center text-xs font-bold text-primary-dim shadow-inner">+50k</div>
+                  </div>
+                  <p className="font-body text-on-primary-container text-sm font-bold">Auteurs joined this month.</p>
+                </div>
               </div>
               <div className="relative z-10 flex flex-col gap-4 w-full md:w-auto">
-                <Link to="/login" className="px-12 py-5 bg-on-primary-fixed text-primary-dim rounded-full font-headline font-black text-xl hover:bg-white transition-all shadow-2xl block text-center min-w-[280px]">
-                  GET STARTED
+                <Link to="/login?mode=signup" className="px-12 py-5 bg-on-primary-fixed text-primary-dim rounded-full font-headline font-black text-xl hover:bg-white transition-all shadow-2xl block text-center min-w-[280px]">
+                  BUILD YOUR PROFILE
                 </Link>
-                <p className="text-center font-label text-xs text-on-primary-container tracking-tighter">FREE ACCESS FOR 30 DAYS</p>
+                <p className="text-center font-label text-xs text-on-primary-container tracking-widest uppercase">100% Free forever &bull; No ads</p>
               </div>
             </div>
           </div>

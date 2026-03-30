@@ -4,6 +4,7 @@ import MovieCard from '../components/MovieCard';
 
 export default function Profile() {
     const { user, watchlist, userStats } = useApp();
+    const avatarIsImage = typeof user?.avatar === 'string' && user.avatar.startsWith('http');
 
     return (
         <div className="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary min-h-screen flex">
@@ -54,10 +55,10 @@ export default function Profile() {
                     <div className="flex flex-col md:flex-row items-end gap-10">
                         <div className="relative group shrink-0">
                             <div className="w-40 h-40 lg:w-48 lg:h-48 rounded-2xl overflow-hidden border-4 border-surface shadow-2xl bg-gradient-to-br from-primary-dim to-purple-600 flex items-center justify-center text-8xl font-black text-white">
-                                {user?.avatar ? (
+                                {avatarIsImage ? (
                                     <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
                                 ) : (
-                                    user?.name?.[0]?.toUpperCase() || 'A'
+                                    user?.avatar || user?.name?.[0]?.toUpperCase() || 'A'
                                 )}
                             </div>
                         </div>

@@ -23,6 +23,7 @@ export default function Navbar() {
     const location = useLocation();
     const { user, logout } = useApp();
     const isHomePage = location.pathname === '/home';
+    const isGuest = Boolean(user?.isGuest);
 
     const searchRef = useRef(null);
     const inputRef = useRef(null);
@@ -124,6 +125,8 @@ export default function Navbar() {
         }
     };
 
+    const avatarIsImage = typeof user?.avatar === 'string' && user.avatar.startsWith('http');
+
     return (
         <header
             className={`top-0 z-40 w-full transition-all duration-300 ${
@@ -145,7 +148,7 @@ export default function Navbar() {
                         onWheel={handleNavWheel(desktopNavRef)}
                         className="hidden min-w-0 flex-1 items-center gap-5 overflow-x-auto whitespace-nowrap text-[0.82rem] font-medium text-white/80 lg:flex"
                     >
-                        {primaryNavItems.map((item) => (
+                        {(isGuest ? primaryNavItems.filter((item) => item.path === '/home') : primaryNavItems).map((item) => (
                             <Link
                                 key={item.label}
                                 to={item.path}
@@ -159,7 +162,7 @@ export default function Navbar() {
                     </nav>
 
                     <div className="ml-auto flex items-center gap-1.5 md:gap-3">
-                        <div ref={searchRef} className="relative hidden md:block">
+                        {!isGuest && <div ref={searchRef} className="relative hidden md:block">
                             <div
                                 className={`relative h-9 overflow-hidden border transition-[width,border-radius,border-color,background-color] duration-300 ease-out ${
                                     isSearchOpen
@@ -259,28 +262,39 @@ export default function Navbar() {
                                     )}
                                 </div>
                             )}
-                        </div>
+                        </div>}
 
-                        <Link
+                        {!isGuest && <Link
                             to="/settings"
                             className="hidden h-8 w-8 items-center justify-center rounded-full text-white/85 transition-colors hover:bg-white/10 hover:text-white md:flex"
                             aria-label="Settings"
                         >
                             <span className="material-symbols-outlined text-[18px]">settings</span>
-                        </Link>
+                        </Link>}
 
                         {user ? (
                             <>
-                                <Link to="/profile" className="flex items-center gap-2 text-white">
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-[#3478f6] to-[#2c58b8] text-[0.72rem] font-bold text-white">
-                                        {user.avatar || user.name?.[0]?.toUpperCase() || 'A'}
-                                    </div>
-                                </Link>
+                                {!isGuest && (
+                                    <Link to="/profile" className="flex items-center gap-2 text-white">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-[#3478f6] to-[#2c58b8] text-[0.72rem] font-bold text-white">
+                                            {avatarIsImage ? (
+                                                <img src={user.avatar} alt={user.name || 'Profile'} className="h-full w-full rounded-md object-cover" />
+                                            ) : (
+                                                user.avatar || user.name?.[0]?.toUpperCase() || 'A'
+                                            )}
+                                        </div>
+                                    </Link>
+                                )}
+                                {isGuest && (
+                                    <span className="hidden rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-white/75 md:inline-flex">
+                                        Guest
+                                    </span>
+                                )}
                                 <button
                                     onClick={handleLogout}
                                     className="hidden text-[0.8rem] font-medium text-white/80 transition-colors hover:text-red-400 xl:block"
                                 >
-                                    Log Out
+                                    {isGuest ? 'Exit Guest' : 'Log Out'}
                                 </button>
                             </>
                         ) : (
@@ -299,7 +313,7 @@ export default function Navbar() {
                     onWheel={handleNavWheel(mobileNavRef)}
                     className="mt-4 flex gap-4 overflow-x-auto whitespace-nowrap text-[0.8rem] font-medium text-white/75 lg:hidden"
                 >
-                    {primaryNavItems.map((item) => (
+                    {(isGuest ? primaryNavItems.filter((item) => item.path === '/home') : primaryNavItems).map((item) => (
                         <Link
                             key={item.label}
                             to={item.path}

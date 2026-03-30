@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 export default function MovieCard({ movie, rank, showMatch }) {
-    const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useApp();
+    const { addToWatchlist, removeFromWatchlist, isInWatchlist, isGuestUser, openAuthModal } = useApp();
 
     const posterUrl = movie.poster_path?.startsWith('http')
         ? movie.poster_path
@@ -26,8 +26,17 @@ export default function MovieCard({ movie, rank, showMatch }) {
         }
     };
 
+    const handleCardClick = (e) => {
+        if (!isGuestUser) {
+            return;
+        }
+
+        e.preventDefault();
+        openAuthModal();
+    };
+
     return (
-        <Link to={`/movie/${movie.id}`} className="group/card cursor-pointer block">
+        <Link to={`/movie/${movie.id}`} onClick={handleCardClick} className="group/card cursor-pointer block">
             <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 transition-all duration-300 group-hover/card:scale-110 group-hover/card:shadow-[0_0_40px_rgba(139,125,255,0.45)] bg-surface-container z-10 group-hover/card:z-50">
                 {/* Rank badge */}
                 {rank && (

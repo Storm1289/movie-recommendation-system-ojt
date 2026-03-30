@@ -15,6 +15,8 @@ export const fetchGenres = () => API.get('/genres');
 // Auth and user state
 export const signupUser = (data) => API.post('/auth/signup', data);
 export const loginUser = (data) => API.post('/auth/login', data);
+export const loginWithGoogle = (data) => API.post('/auth/google', data);
+export const loginWithFacebook = (data) => API.post('/auth/facebook', data);
 export const fetchUserState = (userId) => API.get(`/users/${userId}/state`);
 export const updateUserSettings = (userId, data) => API.put(`/users/${userId}/settings`, data);
 export const addMovieToWatchlist = (userId, movieId) => API.post(`/users/${userId}/watchlist/${movieId}`);

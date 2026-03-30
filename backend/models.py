@@ -147,6 +147,7 @@ class User:
             "name": doc.get("name"),
             "email": doc.get("email"),
             "avatar": doc.get("avatar"),
+            "authProviders": doc.get("auth_providers", []),
             "created_at": created_at,
             "updated_at": updated_at,
         }

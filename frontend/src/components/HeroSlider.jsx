@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 export default function HeroSlider({ movies }) {
-    const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useApp();
+    const { addToWatchlist, removeFromWatchlist, isInWatchlist, isGuestUser, openAuthModal } = useApp();
     const scrollContainerRef = useRef(null);
 
     if (!movies.length) {
@@ -14,7 +14,7 @@ export default function HeroSlider({ movies }) {
         );
     }
 
-    const displayMovies = movies.slice(0, 5);
+    const displayMovies = movies.filter(m => m.backdrop_path || m.poster_path).slice(0, 5);
 
     const scrollLeft = () => {
         if (scrollContainerRef.current) {
@@ -53,6 +53,15 @@ export default function HeroSlider({ movies }) {
                         } catch (error) {
                             console.error(error);
                         }
+                    };
+
+                    const handleInfoClick = (e) => {
+                        if (!isGuestUser) {
+                            return;
+                        }
+
+                        e.preventDefault();
+                        openAuthModal();
                     };
 
                     return (
@@ -95,7 +104,11 @@ export default function HeroSlider({ movies }) {
                                 </p>
                                 
                                 <div className="flex flex-col sm:flex-row items-center gap-4">
-                                    <Link to={`/movie/${movie.id}`} className="w-full sm:w-auto bg-primary-dim text-on-primary-fixed px-10 py-4 rounded-full font-headline font-bold flex justify-center items-center gap-3 hover:scale-105 transition-transform shadow-[0_0_20px_rgba(139,125,255,0.35)]">
+                                    <Link
+                                        to={`/movie/${movie.id}`}
+                                        onClick={handleInfoClick}
+                                        className="w-full sm:w-auto bg-primary-dim text-on-primary-fixed px-10 py-4 rounded-full font-headline font-bold flex justify-center items-center gap-3 hover:scale-105 transition-transform shadow-[0_0_20px_rgba(139,125,255,0.35)]"
+                                    >
                                         <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
                                         Movie Info
                                     </Link>

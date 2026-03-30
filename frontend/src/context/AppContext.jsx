@@ -3,6 +3,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import {
     addMovieToWatchlist,
     fetchUserState,
+    loginWithFacebook as loginWithFacebookRequest,
+    loginWithGoogle as loginWithGoogleRequest,
     loginUser,
     removeMovieFromWatchlist,
     signupUser,
@@ -31,6 +33,11 @@ const DEFAULT_STATS = {
     commentCount: 0,
 };
 
+const DEFAULT_AUTH_MODAL = {
+    isOpen: false,
+    message: 'Please log in or sign up to continue',
+};
+
 export function AppProvider({ children }) {
     // Auth state
     const [user, setUser] = useState(() => {
@@ -57,12 +64,27 @@ export function AppProvider({ children }) {
     const [watchlist, setWatchlist] = useState(() => readWatchlist(user));
     const [settings, setSettings] = useState(() => readSettings(user));
     const [userStats, setUserStats] = useState(() => readStats(user));
+    const [authModal, setAuthModal] = useState(DEFAULT_AUTH_MODAL);
 
     const applyUserState = (payload) => {
         setUser(payload.user || null);
         setWatchlist(payload.watchlist || []);
         setSettings({ ...DEFAULT_SETTINGS, ...(payload.settings || {}) });
         setUserStats({ ...DEFAULT_STATS, ...(payload.stats || {}) });
+        setAuthModal(DEFAULT_AUTH_MODAL);
+    };
+
+    const isGuestUser = Boolean(user?.isGuest);
+
+    const openAuthModal = (message = DEFAULT_AUTH_MODAL.message) => {
+        setAuthModal({
+            isOpen: true,
+            message,
+        });
+    };
+
+    const closeAuthModal = () => {
+        setAuthModal(DEFAULT_AUTH_MODAL);
     };
 
     // Persist
@@ -130,14 +152,48 @@ export function AppProvider({ children }) {
         return res.data.user;
     };
 
+    const loginWithGoogle = async (payload) => {
+        const res = await loginWithGoogleRequest(payload);
+        applyUserState(res.data);
+        return res.data.user;
+    };
+
+    const loginWithFacebook = async (payload) => {
+        const res = await loginWithFacebookRequest(payload);
+        applyUserState(res.data);
+        return res.data.user;
+    };
+
     const logout = () => {
         setUser(null);
         setWatchlist([]);
         setSettings({ ...DEFAULT_SETTINGS });
         setUserStats({ ...DEFAULT_STATS });
+        closeAuthModal();
+    };
+
+    const continueAsGuest = () => {
+        applyUserState({
+            user: {
+                id: null,
+                name: 'Guest Viewer',
+                email: '',
+                avatar: 'G',
+                isGuest: true,
+                authProviders: ['guest'],
+            },
+            watchlist: [],
+            settings: DEFAULT_SETTINGS,
+            stats: DEFAULT_STATS,
+        });
     };
 
     const addToWatchlist = async (movie) => {
+        if (isGuestUser) {
+            openAuthModal();
+            return;
+        }
+
         if (user?.id) {
             const res = await addMovieToWatchlist(user.id, movie.id);
             setWatchlist(res.data.watchlist || []);
@@ -151,6 +207,11 @@ export function AppProvider({ children }) {
     };
 
     const removeFromWatchlist = async (movieId) => {
+        if (isGuestUser) {
+            openAuthModal();
+            return;
+        }
+
         if (user?.id) {
             const res = await removeMovieFromWatchlist(user.id, movieId);
             setWatchlist(res.data.watchlist || []);
@@ -163,6 +224,11 @@ export function AppProvider({ children }) {
     const isInWatchlist = (movieId) => watchlist.some((m) => m.id === movieId);
 
     const updateSettings = async (newSettings) => {
+        if (isGuestUser) {
+            openAuthModal();
+            return;
+        }
+
         if (user?.id) {
             const res = await persistUserSettings(user.id, newSettings);
             setSettings({ ...DEFAULT_SETTINGS, ...(res.data.settings || {}) });
@@ -194,7 +260,8 @@ export function AppProvider({ children }) {
 
     return (
         <AppContext.Provider value={{
-            user, login, signup, logout,
+            user, isGuestUser, authModal, openAuthModal, closeAuthModal,
+            login, signup, loginWithGoogle, loginWithFacebook, continueAsGuest, logout,
             watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist,
             userStats, markMovieRated, incrementCommentCount,
             settings, updateSettings,

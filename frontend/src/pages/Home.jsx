@@ -6,6 +6,7 @@ import { useApp } from '../context/AppContext';
 
 export default function Home() {
     const { user } = useApp();
+    const isGuest = Boolean(user?.isGuest);
     const [trending, setTrending] = useState([]);
     const [topMonth, setTopMonth] = useState([]);
     const [recommended, setRecommended] = useState([]);
@@ -27,10 +28,10 @@ export default function Home() {
                 {/* Welcome Header */}
                 <header>
                     <h2 className="text-4xl font-black font-headline tracking-tight">
-                        Welcome back, <span className="text-primary-dim">{user?.name || 'Auteur'}</span>
+                        {isGuest ? 'Browse as ' : 'Welcome back, '}<span className="text-primary-dim">{user?.name || 'Auteur'}</span>
                     </h2>
                     <p className="text-on-surface-variant font-label text-sm mt-2 uppercase tracking-widest">
-                        {user ? 'Premium Member' : 'Guest Access'}
+                        {isGuest ? 'Guest Access' : user ? 'Premium Member' : 'Guest Access'}
                     </p>
                 </header>
 

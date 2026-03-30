@@ -60,6 +60,14 @@
   /* Additional config logic that mimics border radius from the script */
   --radius-lg: 0.25rem;
   --radius-xl: 0.5rem;
+
+  --font-headline: "Epilogue", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Inter", sans-serif;
+
+  /* Additional config logic that mimics border radius from the script */
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
   --radius-full: 0.75rem;
 
   /* Overriding these layout vars in case previous CSS was dependent on them */
@@ -87,6 +95,23 @@
   *::-webkit-scrollbar { width: 6px; height: 6px; }
   *::-webkit-scrollbar-track { background: transparent; }
   *::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+  /* Fix for Material Symbols not loading as icon font */
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
 }
 
 .hide-scrollbar::-webkit-scrollbar { display: none; }

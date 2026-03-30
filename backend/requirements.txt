@@ -3,3 +3,5 @@ pymongo
 pandas
 scikit-learn
 requests
+google-auth
+python-dotenv

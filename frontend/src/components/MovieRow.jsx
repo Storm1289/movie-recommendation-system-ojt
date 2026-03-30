@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import MovieCard from './MovieCard';
+import { useApp } from '../context/AppContext';
 
 export default function MovieRow({
     title,
@@ -11,12 +12,14 @@ export default function MovieRow({
     variant = 'default',
     autoScroll = false,
 }) {
+    const { isGuestUser, openAuthModal } = useApp();
     const scrollContainerRef = useRef(null);
     const [isAutoPaused, setIsAutoPaused] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
-    const safeMovies = movies || [];
+    // Filter out movies that don't have a poster to keep the UI clean
+    const safeMovies = (movies || []).filter(m => m.poster_path);
     const dragStateRef = useRef({
         isActive: false,
         startX: 0,
@@ -133,6 +136,15 @@ export default function MovieRow({
 
     if (safeMovies.length === 0) return null;
 
+    const handleExploreAllClick = (e) => {
+        if (!isGuestUser) {
+            return;
+        }
+
+        e.preventDefault();
+        openAuthModal();
+    };
+
     return (
         <section
             onMouseEnter={() => setIsAutoPaused(true)}
@@ -147,7 +159,11 @@ export default function MovieRow({
                     {subTitle && <p className="text-on-surface-variant font-label text-sm mt-1">{subTitle}</p>}
                 </div>
                 {linkTo && (
-                    <Link to={linkTo} className="text-primary text-sm font-label font-semibold hover:underline flex items-center gap-1 group/link">
+                    <Link
+                        to={linkTo}
+                        onClick={handleExploreAllClick}
+                        className="text-primary text-sm font-label font-semibold hover:underline flex items-center gap-1 group/link"
+                    >
                         Explore All
                         <span className="material-symbols-outlined text-sm group-hover/link:translate-x-1 transition-transform">arrow_forward</span>
                     </Link>
@@ -178,7 +194,7 @@ export default function MovieRow({
                     onMouseLeave={stopDragging}
                     onMouseUp={stopDragging}
                     onWheel={handleWheel}
-                    className={`flex gap-6 overflow-x-auto snap-x hide-scrollbar py-4 -mx-4 px-4 select-none ${
+                    className={`flex gap-6 overflow-x-auto snap-x hide-scrollbar py-4 -mx-4 md:-mx-6 xl:-mx-8 px-4 md:px-6 xl:px-8 select-none ${
                         isDragging ? 'cursor-grabbing' : 'cursor-grab'
                     }`}
                     style={{ scrollBehavior: 'smooth' }}
