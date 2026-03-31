@@ -108,6 +108,11 @@ export function AppProvider({ children }) {
                     setUserStats({ ...DEFAULT_STATS, ...(res.data.stats || {}) });
                 })
                 .catch((error) => {
+                    if (isCancelled) return;
+                    if (error?.response?.status === 404) {
+                        logout();
+                        return;
+                    }
                     console.error('Failed to sync user state', error);
                 });
 
