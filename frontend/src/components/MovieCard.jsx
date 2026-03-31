@@ -37,7 +37,7 @@ export default function MovieCard({ movie, rank, showMatch }) {
 
     return (
         <Link to={`/movie/${movie.id}`} onClick={handleCardClick} className="group/card cursor-pointer block">
-            <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 transition-all duration-300 group-hover/card:scale-110 group-hover/card:shadow-[0_0_40px_rgba(139,125,255,0.45)] bg-surface-container z-10 group-hover/card:z-50">
+            <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 transition-all duration-300 group-hover/card:scale-110 group-hover/card:shadow-2xl group-hover/card:shadow-black/60 bg-surface-container z-10 group-hover/card:z-50">
                 {/* Rank badge */}
                 {rank && (
                     <div className="absolute -left-2 -top-2 z-20 flex items-center justify-center font-black text-5xl text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] italic font-headline">
@@ -60,14 +60,14 @@ export default function MovieCard({ movie, rank, showMatch }) {
                 )}
 
                 {/* Rating badge */}
-                <div className="absolute top-3 right-3 bg-secondary text-black px-2 py-1 rounded-lg text-xs font-black font-label flex items-center gap-1 shadow-[0_0_15px_rgba(86,207,255,0.35)] z-10">
+                <div className="absolute top-3 right-3 bg-amber-500 text-black px-2 py-1 rounded-lg text-xs font-black font-label flex items-center gap-1 shadow-lg z-10">
                     <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                     {movie.rating ? movie.rating.toFixed(1) : 'NR'}
                 </div>
 
                 {/* Match badge */}
                 {showMatch && (
-                    <div className="absolute top-3 left-3 z-10 bg-primary-dim/90 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg backdrop-blur-md flex items-center gap-1 font-label uppercase tracking-wider">
+                    <div className="absolute top-3 left-3 z-10 bg-primary/80 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg backdrop-blur-md flex items-center gap-1 font-label uppercase tracking-wider">
                         <span className="material-symbols-outlined text-[12px]">thumb_up</span>
                         {matchScore}% Match
                     </div>
@@ -75,10 +75,10 @@ export default function MovieCard({ movie, rank, showMatch }) {
 
                 {/* Hover overlay for actions */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity bg-black/40 gap-3 z-30">
-                    <span className="bg-white text-black rounded-full px-5 py-2 text-xs font-black hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.4)] font-headline tracking-wide">
+                    <span className="bg-white text-black rounded-full px-5 py-2 text-xs font-black hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-lg font-headline tracking-wide">
                         <span
-                            className="material-symbols-outlined text-[16px] transition-transform group-hover/card:animate-spin"
-                            style={{ fontVariationSettings: "'FILL' 1", animationDuration: '1.6s' }}
+                            className="material-symbols-outlined text-[16px]"
+                            style={{ fontVariationSettings: "'FILL' 1" }}
                         >
                             info
                         </span>
@@ -87,9 +87,9 @@ export default function MovieCard({ movie, rank, showMatch }) {
                     <button
                         onClick={handleWatchlist}
                         className={`rounded-full px-5 py-2 text-xs font-bold transition-colors flex items-center gap-2 font-headline tracking-wide shadow-lg ${inList
-                            ? 'bg-primary-dim text-white hover:bg-primary'
-                            : 'bg-surface-container/80 border border-white/20 text-white hover:bg-white/20'
-                        }`}
+                            ? 'bg-primary text-black hover:bg-primary-fixed'
+                            : 'bg-black/60 border border-white/20 text-white hover:bg-white/20'
+                            }`}
                     >
                         <span className="material-symbols-outlined text-[16px]">{inList ? 'check' : 'add'}</span>
                         {inList ? 'In List' : 'Watchlist'}

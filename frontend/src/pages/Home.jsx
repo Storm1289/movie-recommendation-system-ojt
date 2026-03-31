@@ -28,42 +28,42 @@ export default function Home() {
                 {/* Welcome Header */}
                 <header>
                     <h2 className="text-4xl font-black font-headline tracking-tight">
-                        {isGuest ? 'Browse as ' : 'Welcome back, '}<span className="text-primary-dim">{user?.name || 'Auteur'}</span>
+                        {isGuest ? 'Browse as ' : 'Welcome back, '}<span className="text-primary">{user?.name || 'Auteur'}</span>
                     </h2>
                     <p className="text-on-surface-variant font-label text-sm mt-2 uppercase tracking-widest">
                         {isGuest ? 'Guest Access' : user ? 'Premium Member' : 'Guest Access'}
                     </p>
                 </header>
 
-                <MovieRow 
-                    title="Recommended for You" 
+                <MovieRow
+                    title="Recommended for You"
                     subTitle="Because you watched Inception"
-                    movies={recommended} 
-                    linkTo="/category/recommended" 
+                    movies={recommended}
+                    linkTo="/category/recommended"
                 />
 
-                <MovieRow 
-                    title="Trending Now" 
+                <MovieRow
+                    title="Trending Now"
                     subTitle="What everyone is watching this week"
-                    movies={trending} 
+                    movies={trending}
                     linkTo="/category/trending"
-                    variant="box" 
+                    variant="box"
                     autoScroll={true}
                 />
 
-                <MovieRow 
-                    title="Top-rated Classics" 
-                    subTitle="March 2026 Masterpieces"
-                    movies={topMonth} 
+                <MovieRow
+                    title="Top-rated Classics"
+                    subTitle="This month's highest-rated films"
+                    movies={topMonth}
                     showRank={true}
-                    linkTo="/category/top-month" 
+                    linkTo="/category/top-month"
                 />
 
-                <MovieRow 
-                    title="Recently Released" 
+                <MovieRow
+                    title="Recently Released"
                     subTitle="Fresh off the cutting room floor"
-                    movies={newReleases} 
-                    linkTo="/category/new-releases" 
+                    movies={newReleases}
+                    linkTo="/category/new-releases"
                     variant="box"
                 />
             </div>

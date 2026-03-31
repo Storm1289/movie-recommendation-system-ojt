@@ -129,18 +129,16 @@ export default function Navbar() {
 
     return (
         <header
-            className={`top-0 z-40 w-full transition-all duration-300 ${
-                isHomePage ? 'fixed left-0 right-0' : 'sticky'
-            } ${
-                isScrolled || !isHomePage
+            className={`top-0 z-40 w-full transition-all duration-300 ${isHomePage ? 'fixed left-0 right-0' : 'sticky'
+                } ${isScrolled || !isHomePage
                     ? 'bg-[#111111]/96 shadow-[0_16px_48px_rgba(0,0,0,0.45)] backdrop-blur-md'
                     : 'bg-gradient-to-b from-black/85 via-black/35 to-transparent'
-            }`}
+                }`}
         >
             <div className="px-4 py-4 md:px-10">
                 <div className="flex items-center gap-4">
                     <Link to="/home" className="shrink-0 text-white">
-                        <h1 className="text-xl font-black tracking-tight text-white md:text-[1.35rem]">CineStream</h1>
+                        <h1 className="text-xl font-black tracking-[-0.04em] text-white md:text-[1.35rem]">CineStream</h1>
                     </Link>
 
                     <nav
@@ -152,9 +150,8 @@ export default function Navbar() {
                             <Link
                                 key={item.label}
                                 to={item.path}
-                                className={`transition-colors ${
-                                    isActiveLink(item.path) ? 'text-white' : 'hover:text-white'
-                                }`}
+                                className={`transition-colors ${isActiveLink(item.path) ? 'text-white' : 'hover:text-white'
+                                    }`}
                             >
                                 {item.label}
                             </Link>
@@ -164,20 +161,18 @@ export default function Navbar() {
                     <div className="ml-auto flex items-center gap-1.5 md:gap-3">
                         {!isGuest && <div ref={searchRef} className="relative hidden md:block">
                             <div
-                                className={`relative h-9 overflow-hidden border transition-[width,border-radius,border-color,background-color] duration-300 ease-out ${
-                                    isSearchOpen
+                                className={`relative h-9 overflow-hidden border transition-[width,border-radius,border-color,background-color] duration-300 ease-out ${isSearchOpen
                                         ? isScrolled
                                             ? 'w-64 rounded-md border-white/30 bg-white/8'
                                             : 'w-64 rounded-md border-white/20 bg-black/25'
                                         : 'w-9 rounded-full border-transparent bg-transparent hover:border-white/15 hover:bg-white/[0.06]'
-                                }`}
+                                    }`}
                             >
                                 <button
                                     type="button"
                                     onClick={() => setIsSearchOpen((value) => !value)}
-                                    className={`absolute top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-white/75 transition-all duration-300 hover:text-white ${
-                                        isSearchOpen ? 'left-0' : 'right-0'
-                                    }`}
+                                    className={`absolute top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-white/75 transition-all duration-300 hover:text-white ${isSearchOpen ? 'left-0' : 'right-0'
+                                        }`}
                                     aria-label={isSearchOpen ? 'Close search' : 'Open search'}
                                 >
                                     <span className="material-symbols-outlined text-[18px]">search</span>
@@ -192,9 +187,8 @@ export default function Navbar() {
                                             setIsSearchOpen(true);
                                             if (query.trim()) setShowDropdown(true);
                                         }}
-                                        className={`h-full w-full bg-transparent py-2 pr-3 text-[0.82rem] text-white outline-none transition-[padding,opacity] duration-300 placeholder:text-white/45 ${
-                                            isSearchOpen ? 'pl-9 opacity-100' : 'pointer-events-none pl-3 opacity-0'
-                                        }`}
+                                        className={`h-full w-full bg-transparent py-2 pr-3 text-[0.82rem] text-white outline-none transition-[padding,opacity] duration-300 placeholder:text-white/45 ${isSearchOpen ? 'pl-9 opacity-100' : 'pointer-events-none pl-3 opacity-0'
+                                            }`}
                                         placeholder="Search titles"
                                         type="text"
                                         autoComplete="off"
@@ -203,7 +197,7 @@ export default function Navbar() {
                             </div>
 
                             {showDropdown && query.trim() && (
-                                <div className="absolute right-0 top-full z-50 mt-3 min-w-[22rem] overflow-hidden rounded-2xl border border-white/10 bg-[#121212]/95 shadow-2xl shadow-black/70">
+                                <div className="absolute right-0 top-full z-50 mt-3 min-w-[22rem] overflow-hidden rounded-2xl border border-white/8 bg-[#141414]/95 shadow-2xl shadow-black/80">
                                     {isSearching ? (
                                         <div className="flex items-center justify-center p-6 text-slate-400">
                                             <div className="mr-3 h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
@@ -276,7 +270,7 @@ export default function Navbar() {
                             <>
                                 {!isGuest && (
                                     <Link to="/profile" className="flex items-center gap-2 text-white">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-[#3478f6] to-[#2c58b8] text-[0.72rem] font-bold text-white">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-amber-600 to-amber-800 text-[0.72rem] font-bold text-white">
                                             {avatarIsImage ? (
                                                 <img src={user.avatar} alt={user.name || 'Profile'} className="h-full w-full rounded-md object-cover" />
                                             ) : (
@@ -317,9 +311,8 @@ export default function Navbar() {
                         <Link
                             key={item.label}
                             to={item.path}
-                            className={`pb-1 transition-colors ${
-                                isActiveLink(item.path) ? 'text-white' : 'hover:text-white'
-                            }`}
+                            className={`pb-1 transition-colors ${isActiveLink(item.path) ? 'text-white' : 'hover:text-white'
+                                }`}
                         >
                             {item.label}
                         </Link>
