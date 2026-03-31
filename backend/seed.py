@@ -3,6 +3,13 @@ Seed the database with a curated collection of popular movies.
 Run once: python seed.py
 """
 
+import os
+from dotenv import load_dotenv
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
+
 from database import get_db, get_next_id
 from recommendation import build_recommendation_model
 
