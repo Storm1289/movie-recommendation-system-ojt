@@ -2,12 +2,15 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import {
     addMovieToWatchlist,
+    changeUserPassword as changeUserPasswordRequest,
+    deleteUserAccount as deleteUserAccountRequest,
     fetchUserState,
     loginWithFacebook as loginWithFacebookRequest,
     loginWithGoogle as loginWithGoogleRequest,
     loginUser,
     removeMovieFromWatchlist,
     signupUser,
+    updateUserProfile as updateUserProfileRequest,
     updateUserSettings as persistUserSettings,
 } from '../api/api';
 
@@ -239,6 +242,38 @@ export function AppProvider({ children }) {
         setSettings((prev) => ({ ...prev, ...newSettings }));
     };
 
+    const updateProfile = async (payload) => {
+        if (isGuestUser || !user?.id) {
+            openAuthModal();
+            return null;
+        }
+
+        const res = await updateUserProfileRequest(user.id, payload);
+        applyUserState(res.data);
+        return res.data.user;
+    };
+
+    const changePassword = async (payload) => {
+        if (isGuestUser || !user?.id) {
+            openAuthModal();
+            return null;
+        }
+
+        const res = await changeUserPasswordRequest(user.id, payload);
+        return res.data;
+    };
+
+    const deleteAccount = async () => {
+        if (isGuestUser || !user?.id) {
+            openAuthModal();
+            return null;
+        }
+
+        const res = await deleteUserAccountRequest(user.id);
+        logout();
+        return res.data;
+    };
+
     const markMovieRated = (movieId) => {
         const normalizedMovieId = String(movieId);
         setUserStats((prev) => ({
@@ -262,6 +297,7 @@ export function AppProvider({ children }) {
         <AppContext.Provider value={{
             user, isGuestUser, authModal, openAuthModal, closeAuthModal,
             login, signup, loginWithGoogle, loginWithFacebook, continueAsGuest, logout,
+            updateProfile, changePassword, deleteAccount,
             watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist,
             userStats, markMovieRated, incrementCommentCount,
             settings, updateSettings,
