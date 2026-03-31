@@ -41,7 +41,7 @@ function LoginInner() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [socialLoading, setSocialLoading] = useState('');
-    
+
     // Facebook config
     const [facebookReady, setFacebookReady] = useState(false);
 
@@ -210,16 +210,16 @@ function LoginInner() {
         <div className="min-h-screen flex items-center justify-center bg-bg-dark relative overflow-hidden">
             {/* Background effects */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/20 rounded-full blur-[120px]" />
-                <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px]" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px]" />
+                <div className="absolute -top-40 -left-40 w-96 h-96 bg-amber-600/15 rounded-full blur-[120px]" />
+                <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-red-900/15 rounded-full blur-[120px]" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-[100px]" />
             </div>
 
             <div className="relative z-10 w-full max-w-md px-6">
                 {/* Logo */}
                 <div className="text-center mb-10">
                     <Link to="/" className="inline-flex items-center gap-3 group">
-                        <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                             <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>movie</span>
                         </div>
                         <h1 className="text-3xl font-black text-white tracking-tight">CineStream</h1>
@@ -298,7 +298,7 @@ function LoginInner() {
                         <button
                             type="submit"
                             disabled={loading || Boolean(socialLoading)}
-                            className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3.5 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3.5 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-amber-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />

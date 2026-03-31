@@ -60,7 +60,7 @@ export default function Discover() {
                         <button
                             onClick={() => handleGenreClick('All')}
                             className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${selectedGenres.length === 0
-                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                                ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
                                 : 'bg-surface-card text-slate-400 hover:bg-surface-dark hover:text-white border border-slate-700'
                                 }`}
                         >
@@ -71,7 +71,7 @@ export default function Discover() {
                                 key={g}
                                 onClick={() => handleGenreClick(g)}
                                 className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${selectedGenres.includes(g)
-                                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                                    ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
                                     : 'bg-surface-card text-slate-400 hover:bg-surface-dark hover:text-white border border-slate-700'
                                     }`}
                             >
@@ -97,7 +97,7 @@ export default function Discover() {
                     </div>
                 </div>
 
-                <button className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 rounded-lg shadow-lg shadow-primary/25 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                <button className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-lg shadow-lg shadow-amber-500/25 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
                     <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
                     Find My Match
                 </button>

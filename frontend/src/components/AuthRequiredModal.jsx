@@ -33,7 +33,7 @@ export default function AuthRequiredModal() {
                     <span className="material-symbols-outlined">close</span>
                 </button>
 
-                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-400">
                     <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
                 </div>
 
@@ -55,7 +55,7 @@ export default function AuthRequiredModal() {
                     <button
                         type="button"
                         onClick={() => goTo('/login?mode=signup')}
-                        className="rounded-full bg-primary px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-white transition-colors hover:bg-primary-hover"
+                        className="rounded-full bg-amber-500 px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-black transition-colors hover:bg-amber-400"
                     >
                         Sign Up
                     </button>

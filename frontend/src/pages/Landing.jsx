@@ -18,8 +18,8 @@ function RecommendationCard() {
       <div className="bg-surface-container/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl shadow-primary/10">
         {/* Header */}
         <div className="flex items-center gap-2 mb-4">
-          <span className="material-symbols-outlined text-primary-dim text-lg" aria-hidden="true">auto_awesome</span>
-          <span className="text-xs font-bold text-primary-dim uppercase tracking-widest font-label">AI Recommendation</span>
+          <span className="material-symbols-outlined text-primary text-lg" aria-hidden="true">auto_awesome</span>
+          <span className="text-xs font-bold text-primary uppercase tracking-widest font-label">AI Recommendation</span>
         </div>
 
         {/* Source Movie */}
@@ -39,12 +39,12 @@ function RecommendationCard() {
 
         {/* Arrow */}
         <div className="flex items-center gap-2 my-2 pl-4">
-          <div className="w-px h-5 bg-primary-dim/40"></div>
-          <span className="material-symbols-outlined text-primary-dim text-base" aria-hidden="true">arrow_downward</span>
+          <div className="w-px h-5 bg-primary/40"></div>
+          <span className="material-symbols-outlined text-primary text-base" aria-hidden="true">arrow_downward</span>
         </div>
 
         {/* Recommended Movie */}
-        <div className="flex items-center gap-3 bg-primary-dim/10 border border-primary-dim/20 rounded-xl p-3">
+        <div className="flex items-center gap-3 bg-primary/10 border border-primary/20 rounded-xl p-3">
           <div className="w-10 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-high">
             <img
               src={MOVIE_POSTERS[2]}
@@ -57,7 +57,7 @@ function RecommendationCard() {
             <p className="text-on-surface-variant text-xs mt-0.5">Sci-Fi • Cyberpunk • Philosophical</p>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-primary-dim font-black text-lg font-headline">98%</span>
+            <span className="text-primary font-black text-lg font-headline">98%</span>
             <span className="text-[10px] text-on-surface-variant font-label uppercase tracking-wider">Match</span>
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function Landing() {
       animationFrameId = requestAnimationFrame(animate);
     };
     animate();
-    
+
     return () => cancelAnimationFrame(animationFrameId);
   }, []);
 
@@ -98,10 +98,10 @@ export default function Landing() {
 
   return (
     <div className="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary min-h-screen">
-      
+
       {/* TopNavBar */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-8 py-4 w-full max-w-screen-2xl mx-auto glass-nav bg-transparent transition-all" role="navigation" aria-label="Main navigation">
-        <div className="text-2xl font-black text-primary-dim uppercase tracking-tighter font-headline">
+        <div className="text-2xl font-black text-primary uppercase tracking-tighter font-headline">
           CineStream
         </div>
         <div className="hidden md:flex items-center gap-8">
@@ -127,7 +127,7 @@ export default function Landing() {
           </Link>
           <Link
             to="/login?mode=signup"
-            className="bg-primary-dim text-on-primary-fixed px-8 py-2.5 rounded-full font-label text-xs font-bold tracking-widest uppercase hover:bg-primary transition-all shadow-lg hover:shadow-primary/40 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface"
+            className="bg-primary text-black px-8 py-2.5 rounded-full font-label text-xs font-bold tracking-widest uppercase hover:bg-primary-fixed transition-all shadow-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface"
           >
             Get Started
           </Link>
@@ -140,7 +140,7 @@ export default function Landing() {
           {/* Background Collage - Moving Movies */}
           <div className="absolute inset-0 z-0 flex gap-4 rotate-12 scale-150 opacity-20 pointer-events-none justify-center" aria-hidden="true">
             {/* Column 1 - Downward scroll */}
-            <div 
+            <div
               className="flex flex-col gap-4 w-64"
               style={{ transform: `translateY(${(scrollPos % 800)}px)`, marginTop: '-800px' }}
             >
@@ -148,9 +148,9 @@ export default function Landing() {
                 <img key={i} className="w-full h-96 object-cover rounded-xl grayscale" src={src} alt="" />
               ))}
             </div>
-            
+
             {/* Column 2 - Upward scroll */}
-            <div 
+            <div
               className="flex flex-col gap-4 w-64"
               style={{ transform: `translateY(-${(scrollPos % 800)}px)` }}
             >
@@ -158,9 +158,9 @@ export default function Landing() {
                 <img key={i} className="w-full h-96 object-cover rounded-xl grayscale" src={src} alt="" />
               ))}
             </div>
-            
+
             {/* Column 3 - Downward scroll */}
-            <div 
+            <div
               className="flex flex-col gap-4 w-64"
               style={{ transform: `translateY(${(scrollPos * 1.5 % 800)}px)`, marginTop: '-400px' }}
             >
@@ -175,7 +175,7 @@ export default function Landing() {
 
           {/* Hero Content */}
           <div className="relative z-20 text-center px-6 max-w-5xl">
-            <h2 className="font-label font-bold text-primary-dim tracking-[0.3em] uppercase mb-4 text-sm md:text-base">
+            <h2 className="font-label font-bold text-primary tracking-[0.3em] uppercase mb-4 text-sm md:text-base">
               AI-Powered Movie Recommendations
             </h2>
             <h1 className="font-headline font-black text-5xl md:text-7xl lg:text-8xl leading-[0.9] tracking-tighter text-on-surface mb-8 text-shadow-glow">
@@ -189,7 +189,7 @@ export default function Landing() {
             <div className="flex flex-col items-center gap-4 mt-12">
               <Link
                 to="/login?mode=signup"
-                className="w-full sm:w-auto px-14 py-5 bg-primary text-white rounded-full font-headline font-bold text-lg hover:bg-primary-hover active:scale-95 transition-all shadow-lg shadow-primary/30 block text-center border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface"
+                className="w-full sm:w-auto px-14 py-5 bg-white text-black rounded-full font-headline font-bold text-lg hover:bg-slate-100 active:scale-95 transition-all shadow-lg block text-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface"
               >
                 Start Discovering — It's Free
               </Link>
@@ -218,8 +218,8 @@ export default function Landing() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               {/* Step 1 */}
               <div className="flex flex-col items-center text-center group">
-                <div className="w-16 h-16 rounded-2xl bg-primary-dim/15 border border-primary-dim/20 flex items-center justify-center mb-6 group-hover:bg-primary-dim/25 transition-colors">
-                  <span className="material-symbols-outlined text-primary-dim text-3xl" aria-hidden="true">person_add</span>
+                <div className="w-16 h-16 rounded-2xl bg-primary/15 border border-primary/20 flex items-center justify-center mb-6 group-hover:bg-primary/25 transition-colors">
+                  <span className="material-symbols-outlined text-primary text-3xl" aria-hidden="true">person_add</span>
                 </div>
                 <h3 className="font-headline font-bold text-lg mb-2 text-white">Create Your Profile</h3>
                 <p className="text-on-surface-variant text-sm">Sign up for free. Rate a few movies you've seen so we learn your taste.</p>
@@ -227,8 +227,8 @@ export default function Landing() {
 
               {/* Step 2 */}
               <div className="flex flex-col items-center text-center group">
-                <div className="w-16 h-16 rounded-2xl bg-primary-dim/15 border border-primary-dim/20 flex items-center justify-center mb-6 group-hover:bg-primary-dim/25 transition-colors">
-                  <span className="material-symbols-outlined text-primary-dim text-3xl" aria-hidden="true">psychology</span>
+                <div className="w-16 h-16 rounded-2xl bg-primary/15 border border-primary/20 flex items-center justify-center mb-6 group-hover:bg-primary/25 transition-colors">
+                  <span className="material-symbols-outlined text-primary text-3xl" aria-hidden="true">psychology</span>
                 </div>
                 <h3 className="font-headline font-bold text-lg mb-2 text-white">Our AI Analyzes</h3>
                 <p className="text-on-surface-variant text-sm">We study genre DNA, directorial style, color palettes, and pacing patterns to build your profile.</p>
@@ -236,8 +236,8 @@ export default function Landing() {
 
               {/* Step 3 */}
               <div className="flex flex-col items-center text-center group">
-                <div className="w-16 h-16 rounded-2xl bg-primary-dim/15 border border-primary-dim/20 flex items-center justify-center mb-6 group-hover:bg-primary-dim/25 transition-colors">
-                  <span className="material-symbols-outlined text-primary-dim text-3xl" aria-hidden="true">movie_filter</span>
+                <div className="w-16 h-16 rounded-2xl bg-primary/15 border border-primary/20 flex items-center justify-center mb-6 group-hover:bg-primary/25 transition-colors">
+                  <span className="material-symbols-outlined text-primary text-3xl" aria-hidden="true">movie_filter</span>
                 </div>
                 <h3 className="font-headline font-bold text-lg mb-2 text-white">Get Perfect Matches</h3>
                 <p className="text-on-surface-variant text-sm">Receive personalized recommendations with match percentages you can trust.</p>
@@ -253,12 +253,12 @@ export default function Landing() {
               <h2 className="font-headline font-black text-4xl md:text-5xl text-on-surface mb-4">Built for Cinephiles</h2>
               <p className="font-body text-on-surface-variant text-lg">Beyond the stream. Tools for people who take movies seriously.</p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[600px]">
               {/* Feature 1: Recommendations */}
               <div className="glass-nav md:col-span-8 bg-surface-container-low/60 border border-white/5 rounded-xl p-10 flex flex-col justify-between overflow-hidden relative group hover:bg-surface-container-low transition-colors">
                 <div className="relative z-10">
-                  <span className="material-symbols-outlined text-primary-dim text-4xl mb-6" aria-hidden="true">psychology</span>
+                  <span className="material-symbols-outlined text-primary text-4xl mb-6" aria-hidden="true">psychology</span>
                   <h3 className="font-headline font-bold text-3xl mb-4">Smart Recommendations</h3>
                   <p className="text-on-surface-variant max-w-md">Our engine analyzes mood, pacing, visual style, and narrative structure to find films that feel like the one you just loved — not just the same genre.</p>
                 </div>
@@ -269,7 +269,7 @@ export default function Landing() {
 
               {/* Feature 2: Watchlist */}
               <div className="glass-nav md:col-span-4 bg-surface-container-high/60 border border-white/5 rounded-xl p-10 flex flex-col items-center text-center justify-center hover:bg-surface-container-high transition-colors">
-                <span className="material-symbols-outlined text-secondary text-5xl mb-6" style={{ fontVariationSettings: "'FILL' 1" }} aria-hidden="true">bookmark</span>
+                <span className="material-symbols-outlined text-amber-400 text-5xl mb-6" style={{ fontVariationSettings: "'FILL' 1" }} aria-hidden="true">bookmark</span>
                 <h3 className="font-headline font-bold text-2xl mb-4">Curated Watchlist</h3>
                 <p className="text-on-surface-variant text-sm">Organize your journey through film history with elegant, visual list-making tools.</p>
               </div>
@@ -277,7 +277,7 @@ export default function Landing() {
               {/* Feature 3: Ratings */}
               <div className="glass-nav md:col-span-4 bg-surface-container/60 border border-white/5 rounded-xl p-10 flex flex-col justify-end hover:bg-surface-container transition-colors group">
                 <div className="flex gap-1 mb-6" role="img" aria-label="4 out of 5 star rating">
-                  {[1,2,3,4].map(i => (
+                  {[1, 2, 3, 4].map(i => (
                     <span key={i} className="material-symbols-outlined text-yellow-500 text-3xl group-hover:scale-110 transition-transform origin-bottom" style={{ fontVariationSettings: "'FILL' 1" }} aria-hidden="true">star</span>
                   ))}
                   <span className="material-symbols-outlined text-yellow-500/30 text-3xl group-hover:scale-110 transition-transform origin-bottom" style={{ fontVariationSettings: "'FILL' 0" }} aria-hidden="true">star</span>
@@ -292,17 +292,17 @@ export default function Landing() {
                   <img className="object-cover h-full w-full group-hover:scale-110 transition-transform duration-700" alt="" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7CPHcoF7pxHlE1ByAReZTadEwAXIlDYe5yQZdmh548Y6cUW4cexIbbjz6NDXxW-3AwPMQXyaHw_CV4Ps7DyUcsrhHPUG-rhDYa1j1RUm1DQ-415Gs0XLaU6PPfsxc16qEssax6nR2lZLoWUAQgVT0UcJTVroH5ozuAOMbbwF1-xDV10o59skZkf7W1oW0RZd7I7A-jeml95X0MajnHrHIFkrwcLyJVht3eiSQsUadrU9Sq6jfYGHFFe3aWzjrdewRcWA0diBrcf0" />
                 </div>
                 <div className="w-full sm:w-2/3 flex flex-col justify-center">
-                  <span className="material-symbols-outlined text-primary-dim text-4xl mb-4 opacity-50" aria-hidden="true">format_quote</span>
+                  <span className="material-symbols-outlined text-primary text-4xl mb-4 opacity-50" aria-hidden="true">format_quote</span>
                   <blockquote className="font-headline font-bold text-2xl md:text-3xl text-white mb-6 leading-tight">
                     "A community that treats film criticism as an art form itself."
                   </blockquote>
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary-dim/30">
+                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary/30">
                       <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1LVikKti3A-ODh1aMaCltpVmOuWvubmh3e8cZgtJ1cNPW6QZNnowUt0ZvTOBEA_Oq01ywCh_yjng1z8KoMFz0mZ74qtnKcsBxj88YHEohPSnimU60Qq5_xvfZpC_PQZLt_iKOartaqHXgoECCvX-ucdb9JJhvd6ldVMWnaOGKxDjZp4k5YGeI6CyfMm3vuhjnL-mm2M7EL1smSejPaRJyOVslG9AVkxmORh4SjAgXJ9IGmAa83bb2mYjdzNkcKA5tOebuHESvxts" alt="Julian Thorne" className="w-full h-full object-cover" />
                     </div>
                     <div>
-                      <div className="font-bold text-white text-sm">Bhavesh Parmer</div>
-                      <div className="text-primary-dim text-xs uppercase tracking-widest font-label mt-0.5">Film Critic &amp; Community Member</div>
+                      <div className="font-bold text-white text-sm">Julian Thorne</div>
+                      <div className="text-primary text-xs uppercase tracking-widest font-label mt-0.5">Film Critic &amp; Community Member</div>
                     </div>
                   </div>
                 </div>
@@ -314,15 +314,15 @@ export default function Landing() {
         {/* CTA Section */}
         <section id="join" className="py-32 bg-surface relative">
           <div className="max-w-7xl mx-auto px-8">
-            <div className="bg-primary-dim rounded-3xl p-12 md:p-24 flex flex-col md:flex-row items-center justify-between relative overflow-hidden shadow-[0_0_80px_rgba(139,125,255,0.18)] hover:shadow-[0_0_120px_rgba(86,207,255,0.24)] transition-shadow duration-700">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,125,255,0.4),transparent)]"></div>
+            <div className="bg-primary rounded-3xl p-12 md:p-24 flex flex-col md:flex-row items-center justify-between relative overflow-hidden shadow-[0_0_80px_rgba(212,168,67,0.12)] hover:shadow-[0_0_120px_rgba(212,168,67,0.18)] transition-shadow duration-700">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,168,67,0.3),transparent)]"></div>
               <div className="relative z-10 mb-12 md:mb-0 text-center md:text-left">
                 <h2 className="font-headline font-black text-4xl md:text-6xl text-on-primary-fixed mb-6 leading-none">Ready for your <br />first screening?</h2>
                 <div className="flex items-center gap-4 mb-2">
                   <div className="flex -space-x-3" aria-hidden="true">
-                    <div className="w-10 h-10 rounded-full border-2 border-primary-dim bg-surface flex items-center justify-center text-xs font-bold text-white uppercase">JD</div>
-                    <div className="w-10 h-10 rounded-full border-2 border-primary-dim bg-purple-600 flex items-center justify-center text-xs font-bold text-white uppercase">AL</div>
-                    <div className="w-10 h-10 rounded-full border-2 border-primary-dim pl-1 bg-surface-container flex items-center justify-center text-xs font-bold text-primary-dim shadow-inner">+50k</div>
+                    <div className="w-10 h-10 rounded-full border-2 border-primary bg-surface flex items-center justify-center text-xs font-bold text-white uppercase">JD</div>
+                    <div className="w-10 h-10 rounded-full border-2 border-primary bg-amber-700 flex items-center justify-center text-xs font-bold text-white uppercase">AL</div>
+                    <div className="w-10 h-10 rounded-full border-2 border-primary pl-1 bg-surface-container flex items-center justify-center text-xs font-bold text-primary shadow-inner">+50k</div>
                   </div>
                   <p className="font-body text-on-primary-container text-sm font-bold">Film lovers joined this month.</p>
                 </div>
@@ -330,7 +330,7 @@ export default function Landing() {
               <div className="relative z-10 flex flex-col gap-4 w-full md:w-auto">
                 <Link
                   to="/login?mode=signup"
-                  className="px-12 py-5 bg-on-primary-fixed text-primary-dim rounded-full font-headline font-black text-xl hover:bg-white transition-all shadow-2xl block text-center min-w-[280px] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-dim"
+                  className="px-12 py-5 bg-black text-primary rounded-full font-headline font-black text-xl hover:bg-surface-container transition-all shadow-2xl block text-center min-w-[280px] focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary"
                 >
                   JOIN CINESTREAM
                 </Link>

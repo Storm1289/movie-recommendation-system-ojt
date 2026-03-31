@@ -71,7 +71,7 @@ export default function HeroSlider({ movies }) {
                                 className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] ease-linear hover:scale-110"
                                 style={{ backgroundImage: backdropUrl ? `url('${backdropUrl}')` : 'none', backgroundColor: '#0e0e0e' }}
                             />
-                            
+
                             {/* Cinematic Gradient overlay */}
                             <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/80 to-transparent"></div>
                             <div className="absolute inset-0 bg-gradient-to-r from-surface/90 via-surface/40 to-transparent"></div>
@@ -79,35 +79,34 @@ export default function HeroSlider({ movies }) {
                             {/* Content */}
                             <div className="relative z-10 p-8 md:p-20 w-full max-w-5xl">
                                 <div className="flex items-center gap-3 mb-6">
-                                    <span className="bg-secondary text-on-secondary px-3 py-1 rounded-lg font-label text-[10px] font-bold tracking-widest uppercase shadow-lg">
+                                    <span className="bg-white/10 backdrop-blur-md text-white/90 px-3 py-1 rounded-lg font-label text-[10px] font-bold tracking-widest uppercase border border-white/10">
                                         Spotlight #{index + 1}
                                     </span>
-                                    <div className="flex items-center gap-1 bg-surface-container/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
-                                        <span className="material-symbols-outlined text-secondary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                                    <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
+                                        <span className="material-symbols-outlined text-amber-400 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                                         <span className="text-xs font-bold font-label text-white">
                                             {movie.rating ? movie.rating.toFixed(1) : 'NR'}
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 <h1 className="text-5xl md:text-7xl lg:text-8xl font-black font-headline tracking-tighter mb-6 uppercase leading-tight text-white drop-shadow-2xl">
-                                    {/* Make title split beautifully if long */}
                                     {movie.title.split(' ').map((word, i) => (
-                                        i === movie.title.split(' ').length - 1 ? 
-                                        <span key={i} className="text-primary-dim">{word}</span> : 
-                                        <span key={i}>{word} </span>
+                                        i === movie.title.split(' ').length - 1 ?
+                                            <span key={i} className="text-primary">{word}</span> :
+                                            <span key={i}>{word} </span>
                                     ))}
                                 </h1>
-                                
+
                                 <p className="text-lg md:text-xl text-on-surface-variant max-w-2xl mb-10 font-body leading-relaxed drop-shadow-md line-clamp-3">
                                     {movie.overview}
                                 </p>
-                                
+
                                 <div className="flex flex-col sm:flex-row items-center gap-4">
                                     <Link
                                         to={`/movie/${movie.id}`}
                                         onClick={handleInfoClick}
-                                        className="w-full sm:w-auto bg-primary-dim text-on-primary-fixed px-10 py-4 rounded-full font-headline font-bold flex justify-center items-center gap-3 hover:scale-105 transition-transform shadow-[0_0_20px_rgba(139,125,255,0.35)]"
+                                        className="w-full sm:w-auto bg-white text-black px-10 py-4 rounded-full font-headline font-bold flex justify-center items-center gap-3 hover:scale-105 transition-transform shadow-lg"
                                     >
                                         <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
                                         Movie Info
@@ -126,14 +125,14 @@ export default function HeroSlider({ movies }) {
             {/* Nav arrows */}
             <button
                 onClick={scrollLeft}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 bg-surface-container-highest/60 backdrop-blur-md border border-white/10 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary-dim hover:scale-110 hover:shadow-[0_0_20px_rgba(139,125,255,0.35)]"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 bg-black/50 backdrop-blur-md border border-white/10 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white/20 hover:scale-110"
                 aria-label="Previous Spotlight"
             >
                 <span className="material-symbols-outlined text-3xl">chevron_left</span>
             </button>
             <button
                 onClick={scrollRight}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 bg-surface-container-highest/60 backdrop-blur-md border border-white/10 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary-dim hover:scale-110 hover:shadow-[0_0_20px_rgba(139,125,255,0.35)]"
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-14 h-14 bg-black/50 backdrop-blur-md border border-white/10 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white/20 hover:scale-110"
                 aria-label="Next Spotlight"
             >
                 <span className="material-symbols-outlined text-3xl">chevron_right</span>

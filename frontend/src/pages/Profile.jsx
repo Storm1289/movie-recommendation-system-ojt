@@ -13,14 +13,14 @@ export default function Profile() {
                 <div className="px-6 mb-10">
                     <Link to="/home" className="text-xl font-black text-primary font-headline uppercase tracking-tighter hover:opacity-80 transition-opacity">CineStream</Link>
                 </div>
-                
+
                 <div className="px-6 mb-8">
                     <h2 className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Account</h2>
-                    <p className="text-xs text-secondary font-medium">{user ? 'Digital Streamer' : 'Guest'}</p>
+                    <p className="text-xs text-amber-400 font-medium">{user ? 'Digital Streamer' : 'Guest'}</p>
                 </div>
-                
+
                 <nav className="flex-1 space-y-1">
-                    <div className="bg-primary/10 text-primary border-r-4 border-primary flex items-center gap-3 px-6 py-4 font-manrope text-sm font-semibold cursor-pointer" onClick={() => window.scrollTo(0,0)}>
+                    <div className="bg-primary/10 text-primary border-r-4 border-primary flex items-center gap-3 px-6 py-4 font-manrope text-sm font-semibold cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
                         <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
                         Profile Overview
                     </div>
@@ -54,7 +54,7 @@ export default function Profile() {
                 <section className="px-6 lg:px-12 py-12 lg:py-16 bg-gradient-to-b from-surface-container-low to-surface">
                     <div className="flex flex-col md:flex-row items-end gap-10">
                         <div className="relative group shrink-0">
-                            <div className="w-40 h-40 lg:w-48 lg:h-48 rounded-2xl overflow-hidden border-4 border-surface shadow-2xl bg-gradient-to-br from-primary-dim to-purple-600 flex items-center justify-center text-8xl font-black text-white">
+                            <div className="w-40 h-40 lg:w-48 lg:h-48 rounded-2xl overflow-hidden border-4 border-surface shadow-2xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-8xl font-black text-white">
                                 {avatarIsImage ? (
                                     <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
                                 ) : (
@@ -62,30 +62,30 @@ export default function Profile() {
                                 )}
                             </div>
                         </div>
-                        
+
                         <div className="flex-1 pb-2 w-full">
                             <h1 className="font-headline text-5xl lg:text-7xl font-black tracking-tighter mb-4 text-white uppercase">{user?.name || 'Guest User'}</h1>
                             <p className="font-body text-on-surface-variant max-w-xl text-base lg:text-lg leading-relaxed">
                                 {user?.email || 'A true cinephile traversing the landscapes of visual storytelling. Log in to save your favorite frames and build your collection.'}
                             </p>
-                            
+
                             <div className="flex flex-wrap gap-6 mt-8">
                                 <div className="flex flex-col">
-                                    <span className="text-primary-dim font-headline font-black text-3xl">{watchlist.length}</span>
+                                    <span className="text-primary font-headline font-black text-3xl">{watchlist.length}</span>
                                     <span className="text-xs uppercase tracking-widest text-on-surface-variant font-label">Saved</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-primary-dim font-headline font-black text-3xl">{userStats?.ratedMovieIds?.length || 0}</span>
+                                    <span className="text-primary font-headline font-black text-3xl">{userStats?.ratedMovieIds?.length || 0}</span>
                                     <span className="text-xs uppercase tracking-widest text-on-surface-variant font-label">Ratings</span>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-primary-dim font-headline font-black text-3xl">{userStats?.commentCount || 0}</span>
+                                    <span className="text-primary font-headline font-black text-3xl">{userStats?.commentCount || 0}</span>
                                     <span className="text-xs uppercase tracking-widest text-on-surface-variant font-label">Reviews</span>
                                 </div>
                             </div>
                         </div>
-                        
-                        <Link to="/settings" className="hidden md:flex px-8 py-3 bg-white text-black font-headline font-bold text-sm uppercase tracking-widest rounded-full hover:bg-primary-dim hover:text-white transition-all active:scale-95 mb-2 items-center justify-center">
+
+                        <Link to="/settings" className="hidden md:flex px-8 py-3 bg-white text-black font-headline font-bold text-sm uppercase tracking-widest rounded-full hover:bg-primary hover:text-black transition-all active:scale-95 mb-2 items-center justify-center">
                             Edit Profile
                         </Link>
                     </div>
@@ -99,7 +99,7 @@ export default function Profile() {
                             View All <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
                         </span>
                     </div>
-                    
+
                     {watchlist.length > 0 ? (
                         <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                             {watchlist.map(movie => (
@@ -111,7 +111,7 @@ export default function Profile() {
                             <span className="material-symbols-outlined text-6xl text-on-surface-variant mb-6 opacity-40 block">movie</span>
                             <p className="text-white font-headline text-2xl font-black uppercase tracking-tight mb-2">Your Watchlist is Empty</p>
                             <p className="text-on-surface-variant text-base mb-8 max-w-md mx-auto">Discover new cinematic masterpieces and add them to your collection.</p>
-                            <Link to="/home" className="inline-block px-10 py-4 bg-secondary text-on-secondary font-headline font-black text-xs uppercase tracking-widest rounded-full hover:scale-105 transition-transform shadow-[0_0_20px_rgba(86,207,255,0.18)]">
+                            <Link to="/home" className="inline-block px-10 py-4 bg-primary text-black font-headline font-black text-xs uppercase tracking-widest rounded-full hover:scale-105 transition-transform shadow-lg">
                                 Browse Films
                             </Link>
                         </div>
