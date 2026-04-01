@@ -20,7 +20,7 @@ try:
         GEMINI_AVAILABLE = True
     else:
         GEMINI_AVAILABLE = False
-except ImportError:
+except Exception:
     GEMINI_AVAILABLE = False
 
 

@@ -1,6 +1,6 @@
 # CineStream — System Design & Architecture
 
-> **A full-stack movie recommendation platform with AI-powered search, content-based filtering, community reviews, and a premium cinematic UI.**
+> **A full-stack movie recommendation platform with content-based filtering, Wikipedia-backed enrichment, community reviews, social login, and a premium cinematic UI.**
 
 ---
 
@@ -31,7 +31,7 @@
 9. [API Reference](#9-api-reference)
 10. [Recommendation Algorithm — Deep Dive](#10-recommendation-algorithm--deep-dive)
 11. [Dynamic Ranking Algorithm](#11-dynamic-ranking-algorithm)
-12. [AI Integration — Gemini](#12-ai-integration--gemini)
+12. [Metadata Enrichment Notes](#12-metadata-enrichment-notes)
 13. [Security & CORS](#13-security--cors)
 14. [Deployment Architecture](#14-deployment-architecture)
 15. [Future Roadmap](#15-future-roadmap)
@@ -42,10 +42,11 @@
 
 **CineStream** is a movie recommendation and discovery platform that combines:
 
-- **Content-Based Filtering** — TF-IDF + Cosine Similarity for "movies like this"
-- **AI-Powered Search** — Gemini 2.5 Flash for intelligent franchise-aware movie search
+- **Content-Based Filtering** — TF-IDF (Term Frequency – Inverse Document Frequency) + Cosine Similarity for "movies like this"
 - **Wikipedia Enrichment** — Automatic fetching of plot, cast, director, budget, and box office
+- **MongoDB Atlas Storage** — Cloud-hosted MongoDB used by the backend through PyMongo
 - **Community Reviews** — User comments and 1–10 star ratings
+- **Social Login + Guest Mode** — Google, Facebook, email/password, and guest preview access
 - **Dynamic Rankings** — Monthly scoring algorithm blending popularity, recency, and votes
 - **Region-Aware Streaming Links** — Platform links for India, US, UK, and more
 - **Premium Cinematic UI** — Netflix-inspired dark theme with glassmorphism and micro-animations
@@ -77,8 +78,8 @@
 │  ┌────────────────────────────────────────────────────────┐  │
 │  │               FastAPI Application   :8000              │  │
 │  │  ┌────────────┐ ┌──────────────┐ ┌────────────────┐   │  │
-│  │  │  12+ REST  │ │  Recommend.  │ │  Wiki Service  │   │  │
-│  │  │  Endpoints │ │   Engine     │ │  + Gemini AI   │   │  │
+│  │  │  REST API  │ │  Recommend.  │ │  Wiki Service  │   │  │
+│  │  │ Endpoints  │ │   Engine     │ │  + Caching     │   │  │
 │  │  └─────┬──────┘ └──────┬───────┘ └───────┬────────┘   │  │
 │  │        │               │                  │            │  │
 │  │  ┌─────▼───────────────▼──────────────────▼────────┐   │  │
@@ -87,7 +88,7 @@
 │  └────────────────────────┼───────────────────────────────┘  │
 │                           │                                   │
 │  ┌────────────────────────▼───────────────────────────────┐  │
-│  │           MongoDB   localhost:27017                     │  │
+│  │        MongoDB Atlas (cloud cluster)                    │  │
 │  │  ┌────────┐ ┌────────────┐ ┌────────┐ ┌────────────┐  │  │
 │  │  │ movies │ │user_ratings│ │comments│ │  counters  │  │  │
 │  │  └────────┘ └────────────┘ └────────┘ └────────────┘  │  │
@@ -100,12 +101,12 @@
 │  │  └──────────────────┘ └────────────────────────────┘   │  │
 │  └────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────┘
-           │                           │
-           ▼                           ▼
-   ┌───────────────┐         ┌──────────────────┐
-   │ Wikipedia API │         │ Google Gemini AI  │
-   │  (REST, free) │         │  (2.5 Flash)      │
-   └───────────────┘         └──────────────────┘
+           │
+           ▼
+   ┌───────────────┐
+   │ Wikipedia API │
+   │  (REST, free) │
+   └───────────────┘
 ```
 
 ---
@@ -114,18 +115,18 @@
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Frontend** | React 18 | Component-based UI |
-| **Build Tool** | Vite 6 | Fast HMR, dev server with API proxy |
+| **Frontend** | React 19 | Component-based UI |
+| **Build Tool** | Vite 7 | Fast HMR, dev server with API proxy |
 | **Styling** | TailwindCSS 4 | Utility-first CSS framework |
 | **HTTP Client** | Axios | Promise-based HTTP for API calls |
-| **Routing** | React Router v6 | Client-side SPA routing |
+| **Routing** | React Router v7 | Client-side SPA routing |
 | **Backend** | FastAPI (Python) | Async REST API framework |
-| **Database** | MongoDB 7+ | NoSQL document store |
+| **Database** | MongoDB Atlas | Cloud-hosted NoSQL document store |
 | **DB Driver** | PyMongo 4.16 | Official MongoDB Python driver |
 | **ML / NLP** | scikit-learn | TF-IDF Vectorizer + Cosine Similarity |
 | **Data Processing** | Pandas | DataFrame operations for model building |
 | **Serialization** | Pickle | Persist similarity matrix to disk |
-| **AI** | Google Gemini 2.5 Flash | Genre classification, franchise detection, smart search |
+| **Authentication** | Google OAuth, Facebook Login, local auth | Sign-in and account linking |
 | **External Data** | Wikipedia REST API | Movie details, cast, plot, budget enrichment |
 
 ---
@@ -162,7 +163,7 @@ graph TB
     subgraph Engines["🧠 Processing Engines"]
         RecEngine["Recommendation Engine<br/>TF-IDF + Cosine Sim"]
         RankEngine["Ranking Engine<br/>Weighted Score Formula"]
-        WikiService["Wikipedia Service<br/>+ Gemini AI"]
+        WikiService["Wikipedia Service<br/>+ Cache"]
     end
 
     subgraph Data["💾 Data Layer"]
@@ -172,7 +173,6 @@ graph TB
 
     subgraph External["🌐 External Services"]
         WikiAPI_Ext["Wikipedia REST API"]
-        GeminiAI["Google Gemini 2.5 Flash"]
     end
 
     Client --> API_Layer
@@ -182,7 +182,6 @@ graph TB
     SearchAPI --> WikiService
     RecEngine --> Pickles
     WikiService --> WikiAPI_Ext
-    WikiService --> GeminiAI
     API_Layer --> MongoDB
     RankEngine --> MongoDB
 ```
@@ -201,9 +200,8 @@ backend/
 ├── recommendation.py    # TF-IDF + Cosine Similarity engine
 ├── ranking.py           # Dynamic monthly score calculator
 ├── seed.py              # Database seeder — 63 curated movies
-├── wiki_service.py      # Wikipedia + Gemini AI integration
+├── wiki_service.py      # Wikipedia enrichment and streaming helpers
 ├── requirements.txt     # Python dependencies
-├── movies.db            # (Legacy) Old SQLite database — no longer used
 └── pickles/
     ├── similarity_matrix.pkl   # Precomputed cosine similarity matrix
     └── movies_df.pkl           # Serialized movies DataFrame
@@ -211,17 +209,17 @@ backend/
 
 ### 5.2 Database Layer — MongoDB
 
-**Connection:** `mongodb://localhost:27017` → Database: `cinestream`
+**Connection:** `mongodb+srv://...` → Database: `cinestream`
 
 ```python
 # database.py
 from pymongo import MongoClient
 
-client = MongoClient("mongodb://localhost:27017")
+client = MongoClient("mongodb+srv://<user>:<password>@<cluster>/cinestream")
 db = client["cinestream"]
 ```
 
-**Auto-Increment IDs:** MongoDB uses `ObjectId` natively, but the frontend expects integer IDs. A `counters` collection implements an atomic auto-increment pattern:
+The current project uses **MongoDB Atlas** through the `MONGO_URL` environment variable. MongoDB still uses `ObjectId` natively, but the frontend expects integer IDs, so a `counters` collection implements an atomic auto-increment pattern:
 
 ```python
 def get_next_id(collection_name: str) -> int:
@@ -308,7 +306,7 @@ db.comments.createIndex({ "movie_id": 1 })
 
 ### 5.4 API Layer — FastAPI
 
-FastAPI serves as the REST API backend with CORS middleware enabled for cross-origin requests from the React frontend.
+FastAPI serves as the REST API backend with CORS middleware enabled for cross-origin requests from the React frontend. In the current project it also handles email/password auth, Google login, Facebook login, guest-compatible state, watchlists, ratings, comments, wiki enrichment, and streaming links.
 
 **Startup Lifecycle:**
 1. Load pickled recommendation model (similarity matrix + DataFrame)
@@ -368,8 +366,6 @@ sequenceDiagram
     participant FastAPI
     participant MongoDB
     participant Wikipedia
-    participant Gemini
-
     Client->>FastAPI: GET /api/movies/:id/wiki
     FastAPI->>MongoDB: Find movie (check wiki_fetched)
 
@@ -381,8 +377,6 @@ sequenceDiagram
         Wikipedia-->>FastAPI: Page title
         FastAPI->>Wikipedia: Get summary + full text
         Wikipedia-->>FastAPI: Summary, plot, cast, etc.
-        FastAPI->>Gemini: Classify genre + franchise
-        Gemini-->>FastAPI: {genre, franchise}
         FastAPI->>MongoDB: Cache all wiki fields
         FastAPI-->>Client: JSON response
     end
@@ -393,8 +387,8 @@ sequenceDiagram
 - Plot synopsis
 - Cast list (top 12)
 - Director, budget, box office, runtime
-- Genre classification (via Gemini AI)
-- Franchise detection (via Gemini AI)
+- Cached wiki fields for faster repeated reads
+- Genre text when available from stored data or wiki parsing
 
 ### 5.8 Streaming Platform Service
 
@@ -423,9 +417,9 @@ frontend/src/
 ├── api/
 │   └── api.js           # Axios HTTP client (12 API functions)
 ├── context/
-│   └── AppContext.jsx   # Global state (auth, watchlist, settings)
+│   └── AppContext.jsx   # Global state (auth, watchlist, guest mode, settings)
 ├── components/
-│   ├── Navbar.jsx       # Top navigation + AI-powered search
+│   ├── Navbar.jsx       # Top navigation + movie search
 │   ├── Sidebar.jsx      # Collapsible side navigation
 │   ├── HeroSlider.jsx   # Full-width backdrop carousel
 │   ├── MovieCard.jsx    # Movie poster card with hover effects
@@ -520,7 +514,7 @@ server: {
 ```mermaid
 graph TD
     subgraph Shared["Shared Components"]
-        Navbar["Navbar<br/>• AI search bar<br/>• Navigation links<br/>• User menu"]
+        Navbar["Navbar<br/>• Movie search<br/>• Navigation links<br/>• User menu"]
         Sidebar["Sidebar<br/>• Genre links<br/>• Quick actions"]
         HeroSlider["HeroSlider<br/>• Auto-rotating backdrop<br/>• Gradient overlay<br/>• CTA buttons"]
         MovieCard["MovieCard<br/>• Poster image<br/>• Hover reveal<br/>• Rating badge<br/>• Watchlist toggle"]
@@ -533,7 +527,7 @@ graph TD
 | Page | Description | API Calls |
 |------|-------------|-----------|
 | **Landing** | Marketing page with hero, features showcase | None |
-| **Login** | Email/password auth form | None (localStorage) |
+| **Login** | Email/password + Google + Facebook auth | auth endpoints |
 | **Home** | Dashboard: hero slider + 4 movie rows | trending, topMonth, movies (rating), movies (date) |
 | **Discover** | Browse all movies with genre filter + sort | movies (paginated), genres |
 | **MovieDetail** | Full detail: poster, wiki info, cast, comments, ratings, streaming, recommendations | movie, wiki, comments, recommendations, streaming |
@@ -677,6 +671,22 @@ erDiagram
 | `GET` | `/api/search` | `q` | Search by title (regex) |
 | `GET` | `/api/genres` | — | All unique genres |
 
+### Auth and User
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/signup` | Create an email/password account |
+| `POST` | `/api/auth/login` | Login with email/password |
+| `POST` | `/api/auth/google` | Login with Google |
+| `POST` | `/api/auth/facebook` | Login with Facebook |
+| `GET` | `/api/users/{user_id}/state` | Fetch user, watchlist, settings, and stats |
+| `PUT` | `/api/users/{user_id}/settings` | Update saved user settings |
+| `PUT` | `/api/users/{user_id}/profile` | Update display name and avatar fallback |
+| `PUT` | `/api/users/{user_id}/password` | Update local account password |
+| `DELETE` | `/api/users/{user_id}` | Delete a user account |
+| `POST` | `/api/users/{user_id}/watchlist/{movie_id}` | Add a movie to the watchlist |
+| `DELETE` | `/api/users/{user_id}/watchlist/{movie_id}` | Remove a movie from the watchlist |
+
 ### Wikipedia
 
 | Method | Endpoint | Description |
@@ -785,19 +795,14 @@ This produces a 0–10 scale score that naturally surfaces:
 
 ---
 
-## 12. AI Integration — Gemini
+## 12. Metadata Enrichment Notes
 
-Google Gemini 2.5 Flash is used in two places:
+The current project documentation assumes **no Gemini dependency in the active app flow**.
 
-### 1. Smart Search (`search_wiki_movies`)
-When a user searches for "Avengers" or "Batman," Gemini generates a list of exact Wikipedia article titles with genre and franchise data. This enables **franchise-aware search** — searching "Lord of the Rings" returns all trilogy films.
-
-### 2. Genre & Franchise Classification (`fetch_wiki_details`)
-When fetching Wikipedia data for a new movie, Gemini analyzes the summary and classifies:
-- **Genre:** Up to 3 comma-separated genres
-- **Franchise:** The cinematic universe (e.g., "Marvel Cinematic Universe") or `null` for standalone films
-
-**Fallback:** If the Gemini API key is not configured or the call fails, the system gracefully falls back to Wikipedia infobox parsing for genre data.
+- Movie enrichment is driven by the Wikipedia REST API and local parsing
+- Recommendation results come from precomputed TF-IDF pickles, not an LLM
+- Genre values are sanitized before they are returned to the frontend so corrupted text does not leak into chips, cards, or filters
+- If any Gemini-related code still exists in the repository, treat it as optional or legacy support rather than a required runtime dependency
 
 ---
 
@@ -806,7 +811,7 @@ When fetching Wikipedia data for a new movie, Gemini analyzes the summary and cl
 | Concern | Implementation |
 |---------|---------------|
 | **CORS** | `allow_origins=["*"]` — open for development; restrict in production |
-| **Auth** | Client-side only (localStorage) — no backend session management |
+| **Auth** | Backend APIs support local, Google, and Facebook sign-in; frontend also keeps per-user local state |
 | **Input Validation** | Pydantic models validate all POST request bodies |
 | **Rate Limits** | Not implemented — add in production |
 | **SQL Injection** | N/A — MongoDB uses parameterized queries natively |
@@ -821,10 +826,10 @@ When fetching Wikipedia data for a new movie, Gemini analyzes the summary and cl
 ```
 localhost:5173  (Vite dev server)  ──proxy──▶  localhost:8000  (FastAPI)
                                                       │
-                                               localhost:27017  (MongoDB)
+                                               MongoDB Atlas  (cloud)
 ```
 
-### Production (Planned)
+### Production (Current Direction)
 
 ```
 ┌──────────────┐     ┌─────────────────┐     ┌───────────────────┐
@@ -834,8 +839,8 @@ localhost:5173  (Vite dev server)  ──proxy──▶  localhost:8000  (FastAP
 └──────────────┘     └─────────────────┘     └───────────────────┘
 ```
 
-**Migration to Production MongoDB:**
-Simply update `MONGO_URL` in `database.py`:
+**MongoDB configuration:**
+Set `MONGO_URL` in the environment:
 ```python
 MONGO_URL = "mongodb+srv://<user>:<pass>@cluster.mongodb.net/cinestream"
 ```
@@ -848,7 +853,7 @@ MONGO_URL = "mongodb+srv://<user>:<pass>@cluster.mongodb.net/cinestream"
 |---------|-------------|----------|
 | **Collaborative Filtering** | User-user similarity for personalized recommendations | High |
 | **JWT Authentication** | Secure backend auth with access/refresh tokens | High |
-| **MongoDB Atlas Migration** | Cloud database for production deployment | High |
+| **MongoDB Atlas Migration** | Already adopted; continue hardening env/config management | High |
 | **Rate Limiting** | API rate limiting with Redis or in-memory | Medium |
 | **Image Upload** | Custom profile photos and movie poster overrides | Medium |
 | **Notifications** | New movie releases, comment replies | Medium |

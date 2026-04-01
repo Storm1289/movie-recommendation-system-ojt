@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import testimonialAvatar from '../assets/1762071442617.jpg';
+
 
 const MOVIE_POSTERS = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuCs5yGWc_i2QxVTYL4ycAZ8x-033SP55b5MVSYal9wkwZvq74qj16raxiHNp2jd3UxTF25kVIHr_Iqds0JnhMe1GyX3NUiBEi_9DjtAPfkKZGwLYYiCQU10tjjG8wqosyIyL542bw6-A80EpeZUSpu0zFc6KDuQOIV5gN1tpLI8r5EdGncdYfyGW303I6VPcPXJCBNRFt6ADwZiqqF_W_HJFnZlL4QJ_jnpvF5c6cnAfZGZIlK2amw1bpDc-w7ucpxuBF9r3X9mXAQ",
@@ -12,6 +14,7 @@ const MOVIE_POSTERS = [
 ];
 
 /* ── Mini Recommendation Card Component ─────────────── */
+// Show a compact example of the recommendation experience in the hero.
 function RecommendationCard() {
   return (
     <div className="relative w-full max-w-md mx-auto mt-16 animate-float">
@@ -66,6 +69,7 @@ function RecommendationCard() {
   );
 }
 
+// Render the marketing landing page and redirect signed-in users home.
 export default function Landing() {
   const [scrollPos, setScrollPos] = useState(0);
   const { user, continueAsGuest } = useApp();
@@ -91,6 +95,7 @@ export default function Landing() {
     return () => cancelAnimationFrame(animationFrameId);
   }, []);
 
+  // Let visitors preview the app without creating an account.
   const handleGuestBrowse = () => {
     continueAsGuest();
     navigate('/home');
@@ -298,10 +303,10 @@ export default function Landing() {
                   </blockquote>
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary/30">
-                      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1LVikKti3A-ODh1aMaCltpVmOuWvubmh3e8cZgtJ1cNPW6QZNnowUt0ZvTOBEA_Oq01ywCh_yjng1z8KoMFz0mZ74qtnKcsBxj88YHEohPSnimU60Qq5_xvfZpC_PQZLt_iKOartaqHXgoECCvX-ucdb9JJhvd6ldVMWnaOGKxDjZp4k5YGeI6CyfMm3vuhjnL-mm2M7EL1smSejPaRJyOVslG9AVkxmORh4SjAgXJ9IGmAa83bb2mYjdzNkcKA5tOebuHESvxts" alt="Julian Thorne" className="w-full h-full object-cover" />
+                      <img src={testimonialAvatar} alt="Bhavesh Parmar" className="w-full h-full object-cover" />
                     </div>
                     <div>
-                      <div className="font-bold text-white text-sm">Julian Thorne</div>
+                      <div className="font-bold text-white text-sm">Bhavesh Parmar</div>
                       <div className="text-primary text-xs uppercase tracking-widest font-label mt-0.5">Film Critic &amp; Community Member</div>
                     </div>
                   </div>
