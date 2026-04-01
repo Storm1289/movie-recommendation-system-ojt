@@ -829,15 +829,6 @@ localhost:5173  (Vite dev server)  ──proxy──▶  localhost:8000  (FastAP
                                                MongoDB Atlas  (cloud)
 ```
 
-### Production (Current Direction)
-
-```
-┌──────────────┐     ┌─────────────────┐     ┌───────────────────┐
-│  Vercel /     │     │  Railway /       │     │  MongoDB Atlas    │
-│  Netlify      │────▶│  Render          │────▶│  (Cloud Cluster)  │
-│  (React SPA)  │     │  (FastAPI)       │     │                   │
-└──────────────┘     └─────────────────┘     └───────────────────┘
-```
 
 **MongoDB configuration:**
 Set `MONGO_URL` in the environment:
