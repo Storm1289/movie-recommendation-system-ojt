@@ -27,7 +27,14 @@ except ModuleNotFoundError:
 from pymongo.errors import DuplicateKeyError
 
 from database import get_db, get_next_id
-from models import Movie, Comment, User, DEFAULT_USER_SETTINGS, DEFAULT_USER_STATS
+from models import (
+    Movie,
+    Comment,
+    User,
+    DEFAULT_USER_SETTINGS,
+    DEFAULT_USER_STATS,
+    sanitize_genre_string,
+)
 from recommendation import load_model, get_recommendations
 from ranking import recalculate_all_scores, update_movie_score
 
@@ -42,6 +49,7 @@ app.add_middleware(
 )
 
 
+# Make sure a collection keeps the expected unique index definition.
 def ensure_unique_index(collection, keys, name: str):
     expected_key = dict(keys)
     existing_indexes = list(collection.list_indexes())
@@ -62,6 +70,7 @@ def ensure_unique_index(collection, keys, name: str):
     collection.create_index(keys, name=name, unique=True)
 
 
+# Make sure a sparse unique index exists for optional auth fields.
 def ensure_unique_sparse_index(collection, key: str, name: str):
     expected_key = {key: 1}
     existing_indexes = list(collection.list_indexes())
@@ -86,6 +95,7 @@ def ensure_unique_sparse_index(collection, key: str, name: str):
 model_loaded = False
 
 @app.on_event("startup")
+# Load cached models, repair indexes, and kick off ranking refresh.
 def startup():
     global model_loaded
     similarity, df = load_model()
@@ -161,10 +171,12 @@ class PasswordUpdate(BaseModel):
     new_password: str
 
 
+# Normalize emails so auth lookups stay consistent.
 def normalize_email(email: str) -> str:
     return (email or "").strip().lower()
 
 
+# Hash a password with PBKDF2 and return its salt plus digest.
 def hash_password(password: str, salt: Optional[str] = None) -> tuple[str, str]:
     salt = salt or secrets.token_hex(16)
     password_hash = hashlib.pbkdf2_hmac(
@@ -176,6 +188,7 @@ def hash_password(password: str, salt: Optional[str] = None) -> tuple[str, str]:
     return salt, password_hash
 
 
+# Compare a plaintext password against the stored user hash.
 def verify_password(password: str, user_doc: dict) -> bool:
     salt = user_doc.get("password_salt")
     expected_hash = user_doc.get("password_hash")
@@ -185,11 +198,13 @@ def verify_password(password: str, user_doc: dict) -> bool:
     return password_hash == expected_hash
 
 
+# Build a simple fallback avatar from the user's name or email.
 def make_avatar(name: str, email: str) -> str:
     source = (name or "").strip() or normalize_email(email)
     return source[:1].upper() if source else "C"
 
 
+# Read a required environment variable or fail with a clear API error.
 def get_required_env(name: str) -> str:
     value = os.environ.get(name, "").strip()
     if value:
@@ -197,6 +212,7 @@ def get_required_env(name: str) -> str:
     raise HTTPException(status_code=503, detail=f"{name} is not configured on the server")
 
 
+# Add a social provider once without duplicating existing entries.
 def merge_auth_providers(existing_providers: Optional[list], provider: str) -> list[str]:
     providers = [p for p in (existing_providers or []) if p]
     if provider not in providers:
@@ -204,6 +220,7 @@ def merge_auth_providers(existing_providers: Optional[list], provider: str) -> l
     return providers
 
 
+# Map a provider name to the matching MongoDB field.
 def provider_field_name(provider: str) -> str:
     if provider == "google":
         return "google_sub"
@@ -212,6 +229,7 @@ def provider_field_name(provider: str) -> str:
     raise HTTPException(status_code=400, detail="Unsupported authentication provider")
 
 
+# Verify a Google token and normalize the returned profile payload.
 def verify_google_credential(credential: str) -> dict:
     client_id = get_required_env("GOOGLE_CLIENT_ID")
 
@@ -269,6 +287,7 @@ def verify_google_credential(credential: str) -> dict:
         }
 
 
+# Verify a Facebook access token and fetch the user's profile data.
 def verify_facebook_access_token(access_token: str) -> dict:
     app_id = get_required_env("FACEBOOK_APP_ID")
     app_secret = get_required_env("FACEBOOK_APP_SECRET")
@@ -324,6 +343,7 @@ def verify_facebook_access_token(access_token: str) -> dict:
     }
 
 
+# Create or update a user record for Google or Facebook sign-in.
 def upsert_social_user(
     db,
     *,
@@ -396,6 +416,7 @@ def upsert_social_user(
     return new_user
 
 
+# Build the full frontend auth state from a stored user document.
 def build_user_state(user_doc: dict, db) -> dict:
     watchlist_ids = user_doc.get("watchlist_ids") or []
     watchlist_movies = []
@@ -417,6 +438,7 @@ def build_user_state(user_doc: dict, db) -> dict:
     }
 
 
+# Fetch a user or raise a standard 404 API error.
 def get_user_or_404(user_id: int, db) -> dict:
     user_doc = db.users.find_one({"id": user_id})
     if not user_doc:
@@ -424,6 +446,7 @@ def get_user_or_404(user_id: int, db) -> dict:
     return user_doc
 
 
+# Ensure password operations only run for local auth accounts.
 def ensure_local_password_auth(user_doc: dict):
     if user_doc.get("password_hash") and user_doc.get("password_salt"):
         return
@@ -437,6 +460,7 @@ def ensure_local_password_auth(user_doc: dict):
 # ─── USER ENDPOINTS ────────────────────────────────
 
 @app.post("/api/auth/signup")
+# Register a new local user and return their initial app state.
 def signup(payload: SignupCreate, db=Depends(get_db)):
     name = payload.name.strip()
     email = normalize_email(payload.email)
@@ -475,6 +499,7 @@ def signup(payload: SignupCreate, db=Depends(get_db)):
 
 
 @app.post("/api/auth/login")
+# Authenticate an email/password user and return their app state.
 def login(payload: LoginCreate, db=Depends(get_db)):
     email = normalize_email(payload.email)
     user_doc = db.users.find_one({"email": email})
@@ -495,6 +520,7 @@ def login(payload: LoginCreate, db=Depends(get_db)):
 
 
 @app.post("/api/auth/google")
+# Sign in with Google and upsert the linked user account.
 def google_login(payload: GoogleAuthCreate, db=Depends(get_db)):
     profile = verify_google_credential(payload.credential)
     user_doc = upsert_social_user(
@@ -509,6 +535,7 @@ def google_login(payload: GoogleAuthCreate, db=Depends(get_db)):
 
 
 @app.post("/api/auth/facebook")
+# Sign in with Facebook and upsert the linked user account.
 def facebook_login(payload: FacebookAuthCreate, db=Depends(get_db)):
     profile = verify_facebook_access_token(payload.access_token)
     user_doc = upsert_social_user(
@@ -523,12 +550,14 @@ def facebook_login(payload: FacebookAuthCreate, db=Depends(get_db)):
 
 
 @app.get("/api/users/{user_id}/state")
+# Return the combined user, watchlist, settings, and stats payload.
 def get_user_state(user_id: int, db=Depends(get_db)):
     user_doc = get_user_or_404(user_id, db)
     return build_user_state(user_doc, db)
 
 
 @app.put("/api/users/{user_id}/settings")
+# Update persisted user settings without overwriting missing fields.
 def update_user_settings(user_id: int, payload: SettingsUpdate, db=Depends(get_db)):
     user_doc = get_user_or_404(user_id, db)
     next_settings = User.settings_from_doc(user_doc)
@@ -553,6 +582,7 @@ def update_user_settings(user_id: int, payload: SettingsUpdate, db=Depends(get_d
 
 
 @app.put("/api/users/{user_id}/profile")
+# Update the public profile fields for a user.
 def update_user_profile(user_id: int, payload: ProfileUpdate, db=Depends(get_db)):
     user_doc = get_user_or_404(user_id, db)
     name = (payload.name or "").strip()
@@ -576,6 +606,7 @@ def update_user_profile(user_id: int, payload: ProfileUpdate, db=Depends(get_db)
 
 
 @app.put("/api/users/{user_id}/password")
+# Change the password for a locally authenticated account.
 def update_user_password(user_id: int, payload: PasswordUpdate, db=Depends(get_db)):
     user_doc = get_user_or_404(user_id, db)
     ensure_local_password_auth(user_doc)
@@ -606,6 +637,7 @@ def update_user_password(user_id: int, payload: PasswordUpdate, db=Depends(get_d
 
 
 @app.delete("/api/users/{user_id}")
+# Delete a user account and roll back its rating contributions.
 def delete_user_account(user_id: int, db=Depends(get_db)):
     user_doc = get_user_or_404(user_id, db)
     user_email = normalize_email(user_doc.get("email"))
@@ -616,6 +648,7 @@ def delete_user_account(user_id: int, db=Depends(get_db)):
 
     movie_adjustments: dict[int, dict[str, float | int]] = {}
 
+    # Track how much rating data should be removed from each movie.
     def accumulate_adjustment(movie_id, rating_value):
         if movie_id is None or rating_value is None:
             return
@@ -665,6 +698,7 @@ def delete_user_account(user_id: int, db=Depends(get_db)):
 
 
 @app.post("/api/users/{user_id}/watchlist/{movie_id}")
+# Add a movie to the user's watchlist if it is not already saved.
 def add_watchlist_item(user_id: int, movie_id: str, db=Depends(get_db)):
     user_doc = get_user_or_404(user_id, db)
     movie = resolve_movie_or_fail(movie_id, db)
@@ -689,6 +723,7 @@ def add_watchlist_item(user_id: int, movie_id: str, db=Depends(get_db)):
 
 
 @app.delete("/api/users/{user_id}/watchlist/{movie_id}")
+# Remove a movie from the user's watchlist.
 def remove_watchlist_item(user_id: int, movie_id: str, db=Depends(get_db)):
     get_user_or_404(user_id, db)
     movie = resolve_movie_or_fail(movie_id, db)
@@ -711,6 +746,7 @@ def remove_watchlist_item(user_id: int, movie_id: str, db=Depends(get_db)):
 
 movie_creation_lock = threading.Lock()
 
+# Resolve numeric ids and on-demand wiki ids into a movie document.
 def resolve_movie_or_fail(movie_id: str, db) -> dict:
     """Resolve an integer ID or a 'wiki:Title' ID into a local database movie document. Creates missing Wiki movies on the fly."""
     if str(movie_id).startswith("wiki:"):
@@ -753,8 +789,9 @@ def resolve_movie_or_fail(movie_id: str, db) -> dict:
                             update_fields["overview"] = details["wiki_summary"][:1000]
                         if details.get("poster_path"):
                             update_fields["poster_path"] = details["poster_path"]
-                        if details.get("genre"):
-                            update_fields["genre"] = details["genre"]
+                        cleaned_genre = sanitize_genre_string(details.get("genre"))
+                        if cleaned_genre:
+                            update_fields["genre"] = cleaned_genre
                         if details.get("franchise"):
                             update_fields["franchise"] = details["franchise"]
 
@@ -784,6 +821,7 @@ def resolve_movie_or_fail(movie_id: str, db) -> dict:
         return None
 
 @app.get("/api/search")
+# Search local movie titles with a case-insensitive regex match.
 def search(q: str = "", db=Depends(get_db)):
     if not q:
         return {"movies": []}
@@ -794,6 +832,7 @@ def search(q: str = "", db=Depends(get_db)):
     return {"movies": [Movie.from_doc(m) for m in local_movies]}
 
 @app.get("/api/movies")
+# Return paginated movies with optional genre and sort filters.
 def list_movies(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
@@ -833,18 +872,21 @@ def list_movies(
 
 
 @app.get("/api/movies/trending")
+# Return the most popular movies for the homepage spotlight.
 def trending_movies(db=Depends(get_db)):
     movies = list(db.movies.find().sort("popularity", -1).limit(5))
     return {"movies": [Movie.from_doc(m) for m in movies]}
 
 
 @app.get("/api/movies/top-month")
+# Return the current monthly top-ranked movies.
 def top_month(db=Depends(get_db)):
     movies = list(db.movies.find().sort("monthly_score", -1).limit(10))
     return {"movies": [Movie.from_doc(m) for m in movies]}
 
 
 @app.get("/api/movies/{movie_id}")
+# Return one movie by id, including wiki-backed ids when needed.
 def get_movie(movie_id: str, db=Depends(get_db)):
     movie = resolve_movie_or_fail(movie_id, db)
     if not movie:
@@ -853,6 +895,7 @@ def get_movie(movie_id: str, db=Depends(get_db)):
 
 
 @app.get("/api/movies/{movie_id}/recommend")
+# Return content-based recommendations for a movie.
 def recommend(movie_id: str, top_n: int = 10, db=Depends(get_db)):
     if not model_loaded:
         return {"recommendations": []}
@@ -873,11 +916,12 @@ def recommend(movie_id: str, top_n: int = 10, db=Depends(get_db)):
     return {"recommendations": rec_movies}
 
 @app.get("/api/genres")
+# Return the cleaned set of genres available in the catalog.
 def genres(db=Depends(get_db)):
     movies = db.movies.find({"genre": {"$ne": None}}, {"genre": 1})
     genre_set = set()
     for m in movies:
-        g = m.get("genre")
+        g = sanitize_genre_string(m.get("genre"))
         if g:
             for part in g.split(","):
                 genre_set.add(part.strip())
@@ -887,6 +931,7 @@ def genres(db=Depends(get_db)):
 # ─── WIKIPEDIA DETAIL ENDPOINT ─────────────────────
 
 @app.get("/api/movies/{movie_id}/wiki")
+# Fetch cached wiki details or enrich the movie on first request.
 def get_wiki_details(movie_id: str, db=Depends(get_db)):
     """Fetch Wikipedia details for a movie. Cached in DB after first fetch."""
     movie = resolve_movie_or_fail(movie_id, db)
@@ -959,6 +1004,7 @@ def get_wiki_details(movie_id: str, db=Depends(get_db)):
 # ─── COMMENTS ENDPOINTS ────────────────────────────
 
 @app.get("/api/movies/{movie_id}/comments")
+# Return all comments for the requested movie.
 def get_comments(movie_id: str, db=Depends(get_db)):
     movie = resolve_movie_or_fail(movie_id, db)
     if not movie:
@@ -974,6 +1020,7 @@ def get_comments(movie_id: str, db=Depends(get_db)):
 
 
 @app.post("/api/movies/{movie_id}/comments")
+# Store a new comment and update rating totals when provided.
 def post_comment(movie_id: str, comment: CommentCreate, db=Depends(get_db)):
     movie = resolve_movie_or_fail(movie_id, db)
     if not movie:
@@ -1020,6 +1067,7 @@ def post_comment(movie_id: str, comment: CommentCreate, db=Depends(get_db)):
 # ─── RATING ENDPOINT ───────────────────────────────
 
 @app.post("/api/movies/{movie_id}/rate")
+# Create or update a user's rating for a movie.
 def rate_movie(movie_id: str, rating_data: RatingCreate, db=Depends(get_db)):
     movie = resolve_movie_or_fail(movie_id, db)
     if not movie:
@@ -1089,6 +1137,7 @@ def rate_movie(movie_id: str, rating_data: RatingCreate, db=Depends(get_db)):
 # ─── STREAMING PLATFORMS (REGION-AWARE) ─────────────
 
 @app.get("/api/movies/{movie_id}/streaming")
+# Return region-aware streaming search links for a movie.
 def get_streaming(movie_id: str, request: Request, country: str = None, db=Depends(get_db)):
     """Get streaming platform links based on user's country."""
     movie = resolve_movie_or_fail(movie_id, db)

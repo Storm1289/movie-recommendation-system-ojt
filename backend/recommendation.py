@@ -14,10 +14,12 @@ SIMILARITY_PICKLE = os.path.join(PICKLE_DIR, "similarity_matrix.pkl")
 MOVIES_PICKLE = os.path.join(PICKLE_DIR, "movies_df.pkl")
 
 
+# Create the pickle directory before saving model artifacts.
 def ensure_pickle_dir():
     os.makedirs(PICKLE_DIR, exist_ok=True)
 
 
+# Build and persist the TF-IDF(Term Frequency – Inverse Document Frequency) recommendation model from movie data.
 def build_recommendation_model(movies_data: list[dict]):
     """
     Build TF-IDF similarity matrix from movie data and save with pickle.
@@ -46,6 +48,7 @@ def build_recommendation_model(movies_data: list[dict]):
     return similarity, df
 
 
+# Load the saved similarity matrix and movie dataframe from disk.
 def load_model():
     """Load the precomputed similarity matrix and movies dataframe from pickle."""
     if not os.path.exists(SIMILARITY_PICKLE) or not os.path.exists(MOVIES_PICKLE):
@@ -61,6 +64,7 @@ def load_model():
     return similarity, df
 
 
+# Return the closest movies for a given movie id.
 def get_recommendations(movie_id: int, top_n: int = 10):
     """
     Get top N recommended movies similar to the given movie.
@@ -88,6 +92,7 @@ def get_recommendations(movie_id: int, top_n: int = 10):
     return results
 
 
+# Run a lightweight title search against the pickled movie dataframe.
 def search_similar_by_text(query: str, top_n: int = 10):
     """
     Search for movies by text query using the TF-IDF model.
