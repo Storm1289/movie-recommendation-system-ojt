@@ -844,7 +844,6 @@ MONGO_URL = "mongodb+srv://<user>:<pass>@cluster.mongodb.net/cinestream"
 |---------|-------------|----------|
 | **Collaborative Filtering** | User-user similarity for personalized recommendations | High |
 | **JWT Authentication** | Secure backend auth with access/refresh tokens | High |
-| **MongoDB Atlas Migration** | Already adopted; continue hardening env/config management | High |
 | **Rate Limiting** | API rate limiting with Redis or in-memory | Medium |
 | **Image Upload** | Custom profile photos and movie poster overrides | Medium |
 | **Notifications** | New movie releases, comment replies | Medium |
