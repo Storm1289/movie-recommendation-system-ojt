@@ -162,10 +162,10 @@ export default function Navbar() {
                         {!isGuest && <div ref={searchRef} className="relative hidden md:block">
                             <div
                                 className={`relative h-9 overflow-hidden border transition-[width,border-radius,border-color,background-color] duration-300 ease-out ${isSearchOpen
-                                        ? isScrolled
-                                            ? 'w-64 rounded-md border-white/30 bg-white/8'
-                                            : 'w-64 rounded-md border-white/20 bg-black/25'
-                                        : 'w-9 rounded-full border-transparent bg-transparent hover:border-white/15 hover:bg-white/[0.06]'
+                                    ? isScrolled
+                                        ? 'w-64 rounded-md border-white/30 bg-white/8'
+                                        : 'w-64 rounded-md border-white/20 bg-black/25'
+                                    : 'w-9 rounded-full border-transparent bg-transparent hover:border-white/15 hover:bg-white/[0.06]'
                                     }`}
                             >
                                 <button
@@ -221,7 +221,12 @@ export default function Navbar() {
                                                         >
                                                             <div className="relative h-14 w-10 flex-shrink-0 overflow-hidden rounded bg-slate-800">
                                                                 {posterUrl ? (
-                                                                    <img src={posterUrl} alt={movie.title} className="h-full w-full object-cover" />
+                                                                    <>
+                                                                        <img src={posterUrl} alt={movie.title} className="h-full w-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex'; }} />
+                                                                        <div className="hidden h-full w-full items-center justify-center bg-slate-800">
+                                                                            <span className="material-symbols-outlined text-[20px] text-slate-600">movie</span>
+                                                                        </div>
+                                                                    </>
                                                                 ) : (
                                                                     <div className="flex h-full w-full items-center justify-center">
                                                                         <span className="material-symbols-outlined text-[20px] text-slate-600">movie</span>

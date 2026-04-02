@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useState } from 'react';
 
 export default function MovieCard({ movie, rank, showMatch }) {
     const { addToWatchlist, removeFromWatchlist, isInWatchlist, isGuestUser, openAuthModal } = useApp();
+    const [imgError, setImgError] = useState(false);
 
     const posterUrl = movie.poster_path?.startsWith('http')
         ? movie.poster_path
@@ -37,7 +39,7 @@ export default function MovieCard({ movie, rank, showMatch }) {
 
     return (
         <Link to={`/movie/${movie.id}`} onClick={handleCardClick} className="group/card cursor-pointer block">
-            <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 transition-all duration-300 group-hover/card:scale-110 group-hover/card:shadow-2xl group-hover/card:shadow-black/60 bg-surface-container z-10 group-hover/card:z-50">
+            <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 transition-all duration-300 group-hover/card:scale-110 group-hover/card:shadow-2xl group-hover/card:shadow-black/60 bg-surface-container z-10 group-hover/card:z-50 border border-outline-variant/30">
                 {/* Rank badge */}
                 {rank && (
                     <div className="absolute -left-2 -top-2 z-20 flex items-center justify-center font-black text-5xl text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] italic font-headline">
@@ -46,16 +48,18 @@ export default function MovieCard({ movie, rank, showMatch }) {
                 )}
 
                 {/* Poster */}
-                {posterUrl ? (
+                {(posterUrl && !imgError) ? (
                     <img
                         src={posterUrl}
                         alt={movie.title}
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110"
                         loading="lazy"
+                        onError={() => setImgError(true)}
                     />
                 ) : (
-                    <div className="absolute inset-0 bg-surface-container flex items-center justify-center">
-                        <span className="material-symbols-outlined text-4xl text-on-surface-variant">movie</span>
+                    <div className="absolute inset-0 bg-surface-container flex flex-col items-center justify-center p-4 text-center">
+                        <span className="material-symbols-outlined text-4xl text-on-surface-variant mb-2">movie</span>
+                        <span className="text-on-surface-variant text-sm font-bold font-headline line-clamp-3">{movie.title}</span>
                     </div>
                 )}
 
