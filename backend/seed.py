@@ -88,8 +88,8 @@ def seed_database():
 
     db = get_db()
 
-    # Drop existing data for a clean seed
-    db.movies.drop()
+   
+    db # Drop existing data for a clean seed.movies.drop()
     db.counters.delete_one({"_id": "movies"})
     print("✅ Cleared existing movies collection")
 
