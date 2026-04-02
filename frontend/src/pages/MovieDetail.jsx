@@ -225,7 +225,7 @@ export default function MovieDetail() {
 
                     {/* Description Section */}
                     <section>
-                        <h2 className="text-3xl font-black font-headline text-white mb-8 tracking-tight uppercase">The Odyssey</h2>
+                        <h2 className="text-3xl font-black font-headline text-white mb-8 tracking-tight uppercase">Description</h2>
                         <p className="text-xl text-on-surface-variant leading-relaxed font-body font-light">
                             {movie.overview}
                         </p>
@@ -239,7 +239,7 @@ export default function MovieDetail() {
                     {/* Cast Bento Grid */}
                     {castList.length > 0 && (
                         <section>
-                            <h2 className="text-3xl font-black font-headline text-white mb-8 tracking-tight uppercase">Ensemble</h2>
+                            <h2 className="text-3xl font-black font-headline text-white mb-8 tracking-tight uppercase">Cast</h2>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {castList.slice(0, 8).map((person, i) => {
                                     const names = person.split(' ');
@@ -432,7 +432,7 @@ export default function MovieDetail() {
                 <section className="bg-surface-container-low py-24 px-6 md:px-12 border-t border-white/5">
                     <div className="max-w-screen-2xl mx-auto">
                         <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-6 mb-12">
-                            <h2 className="text-4xl md:text-5xl font-black font-headline text-white tracking-tighter uppercase">Beyond Gravity</h2>
+                            <h2 className="text-4xl md:text-5xl font-black font-headline text-white tracking-tighter uppercase">Recommends For You</h2>
                             <p className="text-on-surface-variant text-sm font-label uppercase tracking-widest mb-2 md:border-l border-primary md:pl-6">Similar Masterpieces</p>
                         </div>
 
