@@ -41,7 +41,6 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const backendDir = path.resolve(currentDir, '../backend')
   const backendEnv = {
-    ...readEnvFile(path.join(backendDir, '.env.example')),
     ...readEnvFile(path.join(backendDir, '.env')),
   }
 

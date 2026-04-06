@@ -13,7 +13,6 @@ from fastapi import FastAPI, Depends, Query, Request, HTTPException
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
-load_dotenv(BASE_DIR / ".env.example")
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
@@ -37,6 +36,8 @@ from models import (
 )
 from recommendation import load_model, get_recommendations
 from ranking import recalculate_all_scores, update_movie_score
+
+IS_VERCEL = bool(os.environ.get("VERCEL"))
 
 app = FastAPI(title="CineStream API")
 
@@ -115,7 +116,11 @@ def startup():
     else:
         print("⚠️ No pickled model found — run seed.py first")
 
-    # Start a background thread to recalculate all rankings dynamically on startup
+    if IS_VERCEL:
+        print("⏭️ Skipping startup ranking recalculation on Vercel serverless runtime.")
+        return
+
+    # Avoid expensive background work during serverless cold starts.
     threading.Thread(target=recalculate_all_scores, daemon=True).start()
     print("📈 Triggered background calculation of Dynamic Monthly Top 10 Scores.")
 
