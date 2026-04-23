@@ -11,6 +11,7 @@ export const fetchMovie = (id) => API.get(`/movies/${id}`);
 export const fetchRecommendations = (id, topN = 10) => API.get(`/movies/${id}/recommend`, { params: { top_n: topN } });
 export const searchMovies = (query) => API.get('/search', { params: { q: query } });
 export const fetchGenres = () => API.get('/genres');
+export const fetchDirectors = () => API.get('/directors');
 
 // Auth and user state
 export const signupUser = (data) => API.post('/auth/signup', data);

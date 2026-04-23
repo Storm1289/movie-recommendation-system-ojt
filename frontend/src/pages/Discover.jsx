@@ -1,40 +1,56 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { fetchMovies, searchMovies, fetchGenres } from '../api/api';
+import { fetchMovies, searchMovies, fetchGenres, fetchDirectors } from '../api/api';
 import MovieCard from '../components/MovieCard';
 
 export default function Discover() {
     const [searchParams] = useSearchParams();
     const [movies, setMovies] = useState([]);
     const [genres, setGenres] = useState([]);
+    
+    // UI state
     const [selectedGenres, setSelectedGenres] = useState([]);
+    const [selectedDirectors, setSelectedDirectors] = useState([]);
+    
+    // Applied state (used for fetching)
+    const [appliedFilters, setAppliedFilters] = useState({ genres: [], directors: [] });
+
     const [loading, setLoading] = useState(true);
+
+    const [directorsList, setDirectorsList] = useState([]);
 
     useEffect(() => {
         fetchGenres().then(res => setGenres(res.data.genres)).catch(console.error);
+        fetchDirectors().then(res => setDirectorsList(res.data.directors)).catch(console.error);
+    }, []);
+
+    // Initial load from URL
+    useEffect(() => {
+        const genreParam = searchParams.get('genre');
+        if (genreParam && selectedGenres.length === 0) {
+            setSelectedGenres([genreParam]);
+            setAppliedFilters({ genres: [genreParam], directors: [] });
+        } else {
+            setAppliedFilters({ genres: [...selectedGenres], directors: [...selectedDirectors] });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         setLoading(true);
         const q = searchParams.get('q');
-        const genreParam = searchParams.get('genre');
-
-        // Use URL param if exists, otherwise use state
-        let currentGenres = selectedGenres;
-        if (genreParam && selectedGenres.length === 0) {
-            currentGenres = [genreParam];
-        }
-
-        const genreQuery = currentGenres.length > 0 ? currentGenres.join(',') : undefined;
+        
+        const genreQuery = appliedFilters.genres.length > 0 ? appliedFilters.genres.join(',') : undefined;
+        const directorQuery = appliedFilters.directors.length > 0 ? appliedFilters.directors.join(',') : undefined;
 
         if (q) {
             searchMovies(q).then(res => { setMovies(res.data.movies); setLoading(false); }).catch(() => setLoading(false));
         } else {
-            fetchMovies({ genre: genreQuery, per_page: 30 })
+            fetchMovies({ genre: genreQuery, director: directorQuery, per_page: 50 })
                 .then(res => { setMovies(res.data.movies); setLoading(false); })
                 .catch(() => setLoading(false));
         }
-    }, [searchParams, selectedGenres]);
+    }, [searchParams, appliedFilters]);
 
     const handleGenreClick = (genre) => {
         if (genre === 'All') {
@@ -48,6 +64,19 @@ export default function Discover() {
             }
             return [...prev, genre];
         });
+    };
+
+    const handleDirectorClick = (director) => {
+        setSelectedDirectors((prev) => {
+            if (prev.includes(director)) {
+                return prev.filter(d => d !== director);
+            }
+            return [...prev, director];
+        });
+    };
+
+    const handleFindMatch = () => {
+        setAppliedFilters({ genres: [...selectedGenres], directors: [...selectedDirectors] });
     };
 
     return (
@@ -82,22 +111,27 @@ export default function Discover() {
                 </div>
 
                 <div className="space-y-4">
-                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mood</h3>
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Directors</h3>
                     <div className="flex flex-wrap gap-2">
-                        {[
-                            { icon: 'self_improvement', label: 'Chill' },
-                            { icon: 'bolt', label: 'Intense' },
-                            { icon: 'sunny', label: 'Uplifting' },
-                            { icon: 'psychology', label: 'Thoughtful' },
-                        ].map(m => (
-                            <button key={m.label} className="px-3 py-1.5 rounded-full text-xs font-bold bg-surface-card text-slate-400 hover:bg-surface-dark hover:text-white border border-slate-700 transition-all flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[14px]">{m.icon}</span> {m.label}
+                        {directorsList.map(d => (
+                            <button
+                                key={d}
+                                onClick={() => handleDirectorClick(d)}
+                                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${selectedDirectors.includes(d)
+                                    ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+                                    : 'bg-surface-card text-slate-400 hover:bg-surface-dark hover:text-white border border-slate-700'
+                                    }`}
+                            >
+                                {d}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                <button className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-lg shadow-lg shadow-amber-500/25 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                <button
+                    onClick={handleFindMatch}
+                    className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-lg shadow-lg shadow-amber-500/25 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
+                >
                     <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
                     Find My Match
                 </button>

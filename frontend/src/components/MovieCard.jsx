@@ -1,16 +1,35 @@
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getValidImageUrl, fetchWikiImageFallback } from '../utils/imageUtils';
 
 export default function MovieCard({ movie, rank, showMatch }) {
     const { addToWatchlist, removeFromWatchlist, isInWatchlist, isGuestUser, openAuthModal } = useApp();
     const [imgError, setImgError] = useState(false);
+    
+    const [posterUrl, setPosterUrl] = useState(getValidImageUrl(movie.poster_path, 'w500'));
+    const [retrying, setRetrying] = useState(false);
 
-    const posterUrl = movie.poster_path?.startsWith('http')
-        ? movie.poster_path
-        : movie.poster_path
-            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-            : null;
+    useEffect(() => {
+        setPosterUrl(getValidImageUrl(movie.poster_path, 'w500'));
+        setImgError(false);
+        setRetrying(false);
+    }, [movie.poster_path]);
+
+    const handleError = async () => {
+        if (retrying) {
+            setImgError(true);
+            return;
+        }
+        setRetrying(true);
+        const year = movie.release_date?.split('-')[0] || '';
+        const fallback = await fetchWikiImageFallback(movie.title, year);
+        if (fallback) {
+            setPosterUrl(fallback);
+        } else {
+            setImgError(true);
+        }
+    };
 
     const year = movie.release_date?.split('-')[0] || '';
     const genre = movie.genre?.split(',')[0]?.trim() || '';
@@ -54,7 +73,7 @@ export default function MovieCard({ movie, rank, showMatch }) {
                         alt={movie.title}
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110"
                         loading="lazy"
-                        onError={() => setImgError(true)}
+                        onError={handleError}
                     />
                 ) : (
                     <div className="absolute inset-0 bg-surface-container flex flex-col items-center justify-center p-4 text-center">

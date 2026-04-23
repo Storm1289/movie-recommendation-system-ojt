@@ -149,7 +149,7 @@ export default function MovieRow({
         <section
             onMouseEnter={() => setIsAutoPaused(true)}
             onMouseLeave={() => setIsAutoPaused(false)}
-            className={`relative group/row ${isBox ? 'bg-surface-container-low rounded-[2rem] p-8 md:p-12 shadow-2xl border border-white/5' : ''}`}
+            className={`relative group/row ${isBox ? 'bg-surface-container-low rounded-[2rem] p-8 md:p-12 shadow-2xl border border-white/5 overflow-hidden' : ''}`}
         >
             <div className="flex justify-between items-end mb-8 px-1">
                 <div>
@@ -173,7 +173,7 @@ export default function MovieRow({
             <div className="relative -mx-4 md:-mx-6 xl:-mx-8">
                 <button
                     onClick={scrollLeft}
-                    className={`absolute left-[calc((100vw-100%)/-2)] top-0 bottom-0 z-20 hidden w-16 items-center justify-start bg-gradient-to-r from-black/90 via-black/70 to-transparent pl-2 text-white transition-all duration-300 md:flex ${
+                    className={`absolute ${isBox ? '-left-4 md:-left-6 xl:-left-8' : 'left-[calc((100vw-100%)/-2)]'} top-0 bottom-0 z-20 hidden w-16 items-center justify-start bg-gradient-to-r from-black/90 via-black/70 to-transparent pl-2 text-white transition-all duration-300 md:flex ${
                         canScrollLeft
                             ? 'opacity-100 hover:from-black hover:via-black/80'
                             : 'pointer-events-none opacity-0'
@@ -208,7 +208,7 @@ export default function MovieRow({
 
                 <button
                     onClick={scrollRight}
-                    className={`absolute right-[calc((100vw-100%)/-2)] top-0 bottom-0 z-20 hidden w-16 items-center justify-end bg-gradient-to-l from-black/90 via-black/70 to-transparent pr-2 text-white transition-all duration-300 md:flex ${
+                    className={`absolute ${isBox ? '-right-4 md:-right-6 xl:-right-8' : 'right-[calc((100vw-100%)/-2)]'} top-0 bottom-0 z-20 hidden w-16 items-center justify-end bg-gradient-to-l from-black/90 via-black/70 to-transparent pr-2 text-white transition-all duration-300 md:flex ${
                         canScrollRight
                             ? 'opacity-100 hover:from-black hover:via-black/80'
                             : 'pointer-events-none opacity-0'

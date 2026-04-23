@@ -30,7 +30,8 @@ def build_recommendation_model(movies_data: list[dict]):
     ensure_pickle_dir()
 
     df = pd.DataFrame(movies_data)
-    df["combined"] = df["overview"].fillna("") + " " + df["genre"].fillna("")
+    # Give weight to genre and director by duplicating them
+    df["combined"] = df["overview"].fillna("") + " " + df["genre"].fillna("") + " " + df["genre"].fillna("") + " " + df.get("wiki_director", pd.Series(dtype=str)).fillna("") + " " + df.get("wiki_director", pd.Series(dtype=str)).fillna("")
 
     tfidf = TfidfVectorizer(stop_words="english", max_features=5000)
     tfidf_matrix = tfidf.fit_transform(df["combined"])

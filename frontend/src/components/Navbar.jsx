@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { searchMovies } from '../api/api';
+import { getValidImageUrl } from '../utils/imageUtils';
 
 const primaryNavItems = [
     { label: 'Home', path: '/home' },
-    { label: 'Shows', path: '/discover' },
-    { label: 'Movies', path: '/popular' },
     { label: 'Genres', path: '/genres' },
     { label: 'New & Popular', path: '/category/trending' },
     { label: 'My List', path: '/profile' },
@@ -74,9 +74,8 @@ export default function Navbar() {
 
         searchTimeout.current = setTimeout(async () => {
             try {
-                const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
-                const data = await res.json();
-                setResults(data.movies?.slice(0, 6) || []);
+                const res = await searchMovies(query.trim());
+                setResults(res.data.movies?.slice(0, 6) || []);
             } catch (error) {
                 console.error('Search failed', error);
             } finally {
@@ -206,11 +205,7 @@ export default function Navbar() {
                                     ) : results.length > 0 ? (
                                         <ul className="py-2">
                                             {results.map((movie, idx) => {
-                                                let posterUrl = null;
-                                                const pPath = movie.poster_path;
-                                                if (pPath) {
-                                                    posterUrl = pPath.startsWith('http') ? pPath : `https://image.tmdb.org/t/p/w200${pPath}`;
-                                                }
+                                                const posterUrl = getValidImageUrl(movie.poster_path, 'w200');
 
                                                 return (
                                                     <li key={movie.id || idx}>
@@ -263,23 +258,27 @@ export default function Navbar() {
                             )}
                         </div>}
 
-                        {!isGuest && <Link
-                            to="/settings"
-                            className="hidden h-8 w-8 items-center justify-center rounded-full text-white/85 transition-colors hover:bg-white/10 hover:text-white md:flex"
-                            aria-label="Settings"
-                        >
-                            <span className="material-symbols-outlined text-[18px]">settings</span>
-                        </Link>}
+
 
                         {user ? (
                             <>
                                 {!isGuest && (
                                     <Link to="/profile" className="flex items-center gap-2 text-white">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-amber-600 to-amber-800 text-[0.72rem] font-bold text-white">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-amber-600 to-amber-800 text-[0.72rem] font-bold text-white overflow-hidden">
                                             {avatarIsImage ? (
-                                                <img src={user.avatar} alt={user.name || 'Profile'} className="h-full w-full rounded-md object-cover" />
+                                                <img 
+                                                    src={user.avatar} 
+                                                    alt={user.name || 'Profile'} 
+                                                    className="h-full w-full object-cover" 
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'A')}&background=0D8ABC&color=fff&size=128`;
+                                                    }}
+                                                />
                                             ) : (
-                                                user.avatar || user.name?.[0]?.toUpperCase() || 'A'
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    {user?.avatar || user?.name?.[0]?.toUpperCase() || 'A'}
+                                                </div>
                                             )}
                                         </div>
                                     </Link>
