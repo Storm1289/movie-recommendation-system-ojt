@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchMovie, fetchRecommendations, fetchWikiDetails, fetchComments, postComment, fetchStreaming } from '../api/api';
+import { fetchMovie, fetchRecommendations, fetchWikiDetails, fetchComments, postComment, fetchStreaming, fetchMovies } from '../api/api';
 import { useApp } from '../context/AppContext';
 import MovieCard from '../components/MovieCard';
+import { getValidImageUrl, fetchWikiImageFallback, fetchWikiActorImage } from '../utils/imageUtils';
 
 export default function MovieDetail() {
     const { id } = useParams();
@@ -15,6 +16,11 @@ export default function MovieDetail() {
     const [streamingCountry, setStreamingCountry] = useState('');
     const [loading, setLoading] = useState(true);
     const [showTrailer, setShowTrailer] = useState(false);
+    
+    const [backdropUrl, setBackdropUrl] = useState(null);
+    const [posterUrl, setPosterUrl] = useState(null);
+    const [moreMovies, setMoreMovies] = useState(null); // { title: string, movies: [] }
+    const [castImages, setCastImages] = useState({});
 
     // Comment form
     const [commentText, setCommentText] = useState('');
@@ -31,6 +37,13 @@ export default function MovieDetail() {
         setCommentRating(0);
         window.scrollTo(0, 0);
 
+        // Reset state on ID change to avoid layout glitch
+        setMovie(null);
+        setWiki(null);
+        setMoreMovies(null);
+        setCastImages({});
+        setRecommendations([]);
+
         fetchMovie(id)
             .then(res => { setMovie(res.data); setLoading(false); })
             .catch(() => setLoading(false));
@@ -40,7 +53,32 @@ export default function MovieDetail() {
             .catch(console.error);
 
         fetchWikiDetails(id)
-            .then(res => { setWiki(res.data); })
+            .then(res => { 
+                setWiki(res.data); 
+                let foundDirectorMovies = false;
+
+                if (res.data?.wiki_director) {
+                    fetchMovies({ director: res.data.wiki_director, per_page: 6 }).then(resp => {
+                        const filtered = resp.data.movies.filter(m => String(m.id) !== String(id) && m.poster_path);
+                        if (filtered.length > 0) {
+                            setMoreMovies({ title: `More From ${res.data.wiki_director}`, movies: filtered.slice(0, 5) });
+                            foundDirectorMovies = true;
+                        }
+                    }).catch(console.error);
+                }
+                
+                // Fetch cast images
+                if (res.data?.wiki_cast && Array.isArray(res.data.wiki_cast)) {
+                    res.data.wiki_cast.slice(0, 8).forEach(person => {
+                        const actorName = person.split(' as ')[0].split(',')[0].trim();
+                        fetchWikiActorImage(actorName).then(url => {
+                            if (url) {
+                                setCastImages(prev => ({ ...prev, [actorName]: url }));
+                            }
+                        });
+                    });
+                }
+            })
             .catch(console.error);
 
         fetchComments(id)
@@ -96,6 +134,46 @@ export default function MovieDetail() {
         setSubmitting(false);
     };
 
+    useEffect(() => {
+        // Fallback for the "More From..." section if director has no other movies
+        if (movie && wiki !== undefined && !moreMovies) {
+            // Give the director fetch a moment to complete if it was triggered
+            const timer = setTimeout(() => {
+                if (!moreMovies && movie.genre) {
+                    const firstGenre = movie.genre.split(',')[0].trim();
+                    fetchMovies({ genre: firstGenre, per_page: 6 }).then(resp => {
+                        const filtered = resp.data.movies.filter(m => String(m.id) !== String(id) && m.poster_path);
+                        if (filtered.length > 0) {
+                            setMoreMovies({ title: `More in ${firstGenre}`, movies: filtered.slice(0, 5) });
+                        }
+                    }).catch(console.error);
+                }
+            }, 800);
+            return () => clearTimeout(timer);
+        }
+    }, [movie, wiki, moreMovies, id]);
+
+    useEffect(() => {
+        if (!movie) return;
+        const initialBackdrop = getValidImageUrl(movie.backdrop_path || movie.poster_path, 'original');
+        const initialPoster = getValidImageUrl(movie.poster_path, 'w500');
+        
+        setBackdropUrl(initialBackdrop);
+        setPosterUrl(initialPoster);
+
+        // Preload background to check for 404
+        if (initialBackdrop) {
+            const img = new Image();
+            img.src = initialBackdrop;
+            img.onerror = async () => {
+                const year = movie.release_date?.split('-')[0] || '';
+                const fallback = await fetchWikiImageFallback(movie.title, year);
+                if (fallback) setBackdropUrl(fallback);
+                else setBackdropUrl(null);
+            };
+        }
+    }, [movie]);
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-surface">
@@ -112,23 +190,13 @@ export default function MovieDetail() {
         );
     }
 
-    const rawPath = movie.backdrop_path || movie.poster_path;
-    const backdropUrl = rawPath?.startsWith('http')
-        ? rawPath
-        : rawPath
-            ? `https://image.tmdb.org/t/p/original${rawPath}`
-            : null;
-
-    const posterUrl = movie.poster_path?.startsWith('http')
-        ? movie.poster_path
-        : movie.poster_path
-            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-            : null;
-
     const year = movie.release_date?.split('-')[0] || '';
     const inList = isInWatchlist(movie.id);
-    const trailerSearchQuery = encodeURIComponent(`${movie.title} ${year} official trailer`);
-    const youtubeEmbedUrl = `https://www.youtube.com/embed?listType=search&list=${trailerSearchQuery}&autoplay=1`;
+
+    const handleWatchTrailer = () => {
+        const trailerSearchQuery = encodeURIComponent(`${movie.title} ${year} official trailer`);
+        window.open(`https://www.youtube.com/results?search_query=${trailerSearchQuery}`, '_blank');
+    };
 
     const handleWatchlist = async () => {
         try {
@@ -152,17 +220,6 @@ export default function MovieDetail() {
 
     return (
         <div className="bg-surface text-on-surface font-body selection:bg-primary selection:text-white min-h-screen">
-            {/* Trailer Modal */}
-            {showTrailer && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md" onClick={() => setShowTrailer(false)}>
-                    <div className="relative w-full max-w-5xl mx-4 aspect-video shadow-[0_0_50px_rgba(139,125,255,0.25)]" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setShowTrailer(false)} className="absolute -top-12 right-0 text-white hover:text-primary transition-colors flex items-center gap-2 text-sm font-bold font-headline uppercase tracking-widest">
-                            <span className="material-symbols-outlined">close</span> Close
-                        </button>
-                        <iframe src={youtubeEmbedUrl} className="w-full h-full rounded-2xl border border-white/10" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={`${movie.title} Trailer`} />
-                    </div>
-                </div>
-            )}
 
             {/* Hero Section */}
             <section className="relative w-full h-[600px] md:h-[870px] overflow-hidden">
@@ -205,9 +262,9 @@ export default function MovieDetail() {
                     </div>
 
                     <div className="flex flex-wrap gap-4 mt-8">
-                        <button onClick={() => setShowTrailer(true)} className="bg-white text-black px-10 py-4 rounded-full font-headline font-black text-lg flex items-center gap-3 hover:scale-105 transition-transform active:scale-95 shadow-lg">
+                        <button onClick={handleWatchTrailer} className="bg-white text-black px-10 py-4 rounded-full font-headline font-black text-lg flex items-center gap-3 hover:scale-105 transition-transform active:scale-95 shadow-lg">
                             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-                            WATCH NOW
+                            WATCH TRAILER
                         </button>
                         <button onClick={handleWatchlist} className={`px-10 py-4 rounded-full font-headline font-black text-lg flex items-center gap-3 border transition-all ${inList ? 'bg-primary/20 border-primary text-primary' : 'bg-black/40 backdrop-blur-md text-white border-white/10 hover:bg-white/10'}`}>
                             <span className="material-symbols-outlined">{inList ? 'bookmark_added' : 'bookmark_add'}</span>
@@ -226,12 +283,13 @@ export default function MovieDetail() {
                     {/* Description Section */}
                     <section>
                         <h2 className="text-3xl font-black font-headline text-white mb-8 tracking-tight uppercase">Description</h2>
-                        <p className="text-xl text-on-surface-variant leading-relaxed font-body font-light">
-                            {movie.overview}
-                        </p>
-                        {wiki?.wiki_summary && (
-                            <p className="text-lg text-on-surface-variant leading-relaxed font-body font-light mt-6 border-l-2 border-secondary pl-6">
+                        {wiki?.wiki_summary && !wiki.wiki_summary.includes('may refer to:') && wiki.wiki_summary.length > 50 ? (
+                            <p className="text-lg text-on-surface-variant leading-relaxed font-body font-light border-l-2 border-secondary pl-6">
                                 {wiki.wiki_summary}
+                            </p>
+                        ) : (
+                            <p className="text-xl text-on-surface-variant leading-relaxed font-body font-light">
+                                {movie.overview}
                             </p>
                         )}
                     </section>
@@ -242,17 +300,26 @@ export default function MovieDetail() {
                             <h2 className="text-3xl font-black font-headline text-white mb-8 tracking-tight uppercase">Cast</h2>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {castList.slice(0, 8).map((person, i) => {
-                                    const names = person.split(' ');
-                                    const lastName = names.length > 1 ? names[names.length - 1] : person;
+                                    const actorName = person.split(' as ')[0].split(',')[0].trim();
+                                    const names = actorName.split(' ');
+                                    const lastName = names.length > 1 ? names[names.length - 1] : actorName;
                                     return (
                                         <div key={i} className="bg-surface-container-low p-4 rounded-xl group hover:bg-surface-container transition-all">
-                                            <div className="aspect-square rounded-lg overflow-hidden mb-4 bg-surface-container-high flex flex-col items-center justify-center text-on-surface-variant">
-                                                <div className="text-4xl font-headline font-black opacity-20 group-hover:scale-110 transition-transform duration-500">
-                                                    {person[0]}
-                                                </div>
+                                            <div className="aspect-square rounded-lg overflow-hidden mb-4 bg-surface-container-high flex flex-col items-center justify-center text-on-surface-variant relative">
+                                                {castImages[actorName] ? (
+                                                    <img 
+                                                        src={castImages[actorName]} 
+                                                        alt={actorName} 
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                                                    />
+                                                ) : (
+                                                    <div className="text-4xl font-headline font-black opacity-20 group-hover:scale-110 transition-transform duration-500">
+                                                        {actorName[0]?.toUpperCase()}
+                                                    </div>
+                                                )}
                                             </div>
-                                            <h4 className="text-white font-bold font-headline truncate" title={person}>{lastName}</h4>
-                                            <p className="text-on-surface-variant text-xs uppercase tracking-widest mt-1 truncate" title={person}>{names[0]}</p>
+                                            <h4 className="text-white font-bold font-headline truncate" title={actorName}>{lastName}</h4>
+                                            <p className="text-on-surface-variant text-xs uppercase tracking-widest mt-1 truncate" title={actorName}>{names[0]}</p>
                                         </div>
                                     );
                                 })}
@@ -359,7 +426,7 @@ export default function MovieDetail() {
                                 </span>
                             )}
                             <span className="bg-primary/15 text-primary px-3 py-1 rounded-md text-[10px] font-black tracking-widest uppercase flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[12px]">verified</span> Auteur Certified
+                                <span className="material-symbols-outlined text-[12px]">verified</span> Author Certified
                             </span>
                         </div>
                         <div className="space-y-4">
@@ -370,13 +437,17 @@ export default function MovieDetail() {
                             <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
                                 <div className="bg-amber-400 h-full" style={{ width: `${Math.min(100, (movie.popularity || 0) / 20)}%` }}></div>
                             </div>
-                            {wiki?.wiki_box_office && (
-                                <>
-                                    <div className="flex justify-between text-xs font-bold uppercase tracking-widest mt-6">
-                                        <span>Box Office</span>
-                                        <span className="text-white">{wiki.wiki_box_office}</span>
-                                    </div>
-                                </>
+                            {wiki?.wiki_box_office && wiki.wiki_box_office.length <= 40 && (
+                                <div className="flex justify-between items-end border-b border-white/5 pb-2">
+                                    <span className="text-on-surface-variant text-xs font-bold font-headline uppercase tracking-widest">Box Office</span>
+                                    <span className="text-primary font-bold">{wiki.wiki_box_office}</span>
+                                </div>
+                            )}
+                            {wiki?.wiki_budget && wiki.wiki_budget.length <= 40 && (
+                                <div className="flex justify-between items-end border-b border-white/5 pb-2">
+                                    <span className="text-on-surface-variant text-xs font-bold font-headline uppercase tracking-widest">Budget</span>
+                                    <span className="text-white font-bold">{wiki.wiki_budget}</span>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -421,7 +492,17 @@ export default function MovieDetail() {
                                 </div>
                                 <span className="material-symbols-outlined text-primary text-3xl">palette</span>
                             </div>
-                            <img src={posterUrl} alt={movie.title} className="w-full rounded-xl shadow-2xl" />
+                            <img 
+                                src={posterUrl} 
+                                alt={movie.title} 
+                                className="w-full rounded-xl shadow-2xl"
+                                onError={async (e) => {
+                                    const year = movie.release_date?.split('-')[0] || '';
+                                    const fallback = await fetchWikiImageFallback(movie.title, year);
+                                    if (fallback) setPosterUrl(fallback);
+                                    else e.target.style.display = 'none';
+                                }}
+                            />
                         </div>
                     )}
                 </div>
@@ -439,6 +520,24 @@ export default function MovieDetail() {
                         <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                             {recommendations.slice(0, 10).map((rec) => (
                                 <MovieCard key={rec.id} movie={rec} showMatch />
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* More By Director Section */}
+            {moreMovies && moreMovies.movies.length > 0 && (
+                <section className="bg-surface py-24 px-6 md:px-12">
+                    <div className="max-w-screen-2xl mx-auto">
+                        <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-6 mb-12">
+                            <h2 className="text-4xl md:text-5xl font-black font-headline text-white tracking-tighter uppercase">{moreMovies.title}</h2>
+                            <p className="text-on-surface-variant text-sm font-label uppercase tracking-widest mb-2 md:border-l border-primary md:pl-6">{moreMovies.title.includes('Director') ? 'Visionary Director' : 'Similar Movies'}</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            {moreMovies.movies.map((rec) => (
+                                <MovieCard key={rec.id} movie={rec} showMatch={false} />
                             ))}
                         </div>
                     </div>

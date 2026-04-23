@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import MovieCard from '../components/MovieCard';
+import Settings from './Settings';
 
 export default function Profile() {
     const { user, watchlist, userStats } = useApp();
+    const [activeTab, setActiveTab] = useState('overview');
     const avatarIsImage = typeof user?.avatar === 'string' && user.avatar.startsWith('http');
 
     return (
@@ -20,18 +23,18 @@ export default function Profile() {
                 </div>
 
                 <nav className="flex-1 space-y-1">
-                    <div className="bg-primary/10 text-primary border-r-4 border-primary flex items-center gap-3 px-6 py-4 font-manrope text-sm font-semibold cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
+                    <div className={`flex items-center gap-3 px-6 py-4 font-manrope text-sm font-semibold cursor-pointer transition-colors ${activeTab === 'overview' ? 'bg-primary/10 text-primary border-r-4 border-primary' : 'text-gray-500 hover:text-white hover:bg-[#1a1a1a]'}`} onClick={() => { setActiveTab('overview'); window.scrollTo(0, 0); }}>
                         <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
                         Profile Overview
                     </div>
-                    <a href="#watchlist" className="text-gray-500 hover:text-white flex items-center gap-3 px-6 py-4 hover:bg-[#1a1a1a] transition-colors font-manrope text-sm cursor-pointer">
+                    <div className={`flex items-center gap-3 px-6 py-4 font-manrope text-sm font-semibold cursor-pointer transition-colors ${activeTab === 'watchlist' ? 'bg-primary/10 text-primary border-r-4 border-primary' : 'text-gray-500 hover:text-white hover:bg-[#1a1a1a]'}`} onClick={() => { setActiveTab('watchlist'); window.scrollTo(0, 0); }}>
                         <span className="material-symbols-outlined">bookmark</span>
                         Watchlist
-                    </a>
-                    <Link to="/settings" className="text-gray-500 hover:text-white flex items-center gap-3 px-6 py-4 hover:bg-[#1a1a1a] transition-colors font-manrope text-sm cursor-pointer">
+                    </div>
+                    <div className={`flex items-center gap-3 px-6 py-4 font-manrope text-sm font-semibold cursor-pointer transition-colors ${activeTab === 'settings' ? 'bg-primary/10 text-primary border-r-4 border-primary' : 'text-gray-500 hover:text-white hover:bg-[#1a1a1a]'}`} onClick={() => { setActiveTab('settings'); window.scrollTo(0, 0); }}>
                         <span className="material-symbols-outlined">settings</span>
                         Settings
-                    </Link>
+                    </div>
                 </nav>
             </aside>
 
@@ -56,9 +59,19 @@ export default function Profile() {
                         <div className="relative group shrink-0">
                             <div className="w-40 h-40 lg:w-48 lg:h-48 rounded-2xl overflow-hidden border-4 border-surface shadow-2xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-8xl font-black text-white">
                                 {avatarIsImage ? (
-                                    <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                                    <img 
+                                        src={user.avatar} 
+                                        alt="Profile" 
+                                        className="w-full h-full object-cover" 
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'A')}&background=0D8ABC&color=fff&size=256`;
+                                        }}
+                                    />
                                 ) : (
-                                    user?.avatar || user?.name?.[0]?.toUpperCase() || 'A'
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        {user?.avatar || user?.name?.[0]?.toUpperCase() || 'A'}
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -85,38 +98,45 @@ export default function Profile() {
                             </div>
                         </div>
 
-                        <Link to="/settings" className="hidden md:flex px-8 py-3 bg-white text-black font-headline font-bold text-sm uppercase tracking-widest rounded-full hover:bg-primary hover:text-black transition-all active:scale-95 mb-2 items-center justify-center">
+                        <button onClick={() => setActiveTab('settings')} className="hidden md:flex px-8 py-3 bg-white text-black font-headline font-bold text-sm uppercase tracking-widest rounded-full hover:bg-primary hover:text-black transition-all active:scale-95 mb-2 items-center justify-center">
                             Edit Profile
-                        </Link>
+                        </button>
                     </div>
                 </section>
 
-                {/* Watchlist Grid (The Bento Approach) */}
-                <section id="watchlist" className="px-6 lg:px-12 py-12 flex-1">
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="font-headline text-3xl font-black tracking-tight text-white uppercase">Current Watchlist</h2>
-                        <span className="text-primary font-label text-xs font-bold uppercase tracking-widest flex items-center gap-2 group cursor-pointer hover:underline">
-                            View All <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                        </span>
-                    </div>
+                {activeTab === 'overview' || activeTab === 'watchlist' ? (
+                    <>
+                        {/* Watchlist Grid (The Bento Approach) */}
+                        <section id="watchlist" className={`px-6 lg:px-12 py-12 flex-1 ${activeTab === 'watchlist' ? 'pt-8' : ''}`}>
+                            <div className="flex items-center justify-between mb-8">
+                                <h2 className="font-headline text-3xl font-black tracking-tight text-white uppercase">{activeTab === 'watchlist' ? 'My Watchlist' : 'Current Watchlist'}</h2>
+                            </div>
 
-                    {watchlist.length > 0 ? (
-                        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                            {watchlist.map(movie => (
-                                <MovieCard key={movie.id} movie={movie} />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-20 bg-surface-container-low rounded-2xl border border-white/5">
-                            <span className="material-symbols-outlined text-6xl text-on-surface-variant mb-6 opacity-40 block">movie</span>
-                            <p className="text-white font-headline text-2xl font-black uppercase tracking-tight mb-2">Your Watchlist is Empty</p>
-                            <p className="text-on-surface-variant text-base mb-8 max-w-md mx-auto">Discover new cinematic masterpieces and add them to your collection.</p>
-                            <Link to="/home" className="inline-block px-10 py-4 bg-primary text-black font-headline font-black text-xs uppercase tracking-widest rounded-full hover:scale-105 transition-transform shadow-lg">
-                                Browse Films
-                            </Link>
-                        </div>
-                    )}
-                </section>
+                            {watchlist.length > 0 ? (
+                                <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                                    {watchlist.map(movie => (
+                                        <MovieCard key={movie.id} movie={movie} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-20 bg-surface-container-low rounded-2xl border border-white/5">
+                                    <span className="material-symbols-outlined text-6xl text-on-surface-variant mb-6 opacity-40 block">movie</span>
+                                    <p className="text-white font-headline text-2xl font-black uppercase tracking-tight mb-2">Your Watchlist is Empty</p>
+                                    <p className="text-on-surface-variant text-base mb-8 max-w-md mx-auto">Discover new cinematic masterpieces and add them to your collection.</p>
+                                    <Link to="/home" className="inline-block px-10 py-4 bg-primary text-black font-headline font-black text-xs uppercase tracking-widest rounded-full hover:scale-105 transition-transform shadow-lg">
+                                        Browse Films
+                                    </Link>
+                                </div>
+                            )}
+                        </section>
+                    </>
+                ) : null}
+                
+                {activeTab === 'settings' && (
+                    <div className="flex-1 px-6 lg:px-12 py-8 w-full max-w-5xl">
+                        <Settings />
+                    </div>
+                )}
 
                 {/* Minimal Footer for Profile Page */}
                 <footer className="w-full py-8 px-6 lg:px-12 text-center border-t border-white/5 mt-auto bg-[#0e0e0e]">

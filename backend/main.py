@@ -837,20 +837,29 @@ def search(q: str = "", db=Depends(get_db)):
     return {"movies": [Movie.from_doc(m) for m in local_movies]}
 
 @app.get("/api/movies")
-# Return paginated movies with optional genre and sort filters.
+# Return paginated movies with optional genre, director, and sort filters.
 def list_movies(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     genre: str = None,
+    director: str = None,
     sort_by: str = "popularity",
     db=Depends(get_db),
 ):
-    query_filter = {}
+    and_conditions = []
     if genre:
         genres_list = [g.strip() for g in genre.split(",")]
-        # Match any of the genres (case-insensitive contains)
-        conditions = [{"genre": {"$regex": re.escape(g), "$options": "i"}} for g in genres_list]
-        query_filter["$or"] = conditions
+        # Match ALL of the selected genres
+        for g in genres_list:
+            and_conditions.append({"genre": {"$regex": re.escape(g), "$options": "i"}})
+        
+    if director:
+        directors_list = [d.strip() for d in director.split(",")]
+        and_conditions.append({"$or": [{"wiki_director": {"$regex": re.escape(d), "$options": "i"}} for d in directors_list]})
+        
+    query_filter = {}
+    if and_conditions:
+        query_filter = {"$and": and_conditions} if len(and_conditions) > 1 else and_conditions[0]
 
     # Determine sort field
     if sort_by == "rating":
@@ -861,12 +870,32 @@ def list_movies(
         sort_field = [("popularity", -1)]
 
     total = db.movies.count_documents(query_filter)
-    movies = list(
-        db.movies.find(query_filter)
-        .sort(sort_field)
-        .skip((page - 1) * per_page)
-        .limit(per_page)
-    )
+    
+    # Fallback logic: if 0 results and filters were applied, return randomized matches for ANY selected filter
+    if total == 0 and and_conditions:
+        or_conditions = []
+        if genre:
+            for g in genres_list:
+                or_conditions.append({"genre": {"$regex": re.escape(g), "$options": "i"}})
+        if director:
+            for d in directors_list:
+                or_conditions.append({"wiki_director": {"$regex": re.escape(d), "$options": "i"}})
+                
+        fallback_query = {"$or": or_conditions}
+        total = db.movies.count_documents(fallback_query)
+        
+        pipeline = [
+            {"$match": fallback_query},
+            {"$sample": {"size": per_page}}
+        ]
+        movies = list(db.movies.aggregate(pipeline))
+    else:
+        movies = list(
+            db.movies.find(query_filter)
+            .sort(sort_field)
+            .skip((page - 1) * per_page)
+            .limit(per_page)
+        )
 
     return {
         "movies": [Movie.from_doc(m) for m in movies],
@@ -921,16 +950,28 @@ def recommend(movie_id: str, top_n: int = 10, db=Depends(get_db)):
     return {"recommendations": rec_movies}
 
 @app.get("/api/genres")
-# Return the cleaned set of genres available in the catalog.
-def genres(db=Depends(get_db)):
-    movies = db.movies.find({"genre": {"$ne": None}}, {"genre": 1})
-    genre_set = set()
-    for m in movies:
-        g = sanitize_genre_string(m.get("genre"))
-        if g:
-            for part in g.split(","):
-                genre_set.add(part.strip())
-    return {"genres": sorted(genre_set)}
+def get_genres(db=Depends(get_db)):
+    pipeline = [
+        {"$project": {"genres": {"$split": ["$genre", ", "]}}},
+        {"$unwind": "$genres"},
+        {"$group": {"_id": "$genres"}},
+        {"$sort": {"_id": 1}}
+    ]
+    genres_raw = [doc["_id"] for doc in db.movies.aggregate(pipeline) if doc["_id"]]
+    # Clean up dirty data: only allow reasonable length genres (max 2 words, max 20 chars)
+    genres = [g for g in genres_raw if len(g) <= 20 and g.count(" ") <= 1 and "\n" not in g]
+    return {"genres": genres}
+
+@app.get("/api/directors")
+def get_directors(db=Depends(get_db)):
+    pipeline = [
+        {"$match": {"wiki_director": {"$exists": True, "$ne": None, "$ne": ""}}},
+        {"$group": {"_id": "$wiki_director", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 7}
+    ]
+    directors = [doc["_id"] for doc in db.movies.aggregate(pipeline) if doc["_id"]]
+    return {"directors": directors}
 
 
 # ─── WIKIPEDIA DETAIL ENDPOINT ─────────────────────
