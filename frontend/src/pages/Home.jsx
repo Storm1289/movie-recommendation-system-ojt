@@ -13,10 +13,10 @@ export default function Home() {
     const [newReleases, setNewReleases] = useState([]);
 
     useEffect(() => {
-        fetchTrending().then(res => setTrending(res.data.movies)).catch(console.error);
-        fetchTopMonth().then(res => setTopMonth(res.data.movies)).catch(console.error);
-        fetchMovies({ sort_by: 'rating', per_page: 12 }).then(res => setRecommended(res.data.movies)).catch(console.error);
-        fetchMovies({ sort_by: 'release_date', per_page: 12 }).then(res => setNewReleases(res.data.movies)).catch(console.error);
+        fetchTrending().then(res => setTrending(res.data?.movies || [])).catch(console.error);
+        fetchTopMonth().then(res => setTopMonth(res.data?.movies || [])).catch(console.error);
+        fetchMovies({ sort_by: 'rating', per_page: 12 }).then(res => setRecommended(res.data?.movies || [])).catch(console.error);
+        fetchMovies({ sort_by: 'release_date', per_page: 12 }).then(res => setNewReleases(res.data?.movies || [])).catch(console.error);
     }, []);
 
     return (
