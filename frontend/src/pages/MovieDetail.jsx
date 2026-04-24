@@ -44,16 +44,10 @@ export default function MovieDetail() {
         setCastImages({});
         setRecommendations([]);
 
-        fetchMovie(id)
-            .then(res => { setMovie(res.data); setLoading(false); })
-            .catch(() => setLoading(false));
-
-        fetchRecommendations(id)
-            .then(res => setRecommendations(res.data.recommendations || []))
-            .catch(console.error);
-
-        fetchWikiDetails(id)
-            .then(res => { 
+        Promise.allSettled([
+            fetchMovie(id).then(res => setMovie(res.data)),
+            fetchRecommendations(id).then(res => setRecommendations(res.data.recommendations || [])),
+            fetchWikiDetails(id).then(res => { 
                 setWiki(res.data); 
                 let foundDirectorMovies = false;
 
@@ -78,19 +72,14 @@ export default function MovieDetail() {
                         });
                     });
                 }
+            }),
+            fetchComments(id).then(res => { setComments(res.data.comments || []); setCommentCount(res.data.count || 0); }),
+            detectCountry().then(country => {
+                setStreamingCountry(country);
+                return fetchStreaming(id, country).then(res => setStreaming(res.data.platforms || []));
             })
-            .catch(console.error);
-
-        fetchComments(id)
-            .then(res => { setComments(res.data.comments || []); setCommentCount(res.data.count || 0); })
-            .catch(console.error);
-
-        // Detect user's country and fetch streaming links
-        detectCountry().then(country => {
-            setStreamingCountry(country);
-            fetchStreaming(id, country)
-                .then(res => setStreaming(res.data.platforms || []))
-                .catch(console.error);
+        ]).then(() => {
+            setLoading(false);
         });
     }, [id]);
 
@@ -437,16 +426,16 @@ export default function MovieDetail() {
                             <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
                                 <div className="bg-amber-400 h-full" style={{ width: `${Math.min(100, (movie.popularity || 0) / 20)}%` }}></div>
                             </div>
-                            {wiki?.wiki_box_office && wiki.wiki_box_office.length <= 40 && (
-                                <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                                    <span className="text-on-surface-variant text-xs font-bold font-headline uppercase tracking-widest">Box Office</span>
-                                    <span className="text-primary font-bold">{wiki.wiki_box_office}</span>
+                            {wiki?.wiki_box_office && (
+                                <div className="flex justify-between items-end border-b border-white/5 pb-2 gap-4">
+                                    <span className="text-on-surface-variant text-xs font-bold font-headline uppercase tracking-widest whitespace-nowrap">Box Office</span>
+                                    <span className="text-primary font-bold truncate text-right" title={wiki.wiki_box_office}>{wiki.wiki_box_office}</span>
                                 </div>
                             )}
-                            {wiki?.wiki_budget && wiki.wiki_budget.length <= 40 && (
-                                <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                                    <span className="text-on-surface-variant text-xs font-bold font-headline uppercase tracking-widest">Budget</span>
-                                    <span className="text-white font-bold">{wiki.wiki_budget}</span>
+                            {wiki?.wiki_budget && (
+                                <div className="flex justify-between items-end border-b border-white/5 pb-2 gap-4">
+                                    <span className="text-on-surface-variant text-xs font-bold font-headline uppercase tracking-widest whitespace-nowrap">Budget</span>
+                                    <span className="text-white font-bold truncate text-right" title={wiki.wiki_budget}>{wiki.wiki_budget}</span>
                                 </div>
                             )}
                         </div>

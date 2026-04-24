@@ -136,7 +136,8 @@ export default function Navbar() {
         >
             <div className="px-4 py-4 md:px-10">
                 <div className="flex items-center gap-4">
-                    <Link to="/home" className="shrink-0 text-white">
+                    <Link to="/home" className="shrink-0 text-white flex items-center gap-2">
+                        <img src="/vite.svg" alt="CineStream Logo" className="w-8 h-8 md:w-9 md:h-9" />
                         <h1 className="text-xl font-black tracking-[-0.04em] text-white md:text-[1.35rem]">CineStream</h1>
                     </Link>
 

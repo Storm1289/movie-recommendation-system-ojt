@@ -7,6 +7,8 @@ import requests
 import json
 import re
 import os
+from bs4 import BeautifulSoup
+import os
 from dotenv import load_dotenv
 
 # Load env variables (like GEMINI_API_KEY)
@@ -84,25 +86,54 @@ def fetch_wiki_details(movie_title: str, release_year: str = "") -> dict:
         if summary_data["poster_path"]:
             result["poster_path"] = summary_data["poster_path"]
 
-        # Get full article extract for parsing details
+        # Get full article extract for parsing Plot and Genre
         full_text = _get_article_text(page_title)
         if full_text:
             result["wiki_plot"] = _extract_section(full_text, ["Plot", "Synopsis", "Summary"])
-            result["wiki_director"] = _extract_infobox_field(full_text, ["Directed by", "Director"])
-            result["wiki_budget"] = _extract_infobox_field(full_text, ["Budget"])
-            result["wiki_box_office"] = _extract_infobox_field(full_text, ["Box office", "Gross"])
-            result["wiki_runtime"] = _extract_infobox_field(full_text, ["Running time", "Runtime"])
-            
-            # Extract genre from Wikipedia info box if Gemini failed or wasn't available
             wiki_genre = _extract_infobox_field(full_text, ["Genre", "Genres"])
             if wiki_genre and not result.get("genre"):
-                result["genre"] = wiki_genre.strip()[:100] # Ensure it doesn't overflow
+                result["genre"] = wiki_genre.strip()[:100]
 
-            # Extract cast
-            cast_text = _extract_section(full_text, ["Cast", "Cast and characters"])
-            if cast_text:
-                cast_members = _parse_cast_list(cast_text)
-                result["wiki_cast"] = json.dumps(cast_members[:12])  # Top 12
+        # Use BeautifulSoup on the parsed HTML to reliably extract infobox metadata
+        parse_url = f"https://en.wikipedia.org/w/api.php?action=parse&page={page_title}&format=json&prop=text"
+        try:
+            res = SESSION.get(parse_url).json()
+            if "parse" in res and "text" in res["parse"]:
+                html = res["parse"]["text"]["*"]
+                soup = BeautifulSoup(html, "html.parser")
+                infobox = soup.find("table", class_="infobox")
+                
+                if infobox:
+                    data = {}
+                    for tr in infobox.find_all("tr"):
+                        th = tr.find("th")
+                        td = tr.find("td")
+                        if th and td:
+                            key = th.text.strip().replace('\xa0', ' ')
+                            # Remove citation superscripts [1], [a], etc. from text
+                            val = re.sub(r'\[.*?\]', '', td.text.strip().replace('\n', ', '))
+                            data[key] = val
+                    
+                    # Safely map robust data to result
+                    for key, val in data.items():
+                        k = key.lower()
+                        if "directed by" in k or "director" in k:
+                            result["wiki_director"] = val
+                        elif "running time" in k or "runtime" in k:
+                            result["wiki_runtime"] = val
+                        elif "box office" in k or "gross" in k:
+                            result["wiki_box_office"] = val
+                        elif "budget" in k:
+                            result["wiki_budget"] = val
+                        elif "starring" in k or "cast" in k:
+                            # Clean up common cast formatting issues
+                            cast_list = [name.strip() for name in val.split(',')]
+                            # Filter empty strings or very short names that might be artifacts
+                            cast_list = [name for name in cast_list if len(name) > 2][:12]
+                            result["wiki_cast"] = json.dumps(cast_list)
+        except Exception as e:
+            print(f"BeautifulSoup parsing failed for {page_title}: {e}")
+
 
     except Exception as e:
         print(f"Wikipedia fetch error for '{movie_title}': {e}")

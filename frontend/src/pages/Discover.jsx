@@ -46,7 +46,7 @@ export default function Discover() {
         if (q) {
             searchMovies(q).then(res => { setMovies(res.data.movies); setLoading(false); }).catch(() => setLoading(false));
         } else {
-            fetchMovies({ genre: genreQuery, director: directorQuery, per_page: 50 })
+            fetchMovies({ genre: genreQuery, director: directorQuery, per_page: 50, sort_by: 'random' })
                 .then(res => { setMovies(res.data.movies); setLoading(false); })
                 .catch(() => setLoading(false));
         }
