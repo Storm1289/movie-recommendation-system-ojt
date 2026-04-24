@@ -94,7 +94,7 @@ export default function HeroSlider({ movies }) {
     const { addToWatchlist, removeFromWatchlist, isInWatchlist, isGuestUser, openAuthModal } = useApp();
     const scrollContainerRef = useRef(null);
 
-    if (!movies.length) {
+    if (!movies || !movies.length) {
         return (
             <div className="relative w-full h-[870px] overflow-hidden">
                 <div className="w-full h-full bg-surface-container shimmer" />
