@@ -917,14 +917,24 @@ def list_movies(
 @app.get("/api/movies/trending")
 # Return the most popular movies for the homepage spotlight.
 def trending_movies(db=Depends(get_db)):
-    movies = list(db.movies.find().sort("popularity", -1).limit(5))
+    pipeline = [
+        {"$sort": {"popularity": -1}},
+        {"$limit": 30},
+        {"$sample": {"size": 5}}
+    ]
+    movies = list(db.movies.aggregate(pipeline))
     return {"movies": [Movie.from_doc(m) for m in movies]}
 
 
 @app.get("/api/movies/top-month")
 # Return the current monthly top-ranked movies.
 def top_month(db=Depends(get_db)):
-    movies = list(db.movies.find().sort("monthly_score", -1).limit(10))
+    pipeline = [
+        {"$sort": {"monthly_score": -1}},
+        {"$limit": 40},
+        {"$sample": {"size": 10}}
+    ]
+    movies = list(db.movies.aggregate(pipeline))
     return {"movies": [Movie.from_doc(m) for m in movies]}
 
 
@@ -977,7 +987,7 @@ def health_check(db=Depends(get_db)):
     movie_count = db.movies.estimated_document_count()
     return {"status": "ok", "db_connected": True, "movie_count": movie_count}
 
-@app.get("/testing")
+@app.get("/api/testing")
 def testing_uptime_robot(db=Depends(get_db)):
     """Simple endpoint specifically requested to bypass Render's 50s spin down via UptimeRobot."""
     try:
