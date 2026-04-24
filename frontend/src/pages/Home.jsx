@@ -13,10 +13,19 @@ export default function Home() {
     const [newReleases, setNewReleases] = useState([]);
 
     useEffect(() => {
+        const shuffle = (arr) => arr.sort(() => 0.5 - Math.random());
+        
         fetchTrending().then(res => setTrending(res.data?.movies || [])).catch(console.error);
         fetchTopMonth().then(res => setTopMonth(res.data?.movies || [])).catch(console.error);
-        fetchMovies({ sort_by: 'rating', per_page: 12 }).then(res => setRecommended(res.data?.movies || [])).catch(console.error);
-        fetchMovies({ sort_by: 'release_date', per_page: 12 }).then(res => setNewReleases(res.data?.movies || [])).catch(console.error);
+        
+        // Fetch random popular movies for Recommended
+        fetchMovies({ sort_by: 'random', per_page: 12 }).then(res => setRecommended(res.data?.movies || [])).catch(console.error);
+        
+        // Fetch 30 recent movies, then shuffle and pick 12
+        fetchMovies({ sort_by: 'release_date', per_page: 30 }).then(res => {
+            const movies = res.data?.movies || [];
+            setNewReleases(shuffle(movies).slice(0, 12));
+        }).catch(console.error);
     }, []);
 
     return (
