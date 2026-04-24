@@ -993,7 +993,7 @@ def get_directors(db=Depends(get_db)):
         {"$match": {"wiki_director": {"$exists": True, "$ne": None, "$ne": ""}}},
         {"$group": {"_id": "$wiki_director", "count": {"$sum": 1}}},
         {"$sort": {"count": -1}},
-        {"$limit": 7}
+        {"$limit": 15}
     ]
     directors = [doc["_id"] for doc in db.movies.aggregate(pipeline) if doc["_id"]]
     return {"directors": directors}
