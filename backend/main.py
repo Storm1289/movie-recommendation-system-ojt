@@ -866,6 +866,8 @@ def list_movies(
         sort_field = [("rating", -1)]
     elif sort_by == "release_date":
         sort_field = [("release_date", -1)]
+    elif sort_by == "random":
+        sort_field = None  # Random uses aggregation
     else:
         sort_field = [("popularity", -1)]
 
@@ -890,12 +892,19 @@ def list_movies(
         ]
         movies = list(db.movies.aggregate(pipeline))
     else:
-        movies = list(
-            db.movies.find(query_filter)
-            .sort(sort_field)
-            .skip((page - 1) * per_page)
-            .limit(per_page)
-        )
+        if sort_by == "random":
+            pipeline = [
+                {"$match": query_filter},
+                {"$sample": {"size": per_page}}
+            ]
+            movies = list(db.movies.aggregate(pipeline))
+        else:
+            movies = list(
+                db.movies.find(query_filter)
+                .sort(sort_field)
+                .skip((page - 1) * per_page)
+                .limit(per_page)
+            )
 
     return {
         "movies": [Movie.from_doc(m) for m in movies],
@@ -961,6 +970,22 @@ def get_genres(db=Depends(get_db)):
     # Clean up dirty data: only allow reasonable length genres (max 2 words, max 20 chars)
     genres = [g for g in genres_raw if len(g) <= 20 and g.count(" ") <= 1 and "\n" not in g]
     return {"genres": genres}
+
+@app.get("/api/health")
+def health_check(db=Depends(get_db)):
+    # Minimal query to ensure DB connection is alive
+    movie_count = db.movies.estimated_document_count()
+    return {"status": "ok", "db_connected": True, "movie_count": movie_count}
+
+@app.get("/testing")
+def testing_uptime_robot(db=Depends(get_db)):
+    """Simple endpoint specifically requested to bypass Render's 50s spin down via UptimeRobot."""
+    try:
+        # A lightweight operation to keep the db connection alive too
+        db.movies.find_one({}, {"_id": 1})
+        return {"status": "alive", "message": "Render is awake"}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
 
 @app.get("/api/directors")
 def get_directors(db=Depends(get_db)):
