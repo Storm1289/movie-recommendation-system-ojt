@@ -32,6 +32,7 @@ from models import (
     User,
     DEFAULT_USER_SETTINGS,
     DEFAULT_USER_STATS,
+    make_movie_slug,
     sanitize_genre_string,
 )
 from recommendation import load_model, get_recommendations
@@ -754,10 +755,12 @@ movie_creation_lock = threading.Lock()
 # Resolve numeric ids and on-demand wiki ids into a movie document.
 def resolve_movie_or_fail(movie_id: str, db) -> dict:
     """Resolve an integer ID or a 'wiki:Title' ID into a local database movie document. Creates missing Wiki movies on the fly."""
-    if str(movie_id).startswith("wiki:"):
+    movie_ref = str(movie_id or "").strip()
+
+    if movie_ref.startswith("wiki:"):
         from wiki_service import fetch_wiki_details
         import urllib.parse
-        title = urllib.parse.unquote(str(movie_id)[5:])
+        title = urllib.parse.unquote(movie_ref[5:])
 
         movie = db.movies.find_one({"title": title})
         if not movie:
@@ -820,9 +823,31 @@ def resolve_movie_or_fail(movie_id: str, db) -> dict:
         return movie
 
     try:
-        m_id = int(movie_id)
+        m_id = int(movie_ref)
         return db.movies.find_one({"id": m_id})
     except ValueError:
+        slug = movie_ref.lower().strip("/")
+        if not slug:
+            return None
+
+        title_guess = re.sub(r"[-_]+", " ", slug).strip()
+        if title_guess:
+            exact_title = re.compile(f"^{re.escape(title_guess)}$", re.IGNORECASE)
+            movie = db.movies.find_one({"title": {"$regex": exact_title}})
+            if movie:
+                return movie
+
+        token_pattern = r"[\W_]+".join(re.escape(token) for token in slug.split("-") if token)
+        if token_pattern:
+            title_pattern = re.compile(f"^{token_pattern}$", re.IGNORECASE)
+            movie = db.movies.find_one({"title": {"$regex": title_pattern}})
+            if movie:
+                return movie
+
+        for movie in db.movies.find({}, {"title": 1, "id": 1}):
+            if make_movie_slug(movie.get("title")) == slug:
+                return db.movies.find_one({"id": movie["id"]})
+
         return None
 
 @app.get("/api/search")

@@ -4,6 +4,7 @@ import { fetchMovie, fetchRecommendations, fetchWikiDetails, fetchComments, post
 import { useApp } from '../context/AppContext';
 import MovieCard from '../components/MovieCard';
 import { getValidImageUrl, fetchWikiImageFallback, fetchWikiActorImage } from '../utils/imageUtils';
+import { movieSlug } from '../utils/movieRoutes';
 
 export default function MovieDetail() {
     const { id } = useParams();
@@ -29,6 +30,10 @@ export default function MovieDetail() {
     const [submitting, setSubmitting] = useState(false);
 
     const { addToWatchlist, removeFromWatchlist, isInWatchlist, user, incrementCommentCount } = useApp();
+    const isCurrentMovie = (candidate) => {
+        if (!candidate) return false;
+        return String(candidate.id) === String(movie?.id) || movieSlug(candidate) === id;
+    };
 
     useEffect(() => {
         setLoading(true);
@@ -53,7 +58,7 @@ export default function MovieDetail() {
 
                 if (res.data?.wiki_director) {
                     fetchMovies({ director: res.data.wiki_director, per_page: 6 }).then(resp => {
-                        const filtered = resp.data.movies.filter(m => String(m.id) !== String(id) && m.poster_path);
+                        const filtered = resp.data.movies.filter(m => !isCurrentMovie(m) && m.poster_path);
                         if (filtered.length > 0) {
                             setMoreMovies({ title: `More From ${res.data.wiki_director}`, movies: filtered.slice(0, 5) });
                             foundDirectorMovies = true;
@@ -131,7 +136,7 @@ export default function MovieDetail() {
                 if (!moreMovies && movie.genre) {
                     const firstGenre = movie.genre.split(',')[0].trim();
                     fetchMovies({ genre: firstGenre, per_page: 6 }).then(resp => {
-                        const filtered = resp.data.movies.filter(m => String(m.id) !== String(id) && m.poster_path);
+                        const filtered = resp.data.movies.filter(m => !isCurrentMovie(m) && m.poster_path);
                         if (filtered.length > 0) {
                             setMoreMovies({ title: `More in ${firstGenre}`, movies: filtered.slice(0, 5) });
                         }

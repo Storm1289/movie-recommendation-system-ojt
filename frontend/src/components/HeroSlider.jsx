@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { getValidImageUrl, fetchWikiImageFallback } from '../utils/imageUtils';
+import { moviePath } from '../utils/movieRoutes';
 
 function HeroSlide({ movie, index, isGuestUser, openAuthModal, isInWatchlist, addToWatchlist, removeFromWatchlist }) {
     const [backdropUrl, setBackdropUrl] = useState(null);
@@ -73,7 +74,7 @@ function HeroSlide({ movie, index, isGuestUser, openAuthModal, isInWatchlist, ad
                 </p>
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                     <Link
-                        to={`/movie/${movie.id}`}
+                        to={moviePath(movie)}
                         onClick={handleInfoClick}
                         className="w-full sm:w-auto bg-white text-black px-10 py-4 rounded-full font-headline font-bold flex justify-center items-center gap-3 hover:scale-105 transition-transform shadow-lg"
                     >

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { searchMovies } from '../api/api';
 import { getValidImageUrl } from '../utils/imageUtils';
+import { moviePath } from '../utils/movieRoutes';
 
 const primaryNavItems = [
     { label: 'Home', path: '/home' },
@@ -211,7 +212,7 @@ export default function Navbar() {
                                                 return (
                                                     <li key={movie.id || idx}>
                                                         <Link
-                                                            to={`/movie/${movie.id}`}
+                                                            to={moviePath(movie)}
                                                             onClick={handleResultClick}
                                                             className="group/item flex items-center gap-4 px-4 py-3 transition-colors hover:bg-white/5"
                                                         >

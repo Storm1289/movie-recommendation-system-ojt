@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useState, useEffect } from 'react';
 import { getValidImageUrl, fetchWikiImageFallback } from '../utils/imageUtils';
+import { moviePath } from '../utils/movieRoutes';
 
 export default function MovieCard({ movie, rank, showMatch }) {
     const { addToWatchlist, removeFromWatchlist, isInWatchlist, isGuestUser, openAuthModal } = useApp();
@@ -57,7 +58,7 @@ export default function MovieCard({ movie, rank, showMatch }) {
     };
 
     return (
-        <Link to={`/movie/${movie.id}`} onClick={handleCardClick} className="group/card cursor-pointer block">
+        <Link to={moviePath(movie)} onClick={handleCardClick} className="group/card cursor-pointer block">
             <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 transition-all duration-300 group-hover/card:scale-110 group-hover/card:shadow-2xl group-hover/card:shadow-black/60 bg-surface-container z-10 group-hover/card:z-50 border border-outline-variant/30">
                 {/* Rank badge */}
                 {rank && (
