@@ -17,11 +17,6 @@ export default function Profile() {
                     <Link to="/home" className="text-xl font-black text-primary font-headline uppercase tracking-tighter hover:opacity-80 transition-opacity">CineStream</Link>
                 </div>
 
-                <div className="px-6 mb-8">
-                    <h2 className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Account</h2>
-                    <p className="text-xs text-amber-400 font-medium">{user ? 'Digital Streamer' : 'Guest'}</p>
-                </div>
-
                 <nav className="flex-1 space-y-1">
                     <div className={`flex items-center gap-3 px-6 py-4 font-manrope text-sm font-semibold cursor-pointer transition-colors ${activeTab === 'overview' ? 'bg-primary/10 text-primary border-r-4 border-primary' : 'text-gray-500 hover:text-white hover:bg-[#1a1a1a]'}`} onClick={() => { setActiveTab('overview'); window.scrollTo(0, 0); }}>
                         <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>

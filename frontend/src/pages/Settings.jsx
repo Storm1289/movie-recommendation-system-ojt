@@ -1,11 +1,62 @@
+import { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 
 export default function Settings() {
-    const { settings, updateSettings, user, logout } = useApp();
+    const { settings, updateSettings, user, logout, updateProfile } = useApp();
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [displayName, setDisplayName] = useState(user?.name || '');
+    const [profileError, setProfileError] = useState('');
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
 
     const isLocalUser = user?.authProviders?.includes('local') || !user?.authProviders?.length;
     const providerName = user?.authProviders?.find(p => p !== 'local');
     const providerLabel = providerName ? providerName.charAt(0).toUpperCase() + providerName.slice(1) : 'Social';
+
+    useEffect(() => {
+        if (!isEditingName) {
+            setDisplayName(user?.name || '');
+        }
+    }, [isEditingName, user?.name]);
+
+    const handleEditName = () => {
+        setProfileError('');
+        setDisplayName(user?.name || '');
+        setIsEditingName(true);
+    };
+
+    const handleCancelName = () => {
+        setProfileError('');
+        setDisplayName(user?.name || '');
+        setIsEditingName(false);
+    };
+
+    const handleSaveName = async (event) => {
+        event.preventDefault();
+
+        const nextName = displayName.trim();
+
+        if (!nextName) {
+            setProfileError('Display name is required.');
+            return;
+        }
+
+        if (nextName === user?.name) {
+            setIsEditingName(false);
+            return;
+        }
+
+        setIsSavingProfile(true);
+        setProfileError('');
+
+        try {
+            await updateProfile({ name: nextName });
+            setIsEditingName(false);
+        } catch (error) {
+            setProfileError(error?.response?.data?.detail || 'Unable to update display name.');
+        } finally {
+            setIsSavingProfile(false);
+        }
+    };
 
     const handleDeleteAccount = () => {
         if (window.confirm("Are you sure you want to permanently delete your account? This action cannot be undone.")) {
@@ -30,14 +81,54 @@ export default function Settings() {
                         Account
                     </h2>
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between py-3 border-b border-slate-800">
-                            <div>
+                        <div className="flex flex-col gap-3 py-3 border-b border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="min-w-0 flex-1">
                                 <p className="text-white font-semibold text-sm">Display Name</p>
-                                <p className="text-slate-400 text-xs mt-0.5">{user?.name || 'Not signed in'}</p>
+                                {isEditingName ? (
+                                    <form onSubmit={handleSaveName} className="mt-2 flex flex-col gap-2 sm:max-w-md">
+                                        <input
+                                            type="text"
+                                            value={displayName}
+                                            onChange={(event) => setDisplayName(event.target.value)}
+                                            className="w-full rounded-lg border border-slate-700 bg-surface-card px-3 py-2 text-sm text-white outline-none transition-colors placeholder:text-slate-500 focus:border-primary"
+                                            placeholder="Enter display name"
+                                            autoFocus
+                                            maxLength={80}
+                                        />
+                                        {profileError ? (
+                                            <p className="text-xs font-medium text-red-400">{profileError}</p>
+                                        ) : null}
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="submit"
+                                                disabled={isSavingProfile}
+                                                className="px-4 py-1.5 text-xs font-bold bg-primary text-black rounded-lg transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                {isSavingProfile ? 'Saving...' : 'Save'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleCancelName}
+                                                disabled={isSavingProfile}
+                                                className="px-4 py-1.5 text-xs font-bold bg-surface-card border border-slate-700 text-slate-300 rounded-lg hover:text-white hover:border-slate-500 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <p className="text-slate-400 text-xs mt-0.5">{user?.name || 'Not signed in'}</p>
+                                )}
                             </div>
-                            <button className="px-4 py-1.5 text-xs font-bold bg-surface-card border border-slate-700 text-slate-300 rounded-lg hover:text-white hover:border-slate-500 transition-colors">
-                                Edit
-                            </button>
+                            {!isEditingName ? (
+                                <button
+                                    type="button"
+                                    onClick={handleEditName}
+                                    className="self-start px-4 py-1.5 text-xs font-bold bg-surface-card border border-slate-700 text-slate-300 rounded-lg hover:text-white hover:border-slate-500 transition-colors sm:self-center"
+                                >
+                                    Edit
+                                </button>
+                            ) : null}
                         </div>
                         {isLocalUser ? (
                             <>
