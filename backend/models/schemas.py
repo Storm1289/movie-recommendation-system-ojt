@@ -8,6 +8,11 @@ class CommentCreate(BaseModel):
     content: str
     rating: Optional[float] = None  # 1-10
 
+class CommentEdit(BaseModel):
+    user_email: str
+    content: str
+    rating: Optional[float] = None
+
 class RatingCreate(BaseModel):
     user_id: str = "anonymous"
     rating: float  # 1-10

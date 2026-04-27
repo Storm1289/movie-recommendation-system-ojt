@@ -33,6 +33,8 @@ export const fetchWikiDetails = (id) => API.get(`/movies/${id}/wiki`);
 // Comments
 export const fetchComments = (id) => API.get(`/movies/${id}/comments`);
 export const postComment = (id, data) => API.post(`/movies/${id}/comments`, data);
+export const editComment = (movieId, commentId, data) => API.put(`/movies/${movieId}/comments/${commentId}`, data);
+export const deleteComment = (movieId, commentId, userEmail) => API.delete(`/movies/${movieId}/comments/${commentId}`, { params: { user_email: userEmail } });
 
 // Ratings
 export const rateMovie = (id, data) => API.post(`/movies/${id}/rate`, data);

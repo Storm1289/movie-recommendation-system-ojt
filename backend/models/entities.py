@@ -174,15 +174,20 @@ class Comment:
         if not doc:
             return None
         created_at = doc.get("created_at")
+        updated_at = doc.get("updated_at")
         if isinstance(created_at, datetime):
             created_at = created_at.isoformat()
+        if isinstance(updated_at, datetime):
+            updated_at = updated_at.isoformat()
         return {
             "id": doc.get("id"),
             "movie_id": doc.get("movie_id"),
             "user_name": doc.get("user_name", "Anonymous"),
+            "user_email": doc.get("user_email"),
             "content": doc.get("content"),
             "rating": doc.get("rating"),
             "created_at": created_at,
+            "updated_at": updated_at,
         }
 
 

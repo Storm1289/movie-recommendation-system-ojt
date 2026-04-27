@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchMovie, fetchRecommendations, fetchWikiDetails, fetchComments, postComment, fetchStreaming, fetchMovies } from '../api/api';
+import { fetchMovie, fetchRecommendations, fetchWikiDetails, fetchComments, postComment, editComment, deleteComment, fetchStreaming, fetchMovies } from '../api/api';
 import { useApp } from '../context/AppContext';
 import MovieCard from '../components/MovieCard';
 import { getValidImageUrl, fetchWikiImageFallback, fetchWikiActorImage } from '../utils/imageUtils';
@@ -28,11 +28,61 @@ export default function MovieDetail() {
     const [commentRating, setCommentRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
     const [submitting, setSubmitting] = useState(false);
+    const [editingCommentId, setEditingCommentId] = useState(null);
+    const [editingCommentText, setEditingCommentText] = useState('');
+    const [savingEdit, setSavingEdit] = useState(false);
+    const [editingCommentRating, setEditingCommentRating] = useState(0);
+    const [editingHoverRating, setEditingHoverRating] = useState(0);
 
     const { addToWatchlist, removeFromWatchlist, isInWatchlist, user, incrementCommentCount } = useApp();
     const isCurrentMovie = (candidate) => {
         if (!candidate) return false;
         return String(candidate.id) === String(movie?.id) || movieSlug(candidate) === id;
+    };
+
+    
+    const handleDeleteComment = async (commentId) => {
+        if (!window.confirm("Are you sure you want to delete this review?")) return;
+        try {
+            const res = await deleteComment(id, commentId, user?.email);
+            setComments(prev => prev.filter(c => c.id !== commentId));
+            setCommentCount(prev => Math.max(0, prev - 1));
+            if (res.data.movie_rating !== undefined) {
+                setMovie(prev => ({
+                    ...prev,
+                    rating: res.data.movie_rating,
+                    user_rating_count: res.data.user_rating_count,
+                }));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleEditComment = async (commentId) => {
+        if (!editingCommentText.trim()) return;
+        setSavingEdit(true);
+        try {
+            const res = await editComment(id, commentId, {
+                user_email: user?.email,
+                content: editingCommentText.trim(),
+                rating: editingCommentRating || null
+            });
+            setComments(prev => prev.map(c => c.id === commentId ? res.data.comment : c));
+            if (res.data.movie_rating) {
+                setMovie(prev => ({
+                    ...prev,
+                    rating: res.data.movie_rating,
+                    user_rating_count: res.data.user_rating_count,
+                }));
+            }
+            setEditingCommentId(null);
+            setEditingCommentText('');
+            setEditingCommentRating(0);
+        } catch (err) {
+            console.error(err);
+        }
+        setSavingEdit(false);
     };
 
     useEffect(() => {
@@ -374,22 +424,82 @@ export default function MovieDetail() {
                                             </div>
                                             <div>
                                                 <p className="text-white font-bold text-sm font-headline uppercase">{c.user_name}</p>
-                                                <p className="text-on-surface-variant text-[10px] uppercase tracking-widest">
+                                                <p className="text-on-surface-variant text-[10px] uppercase tracking-widest flex items-center gap-2">
                                                     {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'Recently'}
+                                                    {c.updated_at && <span className="text-primary italic">(edited)</span>}
                                                 </p>
                                             </div>
                                         </div>
-                                        {c.rating && (
-                                            <div className="flex gap-0.5 text-amber-400">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <span key={i} className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
-                                                        {i < Math.round(c.rating / 2) ? 'star' : 'star_outline'}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
+                                        <div className="flex items-center gap-4">
+                                            {c.rating && (
+                                                <div className="flex gap-0.5 text-amber-400">
+                                                    {[...Array(10)].map((_, i) => (
+                                                        <span key={i} className="material-symbols-outlined text-sm" style={{ fontVariationSettings: i < Math.round(c.rating) ? "'FILL' 1" : "'FILL' 0" }}>
+                                                            star
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {user && user.email === c.user_email && editingCommentId !== c.id && (
+                                                <div className="flex gap-2 items-center">
+                                                    <button 
+                                                        onClick={() => { setEditingCommentId(c.id); setEditingCommentText(c.content); setEditingCommentRating(c.rating || 0); }}
+                                                        className="text-on-surface-variant hover:text-white transition-colors"
+                                                        title="Edit review"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">edit</span>
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDeleteComment(c.id)}
+                                                        className="text-on-surface-variant hover:text-red-500 transition-colors"
+                                                        title="Delete review"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">delete</span>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <p className="text-on-surface text-sm leading-relaxed whitespace-pre-line">{c.content}</p>
+                                    {editingCommentId === c.id ? (
+                                        <div className="space-y-3">
+                                            <textarea
+                                                value={editingCommentText}
+                                                onChange={(e) => setEditingCommentText(e.target.value)}
+                                                className="w-full bg-surface border-none rounded-xl p-4 text-sm focus:ring-1 focus:ring-primary placeholder:text-on-surface-variant h-24 resize-none"
+                                            ></textarea>
+                                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                                <div className="flex gap-1 text-on-surface-variant">
+                                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(star => (
+                                                        <span
+                                                            key={star}
+                                                            onClick={() => setEditingCommentRating(star)}
+                                                            onMouseEnter={() => setEditingHoverRating(star)}
+                                                            onMouseLeave={() => setEditingHoverRating(0)}
+                                                            className={`material-symbols-outlined cursor-pointer hover:scale-125 transition-transform ${star <= (editingHoverRating || editingCommentRating) ? 'text-amber-400' : ''}`}
+                                                            style={{ fontVariationSettings: star <= (editingHoverRating || editingCommentRating) ? "'FILL' 1" : "'FILL' 0" }}
+                                                        >star</span>
+                                                    ))}
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={() => setEditingCommentId(null)}
+                                                        className="px-4 py-2 rounded-full text-xs font-headline font-bold uppercase tracking-widest text-on-surface-variant hover:text-white transition-colors"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleEditComment(c.id)}
+                                                        disabled={savingEdit || (!editingCommentText.trim()) || (editingCommentText === c.content && editingCommentRating === (c.rating || 0))}
+                                                        className="px-4 py-2 rounded-full text-xs font-headline font-bold uppercase tracking-widest bg-primary text-black disabled:opacity-50 transition-colors hover:bg-white"
+                                                    >
+                                                        {savingEdit ? 'Saving...' : 'Save'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-on-surface text-sm leading-relaxed whitespace-pre-line">{c.content}</p>
+                                    )}
                                 </div>
                             )) : (
                                 <div className="text-center py-12 bg-surface-container-low rounded-2xl border border-white/5">

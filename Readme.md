@@ -45,7 +45,7 @@
 - **Content-Based Filtering** — TF-IDF (Term Frequency – Inverse Document Frequency) + Cosine Similarity for "movies like this"
 - **Wikipedia Enrichment** — Automatic fetching of plot, cast, director, budget, and box office
 - **MongoDB Atlas Storage** — Cloud-hosted MongoDB used by the backend through PyMongo
-- **Community Reviews** — User comments and 1–10 star ratings
+- **Community Reviews** — User comments and 1–10 star interactive ratings, with full edit and delete capabilities
 - **Social Login + Guest Mode** — Google, Facebook, email/password, and guest preview access
 - **Dynamic Rankings** — Monthly scoring algorithm blending popularity, recency, and votes
 - **Region-Aware Streaming Links** — Platform links for India, US, UK, and more
@@ -194,17 +194,20 @@ graph TB
 
 ```
 backend/
-├── main.py              # FastAPI app — 12+ REST endpoints
-├── database.py          # MongoDB connection (PyMongo client)
-├── models.py            # Document ↔ Dict converters (Movie, Comment, UserRating)
-├── recommendation.py    # TF-IDF + Cosine Similarity engine
-├── ranking.py           # Dynamic monthly score calculator
-├── seed.py              # Database seeder — 63 curated movies
-├── wiki_service.py      # Wikipedia enrichment and streaming helpers
-├── requirements.txt     # Python dependencies
-└── pickles/
-    ├── similarity_matrix.pkl   # Precomputed cosine similarity matrix
-    └── movies_df.pkl           # Serialized movies DataFrame
+├── main.py                 # FastAPI app entry point
+├── database.py             # MongoDB connection (PyMongo client)
+├── recommendation.py       # TF-IDF + Cosine Similarity engine
+├── ranking.py              # Dynamic monthly score calculator
+├── seed.py                 # Database seeder
+├── wiki_service.py         # Wikipedia enrichment and streaming helpers
+├── requirements.txt        # Python dependencies
+├── models/                 # Data schemas and entities (Pydantic & dict mappings)
+├── routes/                 # API endpoint routers (auth, movies, comments, users)
+├── services/               # Business logic (auth, recommendations, movies)
+├── utils/                  # Helper functions
+└── pickles/                # Precomputed ML models
+    ├── similarity_matrix.pkl
+    └── movies_df.pkl
 ```
 
 ### 5.2 Database Layer — MongoDB
@@ -506,6 +509,8 @@ server: {
 | `fetchWikiDetails(id)` | GET | `/api/movies/:id/wiki` |
 | `fetchComments(id)` | GET | `/api/movies/:id/comments` |
 | `postComment(id, data)` | POST | `/api/movies/:id/comments` |
+| `editComment(id, c_id)` | PUT | `/api/movies/:id/comments/:c_id` |
+| `deleteComment(id, c_id)` | DELETE | `/api/movies/:id/comments/:c_id` |
 | `rateMovie(id, data)` | POST | `/api/movies/:id/rate` |
 | `fetchStreaming(id, country)` | GET | `/api/movies/:id/streaming` |
 
@@ -821,19 +826,21 @@ The current project documentation assumes **no Gemini dependency in the active a
 
 ## 14. Deployment Architecture
 
-### Current: Local Development
+### Production Deployment: Render
 
-```
-localhost:5173  (Vite dev server)  ──proxy──▶  localhost:8000  (FastAPI)
+The project is configured for cloud deployment on **Render**. The frontend is served as a React/Vite static site, and the backend is deployed as a Python web service.
+
+```text
+Render Web Service (Frontend)  ──HTTP──▶  Render Web Service (FastAPI Backend)
                                                       │
                                                MongoDB Atlas  (cloud)
 ```
 
-
-**MongoDB configuration:**
-Set `MONGO_URL` in the environment:
-```python
-MONGO_URL = "mongodb+srv://<user>:<pass>@cluster.mongodb.net/cinestream"
+**Production Environment Variables:**
+Set the following variables in your Render backend service dashboard:
+```bash
+MONGO_URL="mongodb+srv://<user>:<pass>@cluster.mongodb.net/cinestream"
+FRONTEND_URL="https://<your-render-frontend-url>.onrender.com"
 ```
 
 ---
