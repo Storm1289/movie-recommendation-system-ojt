@@ -63,7 +63,7 @@ def recalculate_all_scores():
 
 
 def update_movie_score(movie_id: int):
-    """Recalculates the score for a single movie (e.g. after a user rating is added)"""
+    """Recalculates the score for a single movie (e.g."""
     db = get_db()
     try:
         movie_doc = db.movies.find_one({"id": movie_id})

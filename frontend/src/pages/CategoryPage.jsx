@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchTopMonth, fetchMovies } from '../api/api';
+import { fetchTopMonth, fetchMovies, fetchTrending, fetchUserRecommendations } from '../api/api';
 import MovieCard from '../components/MovieCard';
+import { useApp } from '../context/AppContext';
 
 export default function CategoryPage() {
     const { id } = useParams();
+    const { user, watchlist } = useApp();
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [recommendedTitle, setRecommendedTitle] = useState('Recommended for you');
 
     const categoryDetails = {
         'top-month': { title: 'Top 10 Movies of the Month', icon: '🔥' },
-        'recommended': { title: 'Based on your recent watch', icon: '👀' },
+        'recommended': { title: recommendedTitle, icon: '👀' },
         'trending': { title: 'Trending Now', icon: '🌟' },
         'new-releases': { title: 'New Releases', icon: '✨' }
     };
@@ -25,17 +28,22 @@ export default function CategoryPage() {
                 .catch(console.error)
                 .finally(() => setLoading(false));
         } else if (id === 'recommended') {
-            fetchMovies({ sort_by: 'rating', per_page: 20 })
-                .then(res => setMovies(res.data.movies))
+            const request = user?.id
+                ? fetchUserRecommendations(user.id, 20)
+                : fetchTrending();
+
+            request
+                .then(res => {
+                    setMovies(res.data.recommendations || res.data.movies || []);
+                    setRecommendedTitle(res.data.title || 'Trending now');
+                })
                 .catch(console.error)
                 .finally(() => setLoading(false));
         } else if (id === 'trending') {
-            import('../api/api').then(({ fetchTrending }) => {
-                fetchTrending()
-                    .then(res => setMovies(res.data.movies))
-                    .catch(console.error)
-                    .finally(() => setLoading(false));
-            });
+            fetchTrending()
+                .then(res => setMovies(res.data.movies))
+                .catch(console.error)
+                .finally(() => setLoading(false));
         } else if (id === 'new-releases') {
             fetchMovies({ sort_by: 'release_date', per_page: 20 })
                 .then(res => setMovies(res.data.movies))
@@ -44,7 +52,7 @@ export default function CategoryPage() {
         } else {
             setLoading(false);
         }
-    }, [id]);
+    }, [id, user?.id, watchlist]);
 
     return (
         <div className="px-4 md:px-10 py-8 min-h-screen">

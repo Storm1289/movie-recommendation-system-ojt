@@ -148,13 +148,7 @@ def search_wiki_movies(query: str) -> list[dict]:
     if GEMINI_AVAILABLE:
         try:
             model = genai.GenerativeModel("gemini-2.5-flash")
-            prompt = f"""You are a movie and TV recommendation expert. The user searched for: "{query}".
-Return a JSON array of up to 8 objects containing exact Wikipedia article titles and their primary genres that match this query.
-CRITICAL RULES:
-1. ALWAYS use the exact English Wikipedia article title (e.g., "The Lord of the Rings: The Fellowship of the Ring", "The Avengers (2012 film)"). Make sure disambiguations like "(film)" are included if required by Wikipedia.
-2. If the query is a franchise (like "Avengers" or "Batman" or "Lord of the Rings"), return the titles of the main movies in that franchise!
-3. ONLY return movies, films, or TV series.
-4. Output NOTHING but a valid JSON array of objects with keys "title" (exact wiki title), "genre" (comma-separated, max 3, e.g. "Action, Sci-Fi"), and "franchise" (string of the Cinematic Universe or Franchise it belongs to, like "Marvel Cinematic Universe" or "The Conjuring Universe". Set to null if it's a standalone movie)."""
+            prompt = f"""You are a movie and TV recommendation expert."""
             response = model.generate_content(
                 prompt,
                 generation_config=genai.types.GenerationConfig(

@@ -11,7 +11,7 @@ db = client[DATABASE_NAME]
 
 
 def get_db():
-    """Return the MongoDB database instance. Compatible with FastAPI Depends()."""
+    """Return the MongoDB database instance."""
     return db
 
 

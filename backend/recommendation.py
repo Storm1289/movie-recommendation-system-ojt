@@ -18,6 +18,9 @@ MOVIES_PICKLE = os.path.join(PICKLE_DIR, "movies_df.pkl")
 def ensure_pickle_dir():
     os.makedirs(PICKLE_DIR, exist_ok=True)
 
+# Global caches for the model to prevent slow disk I/O on every request
+_similarity_cache = None
+_df_cache = None
 
 # Build and persist the TF-IDF(Term Frequency – Inverse Document Frequency) recommendation model from movie data.
 def build_recommendation_model(movies_data: list[dict]):
@@ -45,6 +48,11 @@ def build_recommendation_model(movies_data: list[dict]):
     with open(MOVIES_PICKLE, "wb") as f:
         pickle.dump(df, f)
 
+    # Update in-memory cache
+    global _similarity_cache, _df_cache
+    _similarity_cache = similarity
+    _df_cache = df
+
     print(f"✅ Recommendation model built and pickled ({len(df)} movies)")
     return similarity, df
 
@@ -52,17 +60,22 @@ def build_recommendation_model(movies_data: list[dict]):
 # Load the saved similarity matrix and movie dataframe from disk.
 def load_model():
     """Load the precomputed similarity matrix and movies dataframe from pickle."""
+    global _similarity_cache, _df_cache
+    
+    if _similarity_cache is not None and _df_cache is not None:
+        return _similarity_cache, _df_cache
+
     if not os.path.exists(SIMILARITY_PICKLE) or not os.path.exists(MOVIES_PICKLE):
         return None, None
 
     with open(SIMILARITY_PICKLE, "rb") as f:
-        similarity = pickle.load(f)
+        _similarity_cache = pickle.load(f)
 
     with open(MOVIES_PICKLE, "rb") as f:
-        df = pickle.load(f)
+        _df_cache = pickle.load(f)
 
-    print(f"✅ Loaded pickled model ({len(df)} movies)")
-    return similarity, df
+    print(f"✅ Loaded pickled model ({len(_df_cache)} movies) into memory")
+    return _similarity_cache, _df_cache
 
 
 # Return the closest movies for a given movie id.

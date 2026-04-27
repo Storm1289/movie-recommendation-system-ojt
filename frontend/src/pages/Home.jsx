@@ -1,32 +1,99 @@
 import { useEffect, useState } from 'react';
-import { fetchTrending, fetchTopMonth, fetchMovies } from '../api/api';
+import { fetchTrending, fetchTopMonth, fetchMovies, fetchUserRecommendations } from '../api/api';
 import HeroSlider from '../components/HeroSlider';
 import MovieRow from '../components/MovieRow';
 import { useApp } from '../context/AppContext';
 
 export default function Home() {
-    const { user } = useApp();
+    const { user, watchlist } = useApp();
     const isGuest = Boolean(user?.isGuest);
     const [trending, setTrending] = useState([]);
     const [topMonth, setTopMonth] = useState([]);
     const [recommended, setRecommended] = useState([]);
+    const [recommendationMeta, setRecommendationMeta] = useState({
+        title: 'Trending now',
+        message: null,
+        source: 'trending',
+    });
     const [newReleases, setNewReleases] = useState([]);
+    const [isRecLoading, setIsRecLoading] = useState(true);
 
     useEffect(() => {
-        const shuffle = (arr) => arr.sort(() => 0.5 - Math.random());
-        
-        fetchTrending().then(res => setTrending(res.data?.movies || [])).catch(console.error);
-        fetchTopMonth().then(res => setTopMonth(res.data?.movies || [])).catch(console.error);
-        
-        // Fetch random popular movies for Recommended
-        fetchMovies({ sort_by: 'random', per_page: 12 }).then(res => setRecommended(res.data?.movies || [])).catch(console.error);
-        
-        // Fetch 30 recent movies, then shuffle and pick 12
-        fetchMovies({ sort_by: 'release_date', per_page: 30 }).then(res => {
-            const movies = res.data?.movies || [];
-            setNewReleases(shuffle(movies).slice(0, 12));
-        }).catch(console.error);
-    }, []);
+        let isCancelled = false;
+
+        const loadData = async () => {
+            // Only set loading to true if we don't have recommendations yet (initial load)
+            if (recommended.length === 0) {
+                setIsRecLoading(true);
+            }
+
+            const shuffle = (arr) => arr.sort(() => 0.5 - Math.random());
+            
+            // Fetch general page data only once
+            const fetchGeneral = async () => {
+                if (trending.length > 0) return; // Skip if already fetched
+                try {
+                    const [trendRes, topRes, newRes] = await Promise.all([
+                        fetchTrending(),
+                        fetchTopMonth(),
+                        fetchMovies({ sort_by: 'release_date', per_page: 30 })
+                    ]);
+                    
+                    if (!isCancelled) {
+                        setTrending(trendRes.data?.movies || []);
+                        setTopMonth(topRes.data?.movies || []);
+                        setNewReleases(shuffle(newRes.data?.movies || []).slice(0, 12));
+                    }
+                } catch (e) {
+                    console.error("Error fetching general data", e);
+                }
+            };
+
+            const fetchRecs = async () => {
+                try {
+                    if (user?.id) {
+                        const res = await fetchUserRecommendations(user.id, 12);
+                        if (!isCancelled) {
+                            setRecommended(res.data?.recommendations || []);
+                            setRecommendationMeta({
+                                title: res.data?.title || 'Recommended for you',
+                                message: res.data?.message || null,
+                                source: res.data?.source || 'watchlist',
+                            });
+                        }
+                    } else {
+                        const res = await fetchTrending();
+                        if (!isCancelled) {
+                            setRecommended(res.data?.movies || []);
+                            setRecommendationMeta({
+                                title: 'Trending now',
+                                message: null,
+                                source: 'trending',
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error fetching recommendations", e);
+                } finally {
+                    if (!isCancelled) {
+                        setIsRecLoading(false);
+                    }
+                }
+            };
+
+            // Run both fetches in parallel
+            await Promise.all([
+                fetchGeneral(),
+                fetchRecs()
+            ]);
+        };
+
+        loadData();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [user?.id, watchlist]);
 
     return (
         <div className="pb-20 bg-surface min-h-screen font-body text-on-surface">
@@ -42,10 +109,11 @@ export default function Home() {
                 </header>
 
                 <MovieRow
-                    title="Recommended for You"
-                    subTitle="Because you watched Inception"
+                    title={recommendationMeta.title}
+                    subTitle={recommendationMeta.message}
                     movies={recommended}
                     linkTo="/category/recommended"
+                    isLoading={isRecLoading}
                 />
 
                 <MovieRow
