@@ -71,61 +71,6 @@ def verify_google_credential(credential: str) -> dict:
         }
 
 
-def verify_facebook_access_token(access_token: str) -> dict:
-    """Verify a Facebook access token and fetch the user's profile data."""
-    app_id = get_required_env("FACEBOOK_APP_ID")
-    app_secret = get_required_env("FACEBOOK_APP_SECRET")
-
-    try:
-        debug_response = requests.get(
-            "https://graph.facebook.com/debug_token",
-            params={
-                "input_token": access_token,
-                "access_token": f"{app_id}|{app_secret}",
-            },
-            timeout=10,
-        )
-        debug_response.raise_for_status()
-        debug_data = (debug_response.json() or {}).get("data") or {}
-    except requests.RequestException as exc:
-        raise HTTPException(status_code=502, detail="Unable to verify Facebook sign-in") from exc
-
-    if not debug_data.get("is_valid"):
-        raise HTTPException(status_code=401, detail="Invalid Facebook sign-in token")
-
-    if str(debug_data.get("app_id")) != app_id:
-        raise HTTPException(status_code=401, detail="Facebook token does not belong to this app")
-
-    try:
-        profile_response = requests.get(
-            "https://graph.facebook.com/me",
-            params={
-                "fields": "id,name,email,picture.type(large)",
-                "access_token": access_token,
-            },
-            timeout=10,
-        )
-        profile_response.raise_for_status()
-        profile = profile_response.json() or {}
-    except requests.RequestException as exc:
-        raise HTTPException(status_code=502, detail="Unable to fetch Facebook profile") from exc
-
-    email = normalize_email(profile.get("email"))
-    if not email:
-        raise HTTPException(
-            status_code=400,
-            detail="Facebook did not return an email address. Make sure email access is approved.",
-        )
-
-    picture_data = (profile.get("picture") or {}).get("data") or {}
-    return {
-        "provider": "facebook",
-        "provider_user_id": profile.get("id"),
-        "email": email,
-        "name": profile.get("name"),
-        "avatar": picture_data.get("url"),
-    }
-
 
 def upsert_social_user(
     db,
@@ -136,7 +81,7 @@ def upsert_social_user(
     name: str,
     avatar: Optional[str] = None,
 ) -> dict:
-    """Create or update a user record for Google or Facebook sign-in."""
+    """Create or update a user record for Google sign-in."""
     normalized_email = normalize_email(email)
     if not normalized_email:
         raise HTTPException(status_code=400, detail="Email is required for social sign-in")

@@ -99,6 +99,4 @@ def provider_field_name(provider: str) -> str:
     """Map a provider name to the matching MongoDB field."""
     if provider == "google":
         return "google_sub"
-    if provider == "facebook":
-        return "facebook_user_id"
     raise HTTPException(status_code=400, detail="Unsupported authentication provider")

@@ -45,7 +45,6 @@ def startup():
     
     ensure_unique_index(db.users, [("email", 1)], "users_email_unique")
     ensure_unique_sparse_index(db.users, "google_sub", "users_google_sub_unique")
-    ensure_unique_sparse_index(db.users, "facebook_user_id", "users_facebook_user_id_unique")
     ensure_unique_index(
         db.user_ratings,
         [("movie_id", 1), ("user_id", 1)],

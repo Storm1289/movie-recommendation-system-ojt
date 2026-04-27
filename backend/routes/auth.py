@@ -4,9 +4,9 @@ from pymongo.errors import DuplicateKeyError
 
 from database import get_db, get_next_id
 from utils.helpers import normalize_email, hash_password, verify_password, make_avatar
-from models.schemas import SignupCreate, LoginCreate, GoogleAuthCreate, FacebookAuthCreate
+from models.schemas import SignupCreate, LoginCreate, GoogleAuthCreate
 from models.entities import DEFAULT_USER_SETTINGS, DEFAULT_USER_STATS
-from services.auth_service import verify_google_credential, verify_facebook_access_token, upsert_social_user
+from services.auth_service import verify_google_credential, upsert_social_user
 from services.user_service import build_user_state
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -62,7 +62,7 @@ def login(payload: LoginCreate, db=Depends(get_db)):
     if not user_doc.get("password_hash") or not user_doc.get("password_salt"):
         raise HTTPException(
             status_code=400,
-            detail="This account uses social sign-in. Continue with Google or Facebook instead.",
+            detail="This account uses social sign-in. Continue with Google instead.",
         )
 
     if not verify_password(payload.password, user_doc):
@@ -86,16 +86,3 @@ def google_login(payload: GoogleAuthCreate, db=Depends(get_db)):
     return build_user_state(user_doc, db)
 
 
-@router.post("/facebook")
-def facebook_login(payload: FacebookAuthCreate, db=Depends(get_db)):
-    """Authenticate or register a user via Facebook sign-in."""
-    profile = verify_facebook_access_token(payload.access_token)
-    user_doc = upsert_social_user(
-        db,
-        provider=profile["provider"],
-        provider_user_id=profile["provider_user_id"],
-        email=profile["email"],
-        name=profile.get("name"),
-        avatar=profile.get("avatar"),
-    )
-    return build_user_state(user_doc, db)

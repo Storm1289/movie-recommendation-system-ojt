@@ -29,9 +29,6 @@ class LoginCreate(BaseModel):
 class GoogleAuthCreate(BaseModel):
     credential: str
 
-class FacebookAuthCreate(BaseModel):
-    access_token: str
-
 class SettingsUpdate(BaseModel):
     darkMode: Optional[bool] = None
     autoplay: Optional[bool] = None
@@ -42,6 +39,9 @@ class SettingsUpdate(BaseModel):
 
 class ProfileUpdate(BaseModel):
     name: str
+
+class EmailUpdate(BaseModel):
+    email: str
 
 class PasswordUpdate(BaseModel):
     current_password: str

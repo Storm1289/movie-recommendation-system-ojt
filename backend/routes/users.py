@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from database import get_db
 from models.entities import User
-from models.schemas import SettingsUpdate, ProfileUpdate, PasswordUpdate
+from models.schemas import SettingsUpdate, ProfileUpdate, PasswordUpdate, EmailUpdate
 from utils.helpers import normalize_email, make_avatar, hash_password, verify_password
 from services.user_service import get_user_or_404, build_user_state, ensure_local_password_auth
 from services.movie_service import resolve_movie_or_fail
@@ -64,6 +64,47 @@ def update_user_profile(user_id: int, payload: ProfileUpdate, db=Depends(get_db)
         updated_fields["avatar"] = make_avatar(name, user_doc.get("email", ""))
 
     db.users.update_one({"id": user_id}, {"$set": updated_fields})
+
+    refreshed_user = db.users.find_one({"id": user_id})
+    return build_user_state(refreshed_user, db)
+
+
+@router.put("/{user_id}/email")
+def update_user_email(user_id: int, payload: EmailUpdate, db=Depends(get_db)):
+    """Update a user's email address."""
+    user_doc = get_user_or_404(user_id, db)
+    ensure_local_password_auth(user_doc)
+
+    new_email = normalize_email(payload.email)
+    if not new_email:
+        raise HTTPException(status_code=400, detail="A valid email is required")
+
+    if new_email == user_doc.get("email"):
+        return build_user_state(user_doc, db)
+
+    # Check if email is taken
+    existing_user = db.users.find_one({"email": new_email})
+    if existing_user:
+        raise HTTPException(status_code=409, detail="An account with this email already exists")
+
+    current_email = user_doc.get("email")
+
+    db.users.update_one(
+        {"id": user_id},
+        {
+            "$set": {
+                "email": new_email,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        },
+    )
+
+    # Update email in comments as well
+    if current_email:
+        db.comments.update_many(
+            {"user_email": current_email},
+            {"$set": {"user_email": new_email}}
+        )
 
     refreshed_user = db.users.find_one({"id": user_id})
     return build_user_state(refreshed_user, db)

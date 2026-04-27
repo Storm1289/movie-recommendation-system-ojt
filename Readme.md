@@ -46,7 +46,7 @@
 - **Wikipedia Enrichment** — Automatic fetching of plot, cast, director, budget, and box office
 - **MongoDB Atlas Storage** — Cloud-hosted MongoDB used by the backend through PyMongo
 - **Community Reviews** — User comments and 1–10 star interactive ratings, with full edit and delete capabilities
-- **Social Login + Guest Mode** — Google, Facebook, email/password, and guest preview access
+- **Social Login + Guest Mode** — Google, email/password, and guest preview access
 - **Dynamic Rankings** — Monthly scoring algorithm blending popularity, recency, and votes
 - **Region-Aware Streaming Links** — Platform links for India, US, UK, and more
 - **Premium Cinematic UI** — Netflix-inspired dark theme with glassmorphism and micro-animations
@@ -126,7 +126,7 @@
 | **ML / NLP** | scikit-learn | TF-IDF Vectorizer + Cosine Similarity |
 | **Data Processing** | Pandas | DataFrame operations for model building |
 | **Serialization** | Pickle | Persist similarity matrix to disk |
-| **Authentication** | Google OAuth, Facebook Login, local auth | Sign-in and account linking |
+| **Authentication** | Google OAuth, local auth | Sign-in and account linking |
 | **External Data** | Wikipedia REST API | Movie details, cast, plot, budget enrichment |
 
 ---
@@ -532,7 +532,7 @@ graph TD
 | Page | Description | API Calls |
 |------|-------------|-----------|
 | **Landing** | Marketing page with hero, features showcase | None |
-| **Login** | Email/password + Google + Facebook auth | auth endpoints |
+| **Login** | Email/password + Google auth | auth endpoints |
 | **Home** | Dashboard: hero slider + 4 movie rows | trending, topMonth, movies (rating), movies (date) |
 | **Discover** | Browse all movies with genre filter + sort | movies (paginated), genres |
 | **MovieDetail** | Full detail: poster, wiki info, cast, comments, ratings, streaming, recommendations | movie, wiki, comments, recommendations, streaming |
