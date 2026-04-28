@@ -1,7 +1,5 @@
-fastapi[standard]
-pymongo
-pandas
-scikit-learn
+fastapi
+pymongo[srv]
 requests
 google-auth
 python-dotenv

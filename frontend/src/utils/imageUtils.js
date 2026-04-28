@@ -31,7 +31,7 @@ export const fetchWikiImageFallback = async (title, year = '') => {
         if (!img) img = await tryFetch(query3);
         
         return img;
-    } catch (e) {
+    } catch {
         return null;
     }
 };
@@ -46,7 +46,7 @@ export const fetchWikiActorImage = async (name) => {
             return data.thumbnail.source;
         }
         return null;
-    } catch (e) {
+    } catch {
         return null;
     }
 };

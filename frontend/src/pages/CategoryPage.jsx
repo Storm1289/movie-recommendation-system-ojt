@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchTopMonth, fetchMovies } from '../api/api';
+import { fetchTopMonth, fetchMovies, fetchTrending } from '../api/api';
 import MovieCard from '../components/MovieCard';
 
 export default function CategoryPage() {
     const { id } = useParams();
-    const [movies, setMovies] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [categoryState, setCategoryState] = useState({ id: null, movies: [] });
 
     const categoryDetails = {
         'top-month': { title: 'Top 10 Movies of the Month', icon: '🔥' },
@@ -17,33 +16,45 @@ export default function CategoryPage() {
 
     const details = categoryDetails[id] || { title: 'Movies', icon: '🎬' };
 
+    const loading = categoryState.id !== id;
+    const movies = loading ? [] : categoryState.movies;
+
     useEffect(() => {
-        setLoading(true);
-        if (id === 'top-month') {
-            fetchTopMonth()
-                .then(res => setMovies(res.data.movies))
-                .catch(console.error)
-                .finally(() => setLoading(false));
-        } else if (id === 'recommended') {
-            fetchMovies({ sort_by: 'rating', per_page: 20 })
-                .then(res => setMovies(res.data.movies))
-                .catch(console.error)
-                .finally(() => setLoading(false));
-        } else if (id === 'trending') {
-            import('../api/api').then(({ fetchTrending }) => {
-                fetchTrending()
-                    .then(res => setMovies(res.data.movies))
-                    .catch(console.error)
-                    .finally(() => setLoading(false));
-            });
-        } else if (id === 'new-releases') {
-            fetchMovies({ sort_by: 'release_date', per_page: 20 })
-                .then(res => setMovies(res.data.movies))
-                .catch(console.error)
-                .finally(() => setLoading(false));
-        } else {
-            setLoading(false);
-        }
+        let isCancelled = false;
+
+        const loadMovies = async () => {
+            try {
+                let nextMovies = [];
+                if (id === 'top-month') {
+                    const res = await fetchTopMonth();
+                    nextMovies = res.data.movies || [];
+                } else if (id === 'recommended') {
+                    const res = await fetchMovies({ sort_by: 'rating', per_page: 20 });
+                    nextMovies = res.data.movies || [];
+                } else if (id === 'trending') {
+                    const res = await fetchTrending();
+                    nextMovies = res.data.movies || [];
+                } else if (id === 'new-releases') {
+                    const res = await fetchMovies({ sort_by: 'release_date', per_page: 20 });
+                    nextMovies = res.data.movies || [];
+                }
+
+                if (!isCancelled) {
+                    setCategoryState({ id, movies: nextMovies });
+                }
+            } catch (error) {
+                console.error(error);
+                if (!isCancelled) {
+                    setCategoryState({ id, movies: [] });
+                }
+            }
+        };
+
+        loadMovies();
+
+        return () => {
+            isCancelled = true;
+        };
     }, [id]);
 
     return (

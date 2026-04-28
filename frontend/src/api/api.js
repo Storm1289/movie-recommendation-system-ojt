@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://cinestream-backend-iko1.onrender.com/api' : '/api'),
+    baseURL: import.meta.env.VITE_API_URL || '/api',
 });
 
 export const fetchMovies = (params = {}) => API.get('/movies', { params });

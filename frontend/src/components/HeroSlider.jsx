@@ -4,23 +4,30 @@ import { useApp } from '../context/AppContext';
 import { getValidImageUrl, fetchWikiImageFallback } from '../utils/imageUtils';
 
 function HeroSlide({ movie, index, isGuestUser, openAuthModal, isInWatchlist, addToWatchlist, removeFromWatchlist }) {
-    const [backdropUrl, setBackdropUrl] = useState(null);
+    const primaryBackdropUrl = getValidImageUrl(movie.backdrop_path || movie.poster_path, 'original');
+    const [fallbackBackdrop, setFallbackBackdrop] = useState(null);
+    const backdropUrl = fallbackBackdrop?.source === primaryBackdropUrl
+        ? fallbackBackdrop.url
+        : primaryBackdropUrl;
 
     useEffect(() => {
-        const initialUrl = getValidImageUrl(movie.backdrop_path || movie.poster_path, 'original');
-        setBackdropUrl(initialUrl);
+        if (!primaryBackdropUrl) return undefined;
 
-        if (initialUrl) {
-            const img = new Image();
-            img.src = initialUrl;
-            img.onerror = async () => {
-                const year = movie.release_date?.split('-')[0] || '';
-                const fallback = await fetchWikiImageFallback(movie.title, year);
-                if (fallback) setBackdropUrl(fallback);
-                else setBackdropUrl(null);
-            };
-        }
-    }, [movie]);
+        let isCancelled = false;
+        const img = new Image();
+        img.src = primaryBackdropUrl;
+        img.onerror = async () => {
+            const year = movie.release_date?.split('-')[0] || '';
+            const fallback = await fetchWikiImageFallback(movie.title, year);
+            if (!isCancelled) {
+                setFallbackBackdrop({ source: primaryBackdropUrl, url: fallback || null });
+            }
+        };
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [movie.release_date, movie.title, primaryBackdropUrl]);
 
     const inList = isInWatchlist(movie.id);
 

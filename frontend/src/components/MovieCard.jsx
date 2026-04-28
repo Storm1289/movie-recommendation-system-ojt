@@ -1,33 +1,36 @@
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { getValidImageUrl, fetchWikiImageFallback } from '../utils/imageUtils';
 
 export default function MovieCard({ movie, rank, showMatch }) {
     const { addToWatchlist, removeFromWatchlist, isInWatchlist, isGuestUser, openAuthModal } = useApp();
-    const [imgError, setImgError] = useState(false);
-    
-    const [posterUrl, setPosterUrl] = useState(getValidImageUrl(movie.poster_path, 'w500'));
-    const [retrying, setRetrying] = useState(false);
-
-    useEffect(() => {
-        setPosterUrl(getValidImageUrl(movie.poster_path, 'w500'));
-        setImgError(false);
-        setRetrying(false);
-    }, [movie.poster_path]);
+    const primaryPosterUrl = getValidImageUrl(movie.poster_path, 'w500');
+    const [imageState, setImageState] = useState({
+        source: null,
+        fallback: null,
+        failed: false,
+    });
+    const imageStateMatches = imageState.source === primaryPosterUrl;
+    const posterUrl = imageStateMatches && imageState.fallback ? imageState.fallback : primaryPosterUrl;
+    const imgError = imageStateMatches && imageState.failed;
 
     const handleError = async () => {
-        if (retrying) {
-            setImgError(true);
+        if (imageStateMatches && imageState.fallback) {
+            setImageState({ source: primaryPosterUrl, fallback: null, failed: true });
             return;
         }
-        setRetrying(true);
+
+        if (imageStateMatches && imageState.failed) {
+            return;
+        }
+
         const year = movie.release_date?.split('-')[0] || '';
         const fallback = await fetchWikiImageFallback(movie.title, year);
         if (fallback) {
-            setPosterUrl(fallback);
+            setImageState({ source: primaryPosterUrl, fallback, failed: false });
         } else {
-            setImgError(true);
+            setImageState({ source: primaryPosterUrl, fallback: null, failed: true });
         }
     };
 

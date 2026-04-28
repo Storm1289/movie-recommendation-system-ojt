@@ -836,6 +836,33 @@ Set `MONGO_URL` in the environment:
 MONGO_URL = "mongodb+srv://<user>:<pass>@cluster.mongodb.net/cinestream"
 ```
 
+### Vercel Deployment
+
+This repo is configured for one Vercel project:
+
+```
+Vercel Static Output: frontend/dist
+Vercel Function:      api/index.py -> FastAPI app
+API Routing:          /api/* -> api/index.py
+SPA Routing:          /* -> /index.html
+```
+
+Set these Vercel environment variables before production deploy:
+
+```bash
+MONGO_URL=mongodb+srv://<user>:<pass>@<cluster>/cinestream?retryWrites=true&w=majority
+DATABASE_NAME=cinestream
+
+# Optional social login
+GOOGLE_CLIENT_ID=<google-oauth-client-id>
+VITE_GOOGLE_CLIENT_ID=<google-oauth-client-id>
+FACEBOOK_APP_ID=<facebook-app-id>
+FACEBOOK_APP_SECRET=<facebook-app-secret>
+VITE_FACEBOOK_APP_ID=<facebook-app-id>
+```
+
+Runtime dependencies are intentionally small in `backend/requirements.txt`. To rebuild recommendation artifacts locally, install `backend/requirements-model.txt` before running the seed/model-generation flow. Do not add pandas or scikit-learn back to runtime requirements.
+
 ---
 
 ## 15. Future Roadmap

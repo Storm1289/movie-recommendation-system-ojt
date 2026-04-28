@@ -1,7 +1,7 @@
 import { useApp } from '../context/AppContext';
 
 export default function Settings() {
-    const { settings, updateSettings, user, logout } = useApp();
+    const { user, logout } = useApp();
 
     const isLocalUser = user?.authProviders?.includes('local') || !user?.authProviders?.length;
     const providerName = user?.authProviders?.find(p => p !== 'local');

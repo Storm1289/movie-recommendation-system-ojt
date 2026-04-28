@@ -15,7 +15,6 @@ export default function MovieDetail() {
     const [streaming, setStreaming] = useState([]);
     const [streamingCountry, setStreamingCountry] = useState('');
     const [loading, setLoading] = useState(true);
-    const [showTrailer, setShowTrailer] = useState(false);
     
     const [backdropUrl, setBackdropUrl] = useState(null);
     const [posterUrl, setPosterUrl] = useState(null);
@@ -32,7 +31,6 @@ export default function MovieDetail() {
 
     useEffect(() => {
         setLoading(true);
-        setShowTrailer(false);
         setCommentText('');
         setCommentRating(0);
         window.scrollTo(0, 0);
@@ -49,14 +47,12 @@ export default function MovieDetail() {
             fetchRecommendations(id).then(res => setRecommendations(res.data.recommendations || [])),
             fetchWikiDetails(id).then(res => { 
                 setWiki(res.data); 
-                let foundDirectorMovies = false;
 
                 if (res.data?.wiki_director) {
                     fetchMovies({ director: res.data.wiki_director, per_page: 6 }).then(resp => {
                         const filtered = resp.data.movies.filter(m => String(m.id) !== String(id) && m.poster_path);
                         if (filtered.length > 0) {
                             setMoreMovies({ title: `More From ${res.data.wiki_director}`, movies: filtered.slice(0, 5) });
-                            foundDirectorMovies = true;
                         }
                     }).catch(console.error);
                 }

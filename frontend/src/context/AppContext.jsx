@@ -110,7 +110,11 @@ export function AppProvider({ children }) {
                 .catch((error) => {
                     if (isCancelled) return;
                     if (error?.response?.status === 404) {
-                        logout();
+                        setUser(null);
+                        setWatchlist([]);
+                        setSettings({ ...DEFAULT_SETTINGS });
+                        setUserStats({ ...DEFAULT_STATS });
+                        setAuthModal(DEFAULT_AUTH_MODAL);
                         return;
                     }
                     console.error('Failed to sync user state', error);
