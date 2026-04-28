@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchMovie, fetchRecommendations, fetchWikiDetails, fetchComments, postComment, editComment, deleteComment, fetchStreaming, fetchMovies } from '../api/api';
+import { fetchMovie, fetchRecommendations, fetchWikiDetails, fetchComments, postComment, editComment, deleteComment, fetchStreaming, fetchMovies, fetchWatchMovieUrl } from '../api/api';
 import { useApp } from '../context/AppContext';
 import MovieCard from '../components/MovieCard';
 import { getValidImageUrl, fetchWikiImageFallback, fetchWikiActorImage } from '../utils/imageUtils';
@@ -16,6 +16,8 @@ export default function MovieDetail() {
     const [streaming, setStreaming] = useState([]);
     const [streamingCountry, setStreamingCountry] = useState('');
     const [loading, setLoading] = useState(true);
+    const [watchMovieLoading, setWatchMovieLoading] = useState(false);
+    const [watchMovieError, setWatchMovieError] = useState('');
 
     const [backdropUrl, setBackdropUrl] = useState(null);
     const [posterUrl, setPosterUrl] = useState(null);
@@ -82,6 +84,7 @@ export default function MovieDetail() {
         setLoading(true);
         setCommentText('');
         setCommentRating(0);
+        setWatchMovieError('');
         window.scrollTo(0, 0);
 
         // Reset state on ID change to avoid layout glitch
@@ -231,6 +234,24 @@ export default function MovieDetail() {
         window.open(`https://www.youtube.com/results?search_query=${trailerSearchQuery}`, '_blank');
     };
 
+    const handleWatchMovie = async () => {
+        setWatchMovieError('');
+        setWatchMovieLoading(true);
+
+        try {
+            const res = await fetchWatchMovieUrl(id);
+            const watchUrl = res.data?.watch_url;
+            if (!watchUrl) {
+                throw new Error('Watch link not found');
+            }
+            window.location.assign(watchUrl);
+        } catch (err) {
+            setWatchMovieError(err?.response?.data?.detail || 'Watch movie link is not available right now.');
+        } finally {
+            setWatchMovieLoading(false);
+        }
+    };
+
     const handleWatchlist = async () => {
         try {
             if (inList) await removeFromWatchlist(movie.id);
@@ -299,11 +320,26 @@ export default function MovieDetail() {
                             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
                             WATCH TRAILER
                         </button>
+                        <button
+                            onClick={handleWatchMovie}
+                            disabled={watchMovieLoading}
+                            className="bg-primary text-black px-10 py-4 rounded-full font-headline font-black text-lg flex items-center gap-3 hover:scale-105 transition-transform active:scale-95 shadow-lg shadow-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                {watchMovieLoading ? 'sync' : 'smart_display'}
+                            </span>
+                            {watchMovieLoading ? 'OPENING...' : 'WATCH MOVIE'}
+                        </button>
                         <button onClick={handleWatchlist} className={`px-10 py-4 rounded-full font-headline font-black text-lg flex items-center gap-3 border transition-all ${inList ? 'bg-primary/20 border-primary text-primary' : 'bg-black/40 backdrop-blur-md text-white border-white/10 hover:bg-white/10'}`}>
                             <span className="material-symbols-outlined">{inList ? 'bookmark_added' : 'bookmark_add'}</span>
                             {inList ? 'IN WATCHLIST' : 'WATCHLIST'}
                         </button>
                     </div>
+                    {watchMovieError ? (
+                        <p className="mt-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-300">
+                            {watchMovieError}
+                        </p>
+                    ) : null}
                 </div>
             </section>
 

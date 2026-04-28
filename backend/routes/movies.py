@@ -1,12 +1,76 @@
 import re
 import json
-from fastapi import APIRouter, Depends, Query, Request
+from urllib.parse import quote
+
+import requests
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from database import get_db
 from models.entities import Movie
 from services.movie_service import resolve_movie_or_fail
 from recommendation import get_recommendations
 
 router = APIRouter(tags=["movies"])
+
+IMDB_SUGGEST_URL = "https://v3.sg.media-imdb.com/suggestion/x/{query}.json"
+INFO_IMDB_BASE_URL = "https://www.infoimdb.com/title"
+
+
+def _movie_year(movie: dict) -> str:
+    release_date = str(movie.get("release_date") or "")
+    return release_date[:4] if len(release_date) >= 4 else ""
+
+
+def _normalize_title(title: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", (title or "").lower()).strip()
+
+
+def _score_imdb_candidate(candidate: dict, title: str, year: str) -> int:
+    candidate_title = _normalize_title(candidate.get("l"))
+    target_title = _normalize_title(title)
+    score = 0
+
+    if candidate_title == target_title:
+        score += 8
+    elif target_title and (target_title in candidate_title or candidate_title in target_title):
+        score += 4
+
+    if year and str(candidate.get("y") or "") == year:
+        score += 5
+
+    if candidate.get("qid") in {"movie", "tvMovie", "tvSeries"}:
+        score += 3
+    if candidate.get("q") in {"feature", "TV series"}:
+        score += 2
+
+    rank = candidate.get("rank")
+    if isinstance(rank, int):
+        score += max(0, 3 - min(rank // 5000, 3))
+
+    return score
+
+
+def _fetch_imdb_title_id(title: str, year: str) -> str | None:
+    query = quote(f"{title} {year}".strip())
+
+    try:
+        response = requests.get(IMDB_SUGGEST_URL.format(query=query), timeout=8)
+        response.raise_for_status()
+        payload = response.json()
+    except (requests.RequestException, ValueError) as exc:
+        raise HTTPException(status_code=502, detail="Unable to fetch IMDb title link right now") from exc
+
+    candidates = [
+        candidate for candidate in payload.get("d", [])
+        if isinstance(candidate, dict) and str(candidate.get("id", "")).startswith("tt")
+    ]
+    if not candidates:
+        return None
+
+    best = max(candidates, key=lambda candidate: _score_imdb_candidate(candidate, title, year))
+    if _score_imdb_candidate(best, title, year) <= 0:
+        return None
+
+    return best["id"]
 
 @router.get("/api/search")
 def search(q: str = "", db=Depends(get_db)):
@@ -143,6 +207,34 @@ def recommend(movie_id: str, top_n: int = 10, db=Depends(get_db)):
             rec_movies.append(Movie.from_doc(m))
 
     return {"recommendations": rec_movies}
+
+
+@router.get("/api/movies/{movie_id}/watch-url")
+def get_watch_movie_url(movie_id: str, db=Depends(get_db)):
+    """Resolve a movie's IMDb title and return the matching infoimdb URL."""
+    movie = resolve_movie_or_fail(movie_id, db)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    imdb_id = movie.get("imdb_id")
+    if not imdb_id:
+        imdb_id = _fetch_imdb_title_id(movie.get("title") or "", _movie_year(movie))
+        if not imdb_id:
+            raise HTTPException(status_code=404, detail="IMDb title link not found for this movie")
+
+        db.movies.update_one(
+            {"id": movie["id"]},
+            {"$set": {"imdb_id": imdb_id}},
+        )
+
+    imdb_url = f"https://www.imdb.com/title/{imdb_id}/"
+    watch_url = f"{INFO_IMDB_BASE_URL}/{imdb_id}/"
+
+    return {
+        "imdb_id": imdb_id,
+        "imdb_url": imdb_url,
+        "watch_url": watch_url,
+    }
 
 
 @router.get("/api/movies/{movie_id}/wiki")
