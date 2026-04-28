@@ -244,7 +244,10 @@ export default function MovieDetail() {
             if (!watchUrl) {
                 throw new Error('Watch link not found');
             }
-            window.location.assign(watchUrl);
+            const openedWindow = window.open(watchUrl, '_blank', 'noopener,noreferrer');
+            if (!openedWindow) {
+                window.location.href = watchUrl;
+            }
         } catch (err) {
             setWatchMovieError(err?.response?.data?.detail || 'Watch movie link is not available right now.');
         } finally {
