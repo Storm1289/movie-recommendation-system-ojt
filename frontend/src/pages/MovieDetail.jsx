@@ -236,19 +236,31 @@ export default function MovieDetail() {
 
     const handleWatchMovie = async () => {
         setWatchMovieError('');
-        setWatchMovieLoading(true);
+        const watchWindow = window.open('', '_blank');
 
+        if (!watchWindow) {
+            setWatchMovieError('Please allow pop-ups to open the movie link in a new tab.');
+            return;
+        }
+
+        try {
+            watchWindow.opener = null;
+            watchWindow.document.write('<!doctype html><title>Opening CineStream link</title><body style="margin:0;background:#0e0e0e;color:#f8fafc;font-family:Arial,sans-serif;display:grid;place-items:center;min-height:100vh;"><p>Opening movie link...</p></body>');
+            watchWindow.document.close();
+        } catch {
+            // If the browser blocks writing to the new tab, it can still be redirected below.
+        }
+
+        setWatchMovieLoading(true);
         try {
             const res = await fetchWatchMovieUrl(id);
             const watchUrl = res.data?.watch_url;
             if (!watchUrl) {
                 throw new Error('Watch link not found');
             }
-            const openedWindow = window.open(watchUrl, '_blank', 'noopener,noreferrer');
-            if (!openedWindow) {
-                window.location.href = watchUrl;
-            }
+            watchWindow.location.href = watchUrl;
         } catch (err) {
+            watchWindow.close();
             setWatchMovieError(err?.response?.data?.detail || 'Watch movie link is not available right now.');
         } finally {
             setWatchMovieLoading(false);
