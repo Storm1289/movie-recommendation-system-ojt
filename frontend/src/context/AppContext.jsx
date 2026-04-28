@@ -5,7 +5,6 @@ import {
     changeUserPassword as changeUserPasswordRequest,
     deleteUserAccount as deleteUserAccountRequest,
     fetchUserState,
-    loginWithFacebook as loginWithFacebookRequest,
     loginWithGoogle as loginWithGoogleRequest,
     loginUser,
     removeMovieFromWatchlist,
@@ -170,12 +169,6 @@ export function AppProvider({ children }) {
         return res.data.user;
     };
 
-    const loginWithFacebook = async (payload) => {
-        const res = await loginWithFacebookRequest(payload);
-        applyUserState(res.data);
-        return res.data.user;
-    };
-
     const logout = () => {
         setUser(null);
         setWatchlist([]);
@@ -305,7 +298,7 @@ export function AppProvider({ children }) {
     return (
         <AppContext.Provider value={{
             user, isGuestUser, authModal, openAuthModal, closeAuthModal,
-            login, signup, loginWithGoogle, loginWithFacebook, continueAsGuest, logout,
+            login, signup, loginWithGoogle, continueAsGuest, logout,
             updateProfile, changePassword, deleteAccount,
             watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist,
             userStats, markMovieRated, incrementCommentCount,

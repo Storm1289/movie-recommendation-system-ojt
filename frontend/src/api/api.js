@@ -17,7 +17,6 @@ export const fetchDirectors = () => API.get('/directors');
 export const signupUser = (data) => API.post('/auth/signup', data);
 export const loginUser = (data) => API.post('/auth/login', data);
 export const loginWithGoogle = (data) => API.post('/auth/google', data);
-export const loginWithFacebook = (data) => API.post('/auth/facebook', data);
 export const fetchUserState = (userId) => API.get(`/users/${userId}/state`);
 export const updateUserProfile = (userId, data) => API.put(`/users/${userId}/profile`, data);
 export const changeUserPassword = (userId, data) => API.put(`/users/${userId}/password`, data);
