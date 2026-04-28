@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import {
     addMovieToWatchlist,
     changeUserPassword as changeUserPasswordRequest,
@@ -10,6 +10,7 @@ import {
     removeMovieFromWatchlist,
     signupUser,
     updateUserProfile as updateUserProfileRequest,
+    updateUserEmail as updateUserEmailRequest,
     updateUserSettings as persistUserSettings,
 } from '../api/api';
 
@@ -85,9 +86,17 @@ export function AppProvider({ children }) {
         });
     };
 
-    const closeAuthModal = () => {
+    const closeAuthModal = useCallback(() => {
         setAuthModal(DEFAULT_AUTH_MODAL);
-    };
+    }, []);
+
+    const logout = useCallback(() => {
+        setUser(null);
+        setWatchlist([]);
+        setSettings({ ...DEFAULT_SETTINGS });
+        setUserStats({ ...DEFAULT_STATS });
+        closeAuthModal();
+    }, [closeAuthModal]);
 
     // Persist
     useEffect(() => {
@@ -109,11 +118,7 @@ export function AppProvider({ children }) {
                 .catch((error) => {
                     if (isCancelled) return;
                     if (error?.response?.status === 404) {
-                        setUser(null);
-                        setWatchlist([]);
-                        setSettings({ ...DEFAULT_SETTINGS });
-                        setUserStats({ ...DEFAULT_STATS });
-                        setAuthModal(DEFAULT_AUTH_MODAL);
+                        logout();
                         return;
                     }
                     console.error('Failed to sync user state', error);
@@ -134,7 +139,7 @@ export function AppProvider({ children }) {
         return () => {
             isCancelled = true;
         };
-    }, [user]);
+    }, [user, logout]);
 
     useEffect(() => {
         if (user?.id) return;
@@ -167,14 +172,6 @@ export function AppProvider({ children }) {
         const res = await loginWithGoogleRequest(payload);
         applyUserState(res.data);
         return res.data.user;
-    };
-
-    const logout = () => {
-        setUser(null);
-        setWatchlist([]);
-        setSettings({ ...DEFAULT_SETTINGS });
-        setUserStats({ ...DEFAULT_STATS });
-        closeAuthModal();
     };
 
     const continueAsGuest = () => {
@@ -255,6 +252,17 @@ export function AppProvider({ children }) {
         return res.data.user;
     };
 
+    const changeEmail = async (payload) => {
+        if (isGuestUser || !user?.id) {
+            openAuthModal();
+            return null;
+        }
+
+        const res = await updateUserEmailRequest(user.id, payload);
+        applyUserState(res.data);
+        return res.data.user;
+    };
+
     const changePassword = async (payload) => {
         if (isGuestUser || !user?.id) {
             openAuthModal();
@@ -299,7 +307,7 @@ export function AppProvider({ children }) {
         <AppContext.Provider value={{
             user, isGuestUser, authModal, openAuthModal, closeAuthModal,
             login, signup, loginWithGoogle, continueAsGuest, logout,
-            updateProfile, changePassword, deleteAccount,
+            updateProfile, changeEmail, changePassword, deleteAccount,
             watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist,
             userStats, markMovieRated, incrementCommentCount,
             settings, updateSettings,

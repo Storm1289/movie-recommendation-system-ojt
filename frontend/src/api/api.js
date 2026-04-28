@@ -9,6 +9,7 @@ export const fetchTrending = () => API.get('/movies/trending');
 export const fetchTopMonth = () => API.get('/movies/top-month');
 export const fetchMovie = (id) => API.get(`/movies/${id}`);
 export const fetchRecommendations = (id, topN = 10) => API.get(`/movies/${id}/recommend`, { params: { top_n: topN } });
+export const fetchUserRecommendations = (userId, topN = 12) => API.get(`/users/${userId}/recommendations`, { params: { top_n: topN } });
 export const searchMovies = (query) => API.get('/search', { params: { q: query } });
 export const fetchGenres = () => API.get('/genres');
 export const fetchDirectors = () => API.get('/directors');
@@ -19,6 +20,7 @@ export const loginUser = (data) => API.post('/auth/login', data);
 export const loginWithGoogle = (data) => API.post('/auth/google', data);
 export const fetchUserState = (userId) => API.get(`/users/${userId}/state`);
 export const updateUserProfile = (userId, data) => API.put(`/users/${userId}/profile`, data);
+export const updateUserEmail = (userId, data) => API.put(`/users/${userId}/email`, data);
 export const changeUserPassword = (userId, data) => API.put(`/users/${userId}/password`, data);
 export const updateUserSettings = (userId, data) => API.put(`/users/${userId}/settings`, data);
 export const deleteUserAccount = (userId) => API.delete(`/users/${userId}`);
@@ -31,6 +33,8 @@ export const fetchWikiDetails = (id) => API.get(`/movies/${id}/wiki`);
 // Comments
 export const fetchComments = (id) => API.get(`/movies/${id}/comments`);
 export const postComment = (id, data) => API.post(`/movies/${id}/comments`, data);
+export const editComment = (movieId, commentId, data) => API.put(`/movies/${movieId}/comments/${commentId}`, data);
+export const deleteComment = (movieId, commentId, userEmail) => API.delete(`/movies/${movieId}/comments/${commentId}`, { params: { user_email: userEmail } });
 
 // Ratings
 export const rateMovie = (id, data) => API.post(`/movies/${id}/rate`, data);

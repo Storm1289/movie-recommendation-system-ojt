@@ -11,6 +11,7 @@ export default function MovieRow({
     showRank = false,
     variant = 'default',
     autoScroll = false,
+    isLoading = false,
 }) {
     const { isGuestUser, openAuthModal } = useApp();
     const scrollContainerRef = useRef(null);
@@ -134,7 +135,7 @@ export default function MovieRow({
         };
     }, [safeMovies.length]);
 
-    if (safeMovies.length === 0) return null;
+    if (!isLoading && safeMovies.length === 0) return null;
 
     const handleExploreAllClick = (e) => {
         if (!isGuestUser) {
@@ -199,11 +200,21 @@ export default function MovieRow({
                     }`}
                     style={{ scrollBehavior: 'smooth' }}
                 >
-                    {safeMovies.map((movie, i) => (
-                        <div key={`${movie.id}-${i}`} className="w-[160px] md:w-[220px] lg:w-[240px] snap-start flex-shrink-0">
-                            <MovieCard movie={movie} rank={showRank ? i + 1 : undefined} />
-                        </div>
-                    ))}
+                    {isLoading ? (
+                        Array(6).fill(0).map((_, i) => (
+                            <div key={`skeleton-${i}`} className="w-[160px] md:w-[220px] lg:w-[240px] snap-start flex-shrink-0 animate-pulse">
+                                <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 bg-surface-container border border-outline-variant/30"></div>
+                                <div className="h-5 bg-surface-container rounded w-3/4 mb-2"></div>
+                                <div className="h-4 bg-surface-container rounded w-1/2"></div>
+                            </div>
+                        ))
+                    ) : (
+                        safeMovies.map((movie, i) => (
+                            <div key={`${movie.id}-${i}`} className="w-[160px] md:w-[220px] lg:w-[240px] snap-start flex-shrink-0">
+                                <MovieCard movie={movie} rank={showRank ? i + 1 : undefined} />
+                            </div>
+                        ))
+                    )}
                 </div>
 
                 <button

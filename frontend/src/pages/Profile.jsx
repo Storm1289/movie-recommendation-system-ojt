@@ -8,10 +8,7 @@ export default function Profile() {
     const { user, watchlist, userStats } = useApp();
     const [activeTab, setActiveTab] = useState('overview');
     const [failedAvatarUrl, setFailedAvatarUrl] = useState('');
-
-    const avatarIsImage = typeof user?.avatar === 'string'
-        && user.avatar.startsWith('http')
-        && failedAvatarUrl !== user.avatar;
+    const avatarIsImage = typeof user?.avatar === 'string' && user.avatar.startsWith('http') && failedAvatarUrl !== user.avatar;
     const avatarFallback = typeof user?.avatar === 'string' && !user.avatar.startsWith('http')
         ? user.avatar
         : user?.name?.[0]?.toUpperCase() || 'A';
@@ -22,11 +19,6 @@ export default function Profile() {
             <aside className="hidden lg:flex w-64 border-r border-white/5 bg-[#131313] flex-col py-8 z-40 h-screen sticky top-0 shrink-0">
                 <div className="px-6 mb-10">
                     <Link to="/home" className="text-xl font-black text-primary font-headline uppercase tracking-tighter hover:opacity-80 transition-opacity">CineStream</Link>
-                </div>
-
-                <div className="px-6 mb-8">
-                    <h2 className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Account</h2>
-                    <p className="text-xs text-amber-400 font-medium">{user ? 'Digital Streamer' : 'Guest'}</p>
                 </div>
 
                 <nav className="flex-1 space-y-1">

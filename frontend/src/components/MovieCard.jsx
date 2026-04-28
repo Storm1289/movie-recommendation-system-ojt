@@ -2,35 +2,26 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useState } from 'react';
 import { getValidImageUrl, fetchWikiImageFallback } from '../utils/imageUtils';
+import { moviePath } from '../utils/movieRoutes';
 
 export default function MovieCard({ movie, rank, showMatch }) {
     const { addToWatchlist, removeFromWatchlist, isInWatchlist, isGuestUser, openAuthModal } = useApp();
-    const primaryPosterUrl = getValidImageUrl(movie.poster_path, 'w500');
-    const [imageState, setImageState] = useState({
-        source: null,
-        fallback: null,
-        failed: false,
-    });
-    const imageStateMatches = imageState.source === primaryPosterUrl;
-    const posterUrl = imageStateMatches && imageState.fallback ? imageState.fallback : primaryPosterUrl;
-    const imgError = imageStateMatches && imageState.failed;
+    const [imgError, setImgError] = useState(false);
+    const [posterUrl, setPosterUrl] = useState(getValidImageUrl(movie.poster_path, 'w500'));
+    const [retrying, setRetrying] = useState(false);
 
     const handleError = async () => {
-        if (imageStateMatches && imageState.fallback) {
-            setImageState({ source: primaryPosterUrl, fallback: null, failed: true });
+        if (retrying) {
+            setImgError(true);
             return;
         }
-
-        if (imageStateMatches && imageState.failed) {
-            return;
-        }
-
+        setRetrying(true);
         const year = movie.release_date?.split('-')[0] || '';
         const fallback = await fetchWikiImageFallback(movie.title, year);
         if (fallback) {
-            setImageState({ source: primaryPosterUrl, fallback, failed: false });
+            setPosterUrl(fallback);
         } else {
-            setImageState({ source: primaryPosterUrl, fallback: null, failed: true });
+            setImgError(true);
         }
     };
 
@@ -60,7 +51,7 @@ export default function MovieCard({ movie, rank, showMatch }) {
     };
 
     return (
-        <Link to={`/movie/${movie.id}`} onClick={handleCardClick} className="group/card cursor-pointer block">
+        <Link to={moviePath(movie)} onClick={handleCardClick} className="group/card cursor-pointer block">
             <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-4 transition-all duration-300 group-hover/card:scale-110 group-hover/card:shadow-2xl group-hover/card:shadow-black/60 bg-surface-container z-10 group-hover/card:z-50 border border-outline-variant/30">
                 {/* Rank badge */}
                 {rank && (

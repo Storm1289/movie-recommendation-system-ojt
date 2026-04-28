@@ -2,32 +2,31 @@ import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { getValidImageUrl, fetchWikiImageFallback } from '../utils/imageUtils';
+import { moviePath } from '../utils/movieRoutes';
 
 function HeroSlide({ movie, index, isGuestUser, openAuthModal, isInWatchlist, addToWatchlist, removeFromWatchlist }) {
-    const primaryBackdropUrl = getValidImageUrl(movie.backdrop_path || movie.poster_path, 'original');
-    const [fallbackBackdrop, setFallbackBackdrop] = useState(null);
-    const backdropUrl = fallbackBackdrop?.source === primaryBackdropUrl
-        ? fallbackBackdrop.url
-        : primaryBackdropUrl;
+    const [backdropUrl, setBackdropUrl] = useState(() => getValidImageUrl(movie.backdrop_path || movie.poster_path, 'original'));
 
     useEffect(() => {
-        if (!primaryBackdropUrl) return undefined;
-
+        const initialUrl = getValidImageUrl(movie.backdrop_path || movie.poster_path, 'original');
         let isCancelled = false;
-        const img = new Image();
-        img.src = primaryBackdropUrl;
-        img.onerror = async () => {
-            const year = movie.release_date?.split('-')[0] || '';
-            const fallback = await fetchWikiImageFallback(movie.title, year);
-            if (!isCancelled) {
-                setFallbackBackdrop({ source: primaryBackdropUrl, url: fallback || null });
-            }
-        };
+
+        if (initialUrl) {
+            const img = new Image();
+            img.src = initialUrl;
+            img.onerror = async () => {
+                const year = movie.release_date?.split('-')[0] || '';
+                const fallback = await fetchWikiImageFallback(movie.title, year);
+                if (isCancelled) return;
+                if (fallback) setBackdropUrl(fallback);
+                else setBackdropUrl(null);
+            };
+        }
 
         return () => {
             isCancelled = true;
         };
-    }, [movie.release_date, movie.title, primaryBackdropUrl]);
+    }, [movie.backdrop_path, movie.poster_path, movie.release_date, movie.title]);
 
     const inList = isInWatchlist(movie.id);
 
@@ -80,7 +79,7 @@ function HeroSlide({ movie, index, isGuestUser, openAuthModal, isInWatchlist, ad
                 </p>
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                     <Link
-                        to={`/movie/${movie.id}`}
+                        to={moviePath(movie)}
                         onClick={handleInfoClick}
                         className="w-full sm:w-auto bg-white text-black px-10 py-4 rounded-full font-headline font-bold flex justify-center items-center gap-3 hover:scale-105 transition-transform shadow-lg"
                     >

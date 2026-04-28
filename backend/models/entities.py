@@ -85,6 +85,12 @@ def sanitize_genre_string(raw_value) -> str | None:
     return ", ".join(cleaned) if cleaned else None
 
 
+def make_movie_slug(title: str) -> str:
+    """Create the public URL slug used by the frontend and API resolver."""
+    slug = re.sub(r"[^a-z0-9]+", "-", (title or "").lower()).strip("-")
+    return slug or "movie"
+
+
 class Movie:
     """Represents a movie document in the 'movies' collection."""
 
@@ -117,6 +123,7 @@ class Movie:
             "id": doc.get("id"),
             "tmdb_id": doc.get("tmdb_id"),
             "title": doc.get("title"),
+            "slug": make_movie_slug(doc.get("title")),
             "genre": sanitize_genre_string(doc.get("genre")),
             "franchise": doc.get("franchise"),
             "overview": doc.get("overview"),
@@ -167,15 +174,20 @@ class Comment:
         if not doc:
             return None
         created_at = doc.get("created_at")
+        updated_at = doc.get("updated_at")
         if isinstance(created_at, datetime):
             created_at = created_at.isoformat()
+        if isinstance(updated_at, datetime):
+            updated_at = updated_at.isoformat()
         return {
             "id": doc.get("id"),
             "movie_id": doc.get("movie_id"),
             "user_name": doc.get("user_name", "Anonymous"),
+            "user_email": doc.get("user_email"),
             "content": doc.get("content"),
             "rating": doc.get("rating"),
             "created_at": created_at,
+            "updated_at": updated_at,
         }
 
 

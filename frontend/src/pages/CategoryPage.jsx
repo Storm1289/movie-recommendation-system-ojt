@@ -1,87 +1,94 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { fetchTopMonth, fetchMovies, fetchTrending } from '../api/api';
+import { Link, useParams } from 'react-router-dom';
+import { fetchMovies, fetchTopMonth, fetchTrending, fetchUserRecommendations } from '../api/api';
 import MovieCard from '../components/MovieCard';
+import { useApp } from '../context/AppContext';
 
 export default function CategoryPage() {
     const { id } = useParams();
-    const [categoryState, setCategoryState] = useState({ id: null, movies: [] });
+    const { user, watchlist } = useApp();
+    const [movies, setMovies] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [recommendedTitle, setRecommendedTitle] = useState('Recommended for you');
 
     const categoryDetails = {
-        'top-month': { title: 'Top 10 Movies of the Month', icon: '🔥' },
-        'recommended': { title: 'Based on your recent watch', icon: '👀' },
-        'trending': { title: 'Trending Now', icon: '🌟' },
-        'new-releases': { title: 'New Releases', icon: '✨' }
+        'top-month': { title: 'Top 10 Movies of the Month', icon: 'local_fire_department' },
+        recommended: { title: recommendedTitle, icon: 'visibility' },
+        trending: { title: 'Trending Now', icon: 'trending_up' },
+        'new-releases': { title: 'New Releases', icon: 'auto_awesome' },
     };
 
-    const details = categoryDetails[id] || { title: 'Movies', icon: '🎬' };
-
-    const loading = categoryState.id !== id;
-    const movies = loading ? [] : categoryState.movies;
+    const details = categoryDetails[id] || { title: 'Movies', icon: 'movie' };
 
     useEffect(() => {
         let isCancelled = false;
 
-        const loadMovies = async () => {
+        const loadCategory = async () => {
+            setLoading(true);
+
             try {
-                let nextMovies = [];
                 if (id === 'top-month') {
                     const res = await fetchTopMonth();
-                    nextMovies = res.data.movies || [];
+                    if (!isCancelled) setMovies(res.data.movies || []);
                 } else if (id === 'recommended') {
-                    const res = await fetchMovies({ sort_by: 'rating', per_page: 20 });
-                    nextMovies = res.data.movies || [];
+                    const res = user?.id
+                        ? await fetchUserRecommendations(user.id, 20)
+                        : await fetchTrending();
+
+                    if (!isCancelled) {
+                        setMovies(res.data.recommendations || res.data.movies || []);
+                        setRecommendedTitle(res.data.title || 'Trending now');
+                    }
                 } else if (id === 'trending') {
                     const res = await fetchTrending();
-                    nextMovies = res.data.movies || [];
+                    if (!isCancelled) setMovies(res.data.movies || []);
                 } else if (id === 'new-releases') {
                     const res = await fetchMovies({ sort_by: 'release_date', per_page: 20 });
-                    nextMovies = res.data.movies || [];
-                }
-
-                if (!isCancelled) {
-                    setCategoryState({ id, movies: nextMovies });
+                    if (!isCancelled) setMovies(res.data.movies || []);
+                } else if (!isCancelled) {
+                    setMovies([]);
                 }
             } catch (error) {
                 console.error(error);
-                if (!isCancelled) {
-                    setCategoryState({ id, movies: [] });
-                }
+                if (!isCancelled) setMovies([]);
+            } finally {
+                if (!isCancelled) setLoading(false);
             }
         };
 
-        loadMovies();
+        loadCategory();
 
         return () => {
             isCancelled = true;
         };
-    }, [id]);
+    }, [id, user?.id, watchlist]);
 
     return (
         <div className="px-4 md:px-10 py-8 min-h-screen">
             <div className="mb-8">
-                <Link to="/" className="text-slate-400 hover:text-white flex items-center gap-1 w-fit mb-4 transition-colors">
+                <Link to="/home" className="text-slate-400 hover:text-white flex items-center gap-1 w-fit mb-4 transition-colors">
                     <span className="material-symbols-outlined text-sm">arrow_back</span>
                     Back to Home
                 </Link>
                 <h1 className="text-3xl md:text-4xl font-black text-white flex items-center gap-3">
-                    {details.icon} {details.title}
+                    <span className="material-symbols-outlined text-primary text-4xl">{details.icon}</span>
+                    {details.title}
                 </h1>
             </div>
 
             {loading ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    {[...Array(10)].map((_, i) => (
-                        <div key={i} className="aspect-[2/3] rounded-lg bg-surface-dark shimmer" />
+                    {Array.from({ length: 10 }).map((_, index) => (
+                        <div key={index} className="aspect-[2/3] rounded-lg bg-surface-dark shimmer" />
                     ))}
                 </div>
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 gap-y-8">
-                    {movies.filter(m => m.poster_path).map((movie, i) => (
-                        <MovieCard 
-                            key={movie.id} 
-                            movie={movie} 
-                            rank={id === 'top-month' ? i + 1 : undefined} 
+                    {movies.filter((movie) => movie.poster_path).map((movie, index) => (
+                        <MovieCard
+                            key={movie.id}
+                            movie={movie}
+                            rank={id === 'top-month' ? index + 1 : undefined}
                         />
                     ))}
                 </div>
