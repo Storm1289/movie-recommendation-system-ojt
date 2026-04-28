@@ -6,7 +6,15 @@ MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
 DATABASE_NAME = os.environ.get("DATABASE_NAME", "cinestream")
 
 # Defer opening the network connection until the app actually uses the database.
-client = MongoClient(MONGO_URL, connect=False)
+# Keep timeouts short so a temporarily unreachable Atlas DNS/server does not
+# block FastAPI startup long enough for the Vite proxy to report ECONNREFUSED.
+client = MongoClient(
+    MONGO_URL,
+    connect=False,
+    serverSelectionTimeoutMS=5000,
+    connectTimeoutMS=5000,
+    socketTimeoutMS=5000,
+)
 db = client[DATABASE_NAME]
 
 

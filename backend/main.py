@@ -42,14 +42,17 @@ def startup():
     """Initialize application state on startup."""
     similarity, df = load_model()
     db = get_db()
-    
-    ensure_unique_index(db.users, [("email", 1)], "users_email_unique")
-    ensure_unique_sparse_index(db.users, "google_sub", "users_google_sub_unique")
-    ensure_unique_index(
-        db.user_ratings,
-        [("movie_id", 1), ("user_id", 1)],
-        "user_ratings_movie_user_unique",
-    )
+
+    try:
+        ensure_unique_index(db.users, [("email", 1)], "users_email_unique")
+        ensure_unique_sparse_index(db.users, "google_sub", "users_google_sub_unique")
+        ensure_unique_index(
+            db.user_ratings,
+            [("movie_id", 1), ("user_id", 1)],
+            "user_ratings_movie_user_unique",
+        )
+    except Exception as exc:
+        print(f"⚠️ MongoDB indexes were not checked: {exc}")
 
     if similarity is not None and df is not None:
         print(f"✅ Model loaded on startup ({len(df)} movies)")

@@ -826,21 +826,25 @@ The current project documentation assumes **no Gemini dependency in the active a
 
 ## 14. Deployment Architecture
 
-### Production Deployment: Render
+### Production Deployment: Vercel + Render
 
-The project is configured for cloud deployment on **Render**. The frontend is served as a React/Vite static site, and the backend is deployed as a Python web service.
+The project includes independent frontend deployments on **Vercel** and **Render**. The backend is deployed separately as a Python web service on Render.
+
+- **Vercel Frontend:** https://movie-recommendation-system-ojt.vercel.app
+- **Render Frontend:** https://cinestream-ojt.onrender.com/
 
 ```text
-Render Web Service (Frontend)  ──HTTP──▶  Render Web Service (FastAPI Backend)
-                                                      │
-                                               MongoDB Atlas  (cloud)
+Vercel Static Site (Frontend)  ─┐
+                                ├──HTTP──▶  Render Web Service (FastAPI Backend)
+Render Static Site (Frontend)  ─┘                    │
+                                              MongoDB Atlas  (cloud)
 ```
 
 **Production Environment Variables:**
 Set the following variables in your Render backend service dashboard:
 ```bash
 MONGO_URL="mongodb+srv://<user>:<pass>@cluster.mongodb.net/cinestream"
-FRONTEND_URL="https://<your-render-frontend-url>.onrender.com"
+FRONTEND_URLS="https://movie-recommendation-system-ojt.vercel.app,https://cinestream-ojt.onrender.com"
 ```
 
 ---
