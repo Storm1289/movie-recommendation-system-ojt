@@ -12,7 +12,7 @@ from recommendation import get_recommendations
 router = APIRouter(tags=["movies"])
 
 IMDB_SUGGEST_URL = "https://v3.sg.media-imdb.com/suggestion/x/{query}.json"
-INFO_IMDB_BASE_URL = "https://www.infoimdb.com/title"
+INFO_IMDB_BASE_URL = "https://www.playimdb.com/title"
 
 
 def _movie_year(movie: dict) -> str:
