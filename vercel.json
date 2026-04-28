@@ -4,7 +4,7 @@
   "buildCommand": "cd frontend && npm run build",
   "outputDirectory": "frontend/dist",
   "functions": {
-    "api/index.py": {
+    "api/*.py": {
       "maxDuration": 60,
       "includeFiles": "backend/**",
       "excludeFiles": "{backend/**/*.pkl,backend/**/__pycache__/**,backend/**/test_*.py,backend/test_dir.py,backend/seed.py,backend/scripts/**,backend/requirements-model.txt,frontend/**,movie prd.pdf,Readme.md}"

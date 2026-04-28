@@ -8,6 +8,7 @@ venv/
 .venv/
 *.db
 .env
+.vercel
 backend/pickles/*.pkl
 
 
