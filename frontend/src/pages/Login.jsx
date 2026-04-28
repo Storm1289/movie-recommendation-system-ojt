@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
+import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
 
 export default function Login() {
     return (
@@ -22,6 +22,30 @@ function LoginInner() {
     const [socialLoading, setSocialLoading] = useState('');
 
     const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim();
+
+    const doGoogleLogin = useGoogleLogin({
+        flow: 'implicit',
+        scope: 'openid email profile',
+        prompt: 'select_account',
+        onSuccess: (tokenResponse) => {
+            setError('');
+
+            if (!tokenResponse?.access_token) {
+                setError('Google sign-in did not return a valid access token.');
+                return;
+            }
+
+            setSocialLoading('Google');
+            loginWithGoogle({ credential: tokenResponse.access_token })
+                .then(() => { navigate('/home'); })
+                .catch((err) => { setError(err?.response?.data?.detail || 'Unable to sign in with Google'); })
+                .finally(() => { setSocialLoading(''); });
+        },
+        onError: (errorResponse) => {
+            setSocialLoading('');
+            setError(errorResponse?.error_description || 'Google sign-in failed. Please try again.');
+        },
+    });
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -61,24 +85,15 @@ function LoginInner() {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const handleGoogleLoginSuccess = (credentialResponse) => {
+    const handleGoogleLoginClick = () => {
         setError('');
 
-        if (!credentialResponse?.credential) {
-            setError('Google sign-in did not return a valid credential.');
+        if (!googleConfigured) {
+            setError('Google Client ID is not configured.');
             return;
         }
 
-        setSocialLoading('Google');
-        loginWithGoogle({ credential: credentialResponse.credential })
-            .then(() => { navigate('/home'); })
-            .catch((err) => { setError(err?.response?.data?.detail || 'Unable to sign in with Google'); })
-            .finally(() => { setSocialLoading(''); });
-    };
-
-    const handleGoogleLoginError = () => {
-        setSocialLoading('');
-        setError('Google sign-in failed. Please try again.');
+        doGoogleLogin();
     };
 
     const googleConfigured = Boolean(googleClientId && googleClientId !== 'dummy');
@@ -204,8 +219,16 @@ function LoginInner() {
                     {/* Social login */}
                     <div className="w-full">
                         {googleConfigured ? (
-                            <div className="relative min-h-[48px] w-full overflow-hidden rounded-xl">
-                                <div className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-slate-700 bg-bg-dark px-4 text-sm font-bold text-slate-200 shadow-sm transition-all hover:border-amber-400/60 hover:bg-white/[0.04] hover:text-white">
+                            <button
+                                type="button"
+                                onClick={handleGoogleLoginClick}
+                                disabled={googleBusy || loading}
+                                className="relative flex h-12 w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-slate-700 bg-bg-dark px-4 text-sm font-bold text-slate-200 shadow-sm transition-all hover:border-amber-400/60 hover:bg-white/[0.04] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {googleBusy ? (
+                                    <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
+                                ) : (
+                                    <>
                                     <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white">
                                         <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
                                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -215,25 +238,9 @@ function LoginInner() {
                                         </svg>
                                     </span>
                                     <span>{isSignup ? 'Sign up with Google' : 'Continue with Google'}</span>
-                                </div>
-                                <div className="absolute inset-0 z-10 opacity-0 [&>div]:!h-full [&>div]:!w-full [&_iframe]:!h-full [&_iframe]:!w-full">
-                                    <GoogleLogin
-                                        onSuccess={handleGoogleLoginSuccess}
-                                        onError={handleGoogleLoginError}
-                                        theme="filled_black"
-                                        size="large"
-                                        shape="rectangular"
-                                        text={isSignup ? 'signup_with' : 'signin_with'}
-                                        logo_alignment="center"
-                                        width="336"
-                                    />
-                                </div>
-                                {googleBusy && (
-                                    <div className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-bg-dark/85">
-                                        <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
-                                    </div>
+                                    </>
                                 )}
-                            </div>
+                            </button>
                         ) : (
                             <button
                                 type="button"
