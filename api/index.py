@@ -22,6 +22,21 @@ if FRONTEND_ASSETS_DIR.exists():
     app.mount("/assets", StaticFiles(directory=FRONTEND_ASSETS_DIR), name="assets")
 
 
+def get_frontend_file_response(relative_path: str):
+    frontend_root = FRONTEND_DIST_DIR.resolve()
+    requested_file = (FRONTEND_DIST_DIR / relative_path).resolve()
+
+    try:
+        requested_file.relative_to(frontend_root)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    if requested_file.is_file():
+        return FileResponse(requested_file)
+
+    return None
+
+
 @app.get("/", include_in_schema=False)
 def serve_frontend_root():
     if FRONTEND_INDEX.exists():
@@ -33,6 +48,11 @@ def serve_frontend_root():
 def serve_frontend_route(full_path: str):
     if full_path.startswith("api/"):
         raise HTTPException(status_code=404, detail="Not Found")
+
+    frontend_file = get_frontend_file_response(full_path)
+    if frontend_file is not None:
+        return frontend_file
+
     if FRONTEND_INDEX.exists():
         return FileResponse(FRONTEND_INDEX)
     raise HTTPException(status_code=404, detail="Frontend build not found")

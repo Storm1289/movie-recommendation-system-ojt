@@ -18,6 +18,7 @@ export default function Navbar() {
     const [showDropdown, setShowDropdown] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [failedAvatarUrl, setFailedAvatarUrl] = useState('');
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -124,7 +125,12 @@ export default function Navbar() {
         }
     };
 
-    const avatarIsImage = typeof user?.avatar === 'string' && user.avatar.startsWith('http');
+    const avatarIsImage = typeof user?.avatar === 'string'
+        && user.avatar.startsWith('http')
+        && failedAvatarUrl !== user.avatar;
+    const avatarFallback = typeof user?.avatar === 'string' && !user.avatar.startsWith('http')
+        ? user.avatar
+        : user?.name?.[0]?.toUpperCase() || 'A';
 
     return (
         <header
@@ -137,7 +143,9 @@ export default function Navbar() {
             <div className="px-4 py-4 md:px-10">
                 <div className="flex items-center gap-4">
                     <Link to="/home" className="shrink-0 text-white flex items-center gap-2">
-                        <img src="/vite.svg" alt="CineStream Logo" className="w-8 h-8 md:w-9 md:h-9" />
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-md md:h-9 md:w-9">
+                            <span className="material-symbols-outlined text-[19px] md:text-[21px]" style={{ fontVariationSettings: "'FILL' 1" }}>movie</span>
+                        </div>
                         <h1 className="text-xl font-black tracking-[-0.04em] text-white md:text-[1.35rem]">CineStream</h1>
                     </Link>
 
@@ -272,13 +280,13 @@ export default function Navbar() {
                                                     alt={user.name || 'Profile'} 
                                                     className="h-full w-full object-cover" 
                                                     onError={(e) => {
-                                                        e.target.onerror = null;
-                                                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'A')}&background=0D8ABC&color=fff&size=128`;
+                                                        e.currentTarget.onerror = null;
+                                                        setFailedAvatarUrl(user?.avatar || '');
                                                     }}
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center">
-                                                    {user?.avatar || user?.name?.[0]?.toUpperCase() || 'A'}
+                                                    {avatarFallback}
                                                 </div>
                                             )}
                                         </div>

@@ -107,7 +107,9 @@ export default function Landing() {
       {/* TopNavBar */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-8 py-4 w-full max-w-screen-2xl mx-auto glass-nav bg-transparent transition-all" role="navigation" aria-label="Main navigation">
         <div className="flex items-center gap-2">
-          <img src="/vite.svg" alt="CineStream Logo" className="w-8 h-8" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-md">
+            <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }} aria-hidden="true">movie</span>
+          </div>
           <div className="text-2xl font-black text-primary uppercase tracking-tighter font-headline">
             CineStream
           </div>

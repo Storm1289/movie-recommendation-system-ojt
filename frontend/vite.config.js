@@ -51,16 +51,9 @@ export default defineConfig(({ mode }) => {
     backendEnv.GOOGLE_CLIENT_ID ||
     ''
 
-  const facebookAppId =
-    env.VITE_FACEBOOK_APP_ID ||
-    env.FACEBOOK_APP_ID ||
-    backendEnv.FACEBOOK_APP_ID ||
-    ''
-
   return {
     define: {
       'import.meta.env.VITE_GOOGLE_CLIENT_ID': JSON.stringify(googleClientId),
-      'import.meta.env.VITE_FACEBOOK_APP_ID': JSON.stringify(facebookAppId),
     },
     plugins: [react(), tailwindcss()],
     server: {

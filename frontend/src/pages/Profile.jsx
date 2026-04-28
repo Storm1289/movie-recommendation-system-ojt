@@ -7,7 +7,14 @@ import Settings from './Settings';
 export default function Profile() {
     const { user, watchlist, userStats } = useApp();
     const [activeTab, setActiveTab] = useState('overview');
-    const avatarIsImage = typeof user?.avatar === 'string' && user.avatar.startsWith('http');
+    const [failedAvatarUrl, setFailedAvatarUrl] = useState('');
+
+    const avatarIsImage = typeof user?.avatar === 'string'
+        && user.avatar.startsWith('http')
+        && failedAvatarUrl !== user.avatar;
+    const avatarFallback = typeof user?.avatar === 'string' && !user.avatar.startsWith('http')
+        ? user.avatar
+        : user?.name?.[0]?.toUpperCase() || 'A';
 
     return (
         <div className="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary min-h-screen flex">
@@ -64,13 +71,13 @@ export default function Profile() {
                                         alt="Profile" 
                                         className="w-full h-full object-cover" 
                                         onError={(e) => {
-                                            e.target.onerror = null;
-                                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'A')}&background=0D8ABC&color=fff&size=256`;
+                                            e.currentTarget.onerror = null;
+                                            setFailedAvatarUrl(user?.avatar || '');
                                         }}
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center">
-                                        {user?.avatar || user?.name?.[0]?.toUpperCase() || 'A'}
+                                        {avatarFallback}
                                     </div>
                                 )}
                             </div>
