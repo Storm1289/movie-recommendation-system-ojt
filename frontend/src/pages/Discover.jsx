@@ -6,6 +6,7 @@ import MovieCard from '../components/MovieCard';
 export default function Discover() {
     const [searchParams] = useSearchParams();
     const [movies, setMovies] = useState([]);
+    const [searchSource, setSearchSource] = useState('database');
     const [genres, setGenres] = useState([]);
     
     // UI state
@@ -44,10 +45,16 @@ export default function Discover() {
         const directorQuery = appliedFilters.directors.length > 0 ? appliedFilters.directors.join(',') : undefined;
 
         if (q) {
-            searchMovies(q).then(res => { setMovies(res.data.movies); setLoading(false); }).catch(() => setLoading(false));
+            searchMovies(q)
+                .then((res) => {
+                    setMovies(res.data.movies);
+                    setSearchSource(res.data?.source || 'database');
+                    setLoading(false);
+                })
+                .catch(() => setLoading(false));
         } else {
             fetchMovies({ genre: genreQuery, director: directorQuery, per_page: 50, sort_by: 'random' })
-                .then(res => { setMovies(res.data.movies); setLoading(false); })
+                .then(res => { setMovies(res.data.movies); setSearchSource('database'); setLoading(false); })
                 .catch(() => setLoading(false));
         }
     }, [searchParams, appliedFilters]);
@@ -148,6 +155,11 @@ export default function Discover() {
                             <span className="material-symbols-outlined text-[16px] text-primary">smart_toy</span>
                             {movies.length} movies found
                         </p>
+                        {searchParams.get('q') && searchSource === 'external' ? (
+                            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                                Pulled online because this title is not in your local database
+                            </p>
+                        ) : null}
                     </div>
                 </div>
 

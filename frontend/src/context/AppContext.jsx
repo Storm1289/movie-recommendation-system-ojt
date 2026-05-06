@@ -301,6 +301,13 @@ export function AppProvider({ children }) {
         }));
     };
 
+    const decrementCommentCount = () => {
+        setUserStats((prev) => ({
+            ...prev,
+            commentCount: Math.max(0, prev.commentCount - 1),
+        }));
+    };
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     return (
@@ -309,7 +316,7 @@ export function AppProvider({ children }) {
             login, signup, loginWithGoogle, continueAsGuest, logout,
             updateProfile, changeEmail, changePassword, deleteAccount,
             watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist,
-            userStats, markMovieRated, incrementCommentCount,
+            userStats, markMovieRated, incrementCommentCount, decrementCommentCount,
             settings, updateSettings,
             isSidebarOpen, setIsSidebarOpen,
         }}>

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { searchMovies } from '../api/api';
 import { getValidImageUrl } from '../utils/imageUtils';
+import { moviePath } from '../utils/movieRoutes';
 
 const primaryNavItems = [
     { label: 'Home', path: '/home' },
@@ -14,6 +15,7 @@ const primaryNavItems = [
 export default function Navbar() {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
+    const [searchSource, setSearchSource] = useState('database');
     const [isSearching, setIsSearching] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -65,6 +67,7 @@ export default function Navbar() {
         if (!query.trim()) {
             setResults([]);
             setShowDropdown(false);
+            setSearchSource('database');
             return;
         }
 
@@ -77,6 +80,7 @@ export default function Navbar() {
             try {
                 const res = await searchMovies(query.trim());
                 setResults(res.data.movies?.slice(0, 6) || []);
+                setSearchSource(res.data?.source || 'database');
             } catch (error) {
                 console.error('Search failed', error);
             } finally {
@@ -100,6 +104,7 @@ export default function Navbar() {
         setShowDropdown(false);
         setIsSearchOpen(false);
         setQuery('');
+        setSearchSource('database');
     };
 
     const handleLogout = () => {
@@ -212,14 +217,18 @@ export default function Navbar() {
                                             Searching your database...
                                         </div>
                                     ) : results.length > 0 ? (
-                                        <ul className="py-2">
+                                        <div>
+                                            <div className="border-b border-white/5 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">
+                                                {searchSource === 'external' ? 'Fetched online for this search' : 'Results from your database'}
+                                            </div>
+                                            <ul className="py-2">
                                             {results.map((movie, idx) => {
                                                 const posterUrl = getValidImageUrl(movie.poster_path, 'w200');
 
                                                 return (
                                                     <li key={movie.id || idx}>
                                                         <Link
-                                                            to={`/movie/${movie.id}`}
+                                                            to={moviePath(movie)}
                                                             onClick={handleResultClick}
                                                             className="group/item flex items-center gap-4 px-4 py-3 transition-colors hover:bg-white/5"
                                                         >
@@ -246,6 +255,11 @@ export default function Navbar() {
                                                                     <p className="truncate text-xs text-slate-400">
                                                                         {movie.genre || movie.release_date?.split('-')[0] || 'Unknown Genre'}
                                                                     </p>
+                                                                    {movie.is_external ? (
+                                                                        <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+                                                                            Online
+                                                                        </span>
+                                                                    ) : null}
                                                                 </div>
                                                             </div>
 
@@ -256,11 +270,12 @@ export default function Navbar() {
                                                     </li>
                                                 );
                                             })}
-                                        </ul>
+                                            </ul>
+                                        </div>
                                     ) : (
                                         <div className="p-6 text-center text-slate-400">
                                             <span className="material-symbols-outlined mb-2 text-3xl text-slate-500">sentiment_dissatisfied</span>
-                                            <p className="text-sm">No movies found in your database.</p>
+                                            <p className="text-sm">No movies found right now.</p>
                                         </div>
                                     )}
                                 </div>

@@ -35,13 +35,14 @@ export default function MovieDetail() {
     const [editingCommentRating, setEditingCommentRating] = useState(0);
     const [editingHoverRating, setEditingHoverRating] = useState(0);
 
-    const { addToWatchlist, removeFromWatchlist, isInWatchlist, user, incrementCommentCount } = useApp();
+    const { addToWatchlist, removeFromWatchlist, isInWatchlist, user, incrementCommentCount, decrementCommentCount, markMovieRated } = useApp();
     const handleDeleteComment = async (commentId) => {
         if (!window.confirm("Are you sure you want to delete this review?")) return;
         try {
             const res = await deleteComment(id, commentId, user?.email);
             setComments(prev => prev.filter(c => c.id !== commentId));
             setCommentCount(prev => Math.max(0, prev - 1));
+            decrementCommentCount();
             if (res.data.movie_rating !== undefined) {
                 setMovie(prev => ({
                     ...prev,
@@ -81,53 +82,96 @@ export default function MovieDetail() {
     };
 
     useEffect(() => {
-        setLoading(true);
-        setCommentText('');
-        setCommentRating(0);
-        setWatchMovieError('');
-        window.scrollTo(0, 0);
+        let isCancelled = false;
 
-        // Reset state on ID change to avoid layout glitch
-        setMovie(null);
-        setWiki(null);
-        setMoreMovies(null);
-        setCastImages({});
-        setRecommendations([]);
+        const loadMovie = async () => {
+            setLoading(true);
+            setCommentText('');
+            setCommentRating(0);
+            setWatchMovieError('');
+            window.scrollTo(0, 0);
 
-        Promise.allSettled([
-            fetchMovie(id).then(res => setMovie(res.data)),
-            fetchRecommendations(id).then(res => setRecommendations(res.data.recommendations || [])),
-            fetchWikiDetails(id).then(res => {
-                setWiki(res.data);
-                if (res.data?.wiki_director) {
-                    fetchMovies({ director: res.data.wiki_director, per_page: 6 }).then(resp => {
-                        const filtered = resp.data.movies.filter((m) => String(m.id) !== String(id) && movieSlug(m) !== id && m.poster_path);
-                        if (filtered.length > 0) {
-                            setMoreMovies({ title: `More From ${res.data.wiki_director}`, movies: filtered.slice(0, 5) });
+            setMovie(null);
+            setWiki(null);
+            setMoreMovies(null);
+            setCastImages({});
+            setRecommendations([]);
+            setComments([]);
+            setCommentCount(0);
+
+            try {
+                const movieRes = await fetchMovie(id);
+                if (isCancelled) return;
+
+                const nextMovie = movieRes.data;
+                const movieIsExternal = Boolean(nextMovie?.is_external);
+                setMovie(nextMovie);
+
+                const tasks = [
+                    fetchWikiDetails(id).then((res) => {
+                        if (isCancelled) return;
+
+                        setWiki(res.data);
+                        if (!movieIsExternal && res.data?.wiki_director) {
+                            fetchMovies({ director: res.data.wiki_director, per_page: 6 }).then((resp) => {
+                                if (isCancelled) return;
+
+                                const filtered = resp.data.movies.filter((m) => String(m.id) !== String(id) && movieSlug(m) !== id && m.poster_path);
+                                if (filtered.length > 0) {
+                                    setMoreMovies({ title: `More From ${res.data.wiki_director}`, movies: filtered.slice(0, 5) });
+                                }
+                            }).catch(console.error);
                         }
-                    }).catch(console.error);
-                }
 
-                // Fetch cast images
-                if (res.data?.wiki_cast && Array.isArray(res.data.wiki_cast)) {
-                    res.data.wiki_cast.slice(0, 8).forEach(person => {
-                        const actorName = person.split(' as ')[0].split(',')[0].trim();
-                        fetchWikiActorImage(actorName).then(url => {
-                            if (url) {
-                                setCastImages(prev => ({ ...prev, [actorName]: url }));
+                        if (res.data?.wiki_cast && Array.isArray(res.data.wiki_cast)) {
+                            res.data.wiki_cast.slice(0, 8).forEach((person) => {
+                                const actorName = person.split(' as ')[0].split(',')[0].trim();
+                                fetchWikiActorImage(actorName).then((url) => {
+                                    if (!isCancelled && url) {
+                                        setCastImages((prev) => ({ ...prev, [actorName]: url }));
+                                    }
+                                });
+                            });
+                        }
+                    }),
+                    detectCountry().then((country) => {
+                        if (isCancelled) return;
+                        setStreamingCountry(country);
+                        return fetchStreaming(id, country).then((res) => {
+                            if (!isCancelled) {
+                                setStreaming(res.data.platforms || []);
                             }
                         });
-                    });
+                    }),
+                ];
+
+                if (!movieIsExternal) {
+                    tasks.push(fetchRecommendations(id).then((res) => {
+                        if (!isCancelled) {
+                            setRecommendations(res.data.recommendations || []);
+                        }
+                    }));
+                    tasks.push(fetchComments(id).then((res) => {
+                        if (!isCancelled) {
+                            setComments(res.data.comments || []);
+                            setCommentCount(res.data.count || 0);
+                        }
+                    }));
                 }
-            }),
-            fetchComments(id).then(res => { setComments(res.data.comments || []); setCommentCount(res.data.count || 0); }),
-            detectCountry().then(country => {
-                setStreamingCountry(country);
-                return fetchStreaming(id, country).then(res => setStreaming(res.data.platforms || []));
-            })
-        ]).then(() => {
-            setLoading(false);
-        });
+
+                await Promise.allSettled(tasks);
+            } finally {
+                if (!isCancelled) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadMovie();
+
+        return () => {
+            isCancelled = true;
+        };
     }, [id]);
 
     const detectCountry = async () => {
@@ -155,6 +199,9 @@ export default function MovieDetail() {
             setComments(prev => [res.data.comment, ...prev]);
             setCommentCount(prev => prev + 1);
             incrementCommentCount();
+            if (commentRating > 0) {
+                markMovieRated(movie?.id);
+            }
             if (res.data.movie_rating) {
                 setMovie(prev => ({
                     ...prev,
@@ -172,7 +219,7 @@ export default function MovieDetail() {
 
     useEffect(() => {
         // Fallback for the "More From..." section if director has no other movies
-        if (movie && wiki !== undefined && !moreMovies) {
+        if (movie && !movie.is_external && wiki !== undefined && !moreMovies) {
             // Give the director fetch a moment to complete if it was triggered
             const timer = setTimeout(() => {
                 if (!moreMovies && movie.genre) {
@@ -227,7 +274,8 @@ export default function MovieDetail() {
     }
 
     const year = movie.release_date?.split('-')[0] || '';
-    const inList = isInWatchlist(movie.id);
+    const isExternalMovie = Boolean(movie?.is_external || String(id || '').startsWith('external:'));
+    const inList = !isExternalMovie && isInWatchlist(movie.id);
 
     const handleWatchTrailer = () => {
         const trailerSearchQuery = encodeURIComponent(`${movie.title} ${year} official trailer`);
@@ -345,10 +393,12 @@ export default function MovieDetail() {
                             </span>
                             {watchMovieLoading ? 'OPENING...' : 'WATCH MOVIE'}
                         </button>
-                        <button onClick={handleWatchlist} className={`px-10 py-4 rounded-full font-headline font-black text-lg flex items-center gap-3 border transition-all ${inList ? 'bg-primary/20 border-primary text-primary' : 'bg-black/40 backdrop-blur-md text-white border-white/10 hover:bg-white/10'}`}>
-                            <span className="material-symbols-outlined">{inList ? 'bookmark_added' : 'bookmark_add'}</span>
-                            {inList ? 'IN WATCHLIST' : 'WATCHLIST'}
-                        </button>
+                        {!isExternalMovie ? (
+                            <button onClick={handleWatchlist} className={`px-10 py-4 rounded-full font-headline font-black text-lg flex items-center gap-3 border transition-all ${inList ? 'bg-primary/20 border-primary text-primary' : 'bg-black/40 backdrop-blur-md text-white border-white/10 hover:bg-white/10'}`}>
+                                <span className="material-symbols-outlined">{inList ? 'bookmark_added' : 'bookmark_add'}</span>
+                                {inList ? 'IN WATCHLIST' : 'WATCHLIST'}
+                            </button>
+                        ) : null}
                     </div>
                     {watchMovieError ? (
                         <p className="mt-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-300">
@@ -412,6 +462,7 @@ export default function MovieDetail() {
                     )}
 
                     {/* Reviews Section */}
+                    {!isExternalMovie ? (
                     <section className="space-y-8">
                         <div className="flex justify-between items-end border-b border-white/5 pb-4">
                             <h2 className="text-3xl font-black font-headline text-white tracking-tight uppercase">Audience Voices</h2>
@@ -549,6 +600,7 @@ export default function MovieDetail() {
                             )}
                         </div>
                     </section>
+                    ) : null}
                 </div>
 
                 {/* ─── RIGHT COLUMN ─────────────────────── */}
@@ -585,6 +637,12 @@ export default function MovieDetail() {
                                 <div className="flex justify-between items-end border-b border-white/5 pb-2 gap-4">
                                     <span className="text-on-surface-variant text-xs font-bold font-headline uppercase tracking-widest whitespace-nowrap">Box Office</span>
                                     <span className="text-primary font-bold truncate text-right" title={wiki.wiki_box_office}>{wiki.wiki_box_office}</span>
+                                </div>
+                            )}
+                            {wiki?.wiki_director && (
+                                <div className="flex justify-between items-end border-b border-white/5 pb-2 gap-4">
+                                    <span className="text-on-surface-variant text-xs font-bold font-headline uppercase tracking-widest whitespace-nowrap">Director</span>
+                                    <span className="text-white font-bold truncate text-right" title={wiki.wiki_director}>{wiki.wiki_director}</span>
                                 </div>
                             )}
                             {wiki?.wiki_budget && (
@@ -653,7 +711,7 @@ export default function MovieDetail() {
             </div>
 
             {/* Recommendations Section */}
-            {recommendations.length > 0 && (
+            {!isExternalMovie && recommendations.length > 0 && (
                 <section className="bg-surface-container-low py-24 px-6 md:px-12 border-t border-white/5">
                     <div className="max-w-screen-2xl mx-auto">
                         <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-6 mb-12">
@@ -671,7 +729,7 @@ export default function MovieDetail() {
             )}
 
             {/* More By Director Section */}
-            {moreMovies && moreMovies.movies.length > 0 && (
+            {!isExternalMovie && moreMovies && moreMovies.movies.length > 0 && (
                 <section className="bg-surface py-24 px-6 md:px-12">
                     <div className="max-w-screen-2xl mx-auto">
                         <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-6 mb-12">

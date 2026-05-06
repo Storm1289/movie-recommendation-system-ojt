@@ -140,6 +140,16 @@ def delete_comment(movie_id: str, comment_id: int, user_email: str, db=Depends(g
 
     db.comments.delete_one({"id": comment_id})
 
+    user_email_value = comment.get("user_email")
+    if user_email_value:
+        db.users.update_one(
+            {"email": user_email_value},
+            {
+                "$inc": {"stats.comment_count": -1},
+                "$set": {"updated_at": datetime.now(timezone.utc)},
+            },
+        )
+
     if movie_update:
         db.movies.update_one({"id": movie["id"]}, movie_update)
         movie = db.movies.find_one({"id": movie["id"]})

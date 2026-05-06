@@ -20,6 +20,8 @@ export const signupUser = (data) => API.post('/auth/signup', data);
 export const loginUser = (data) => API.post('/auth/login', data);
 export const loginWithGoogle = (data) => API.post('/auth/google', data);
 export const fetchUserState = (userId) => API.get(`/users/${userId}/state`);
+export const fetchUserReviews = (userId) => API.get(`/users/${userId}/reviews`);
+export const fetchUserRatings = (userId) => API.get(`/users/${userId}/ratings`);
 export const updateUserProfile = (userId, data) => API.put(`/users/${userId}/profile`, data);
 export const updateUserEmail = (userId, data) => API.put(`/users/${userId}/email`, data);
 export const changeUserPassword = (userId, data) => API.put(`/users/${userId}/password`, data);

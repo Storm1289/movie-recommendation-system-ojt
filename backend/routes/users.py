@@ -6,7 +6,14 @@ from database import get_db
 from models.entities import User
 from models.schemas import SettingsUpdate, ProfileUpdate, PasswordUpdate, EmailUpdate
 from utils.helpers import normalize_email, make_avatar, hash_password, verify_password
-from services.user_service import get_user_or_404, build_user_state, ensure_local_password_auth
+from services.user_service import (
+    get_user_or_404,
+    build_user_state,
+    build_user_activity_stats,
+    build_user_rating_history,
+    build_user_review_history,
+    ensure_local_password_auth,
+)
 from services.movie_service import resolve_movie_or_fail
 from services.recommendation_service import build_user_recommendations
 from ranking import update_movie_score
@@ -41,7 +48,7 @@ def update_user_settings(user_id: int, payload: SettingsUpdate, db=Depends(get_d
     refreshed_user = db.users.find_one({"id": user_id})
     return {
         "settings": User.settings_from_doc(refreshed_user),
-        "stats": User.stats_from_doc(refreshed_user),
+        "stats": build_user_activity_stats(refreshed_user, db),
     }
 
 
@@ -251,3 +258,25 @@ def recommend_for_user(user_id: int, top_n: int = Query(12, ge=1, le=30), db=Dep
     """Fetch personalized recommendations for a user based on their watchlist."""
     user_doc = get_user_or_404(user_id, db)
     return build_user_recommendations(user_doc, top_n, db)
+
+
+@router.get("/{user_id}/reviews")
+def get_user_reviews(user_id: int, db=Depends(get_db)):
+    """Fetch a user's review history with linked movie details."""
+    user_doc = get_user_or_404(user_id, db)
+    reviews = build_user_review_history(user_doc, db)
+    return {
+        "count": len(reviews),
+        "reviews": reviews,
+    }
+
+
+@router.get("/{user_id}/ratings")
+def get_user_ratings(user_id: int, db=Depends(get_db)):
+    """Fetch a user's explicit rating history with linked movie details."""
+    user_doc = get_user_or_404(user_id, db)
+    ratings = build_user_rating_history(user_doc, db)
+    return {
+        "count": len(ratings),
+        "ratings": ratings,
+    }

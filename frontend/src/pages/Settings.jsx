@@ -18,36 +18,8 @@ function FieldActionButton({ children, onClick, disabled, tone = 'neutral', type
     );
 }
 
-function ToggleRow({ title, description, checked, onChange, disabled }) {
-    return (
-        <div className="flex flex-col gap-3 py-3 border-b border-slate-800 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <p className="text-white font-semibold text-sm">{title}</p>
-                <p className="text-slate-400 text-xs mt-0.5">{description}</p>
-            </div>
-            <button
-                type="button"
-                disabled={disabled}
-                onClick={() => onChange(!checked)}
-                className={`relative h-7 w-12 rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-                    checked ? 'border-primary bg-primary/80' : 'border-slate-700 bg-surface-card'
-                }`}
-                aria-pressed={checked}
-            >
-                <span
-                    className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${
-                        checked ? 'translate-x-5' : 'translate-x-1'
-                    }`}
-                />
-            </button>
-        </div>
-    );
-}
-
 export default function Settings() {
     const {
-        settings,
-        updateSettings,
         user,
         updateProfile,
         changeEmail,
@@ -72,7 +44,6 @@ export default function Settings() {
     const [isSavingPassword, setIsSavingPassword] = useState(false);
     const [showPasswords, setShowPasswords] = useState(false);
 
-    const [settingsError, setSettingsError] = useState('');
     const [deleteError, setDeleteError] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -174,16 +145,6 @@ export default function Settings() {
         }
     };
 
-    const handleSettingChange = async (key, value) => {
-        setSettingsError('');
-
-        try {
-            await updateSettings({ [key]: value });
-        } catch (error) {
-            setSettingsError(error?.response?.data?.detail || 'Unable to update settings.');
-        }
-    };
-
     const handleDeleteAccount = async () => {
         setDeleteError('');
 
@@ -206,7 +167,7 @@ export default function Settings() {
     return (
         <div className="w-full">
             <h1 className="text-3xl font-black text-white tracking-tight mb-2">Settings</h1>
-            <p className="text-slate-400 text-sm mb-8">Manage your account preferences and application settings</p>
+            <p className="text-slate-400 text-sm mb-8">Manage your account details and security settings</p>
 
             <div className="space-y-6">
                 <section className="bg-surface-dark border border-slate-800 rounded-2xl p-6">
@@ -385,60 +346,6 @@ export default function Settings() {
                                 ) : null}
                             </div>
                         ) : null}
-                    </div>
-                </section>
-
-                <section className="bg-surface-dark border border-slate-800 rounded-2xl p-6">
-                    <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary">tune</span>
-                        Preferences
-                    </h2>
-                    {settingsError ? <p className="mb-4 text-xs font-medium text-red-400">{settingsError}</p> : null}
-                    <div className="space-y-1">
-                        <ToggleRow
-                            title="Autoplay trailers"
-                            description="Start previews automatically on movie pages."
-                            checked={Boolean(settings?.autoplay)}
-                            onChange={(value) => handleSettingChange('autoplay', value)}
-                        />
-                        <ToggleRow
-                            title="Notifications"
-                            description="Show app updates and watchlist activity."
-                            checked={Boolean(settings?.notifications)}
-                            onChange={(value) => handleSettingChange('notifications', value)}
-                        />
-                        <ToggleRow
-                            title="Email digest"
-                            description="Receive occasional recommendation summaries."
-                            checked={Boolean(settings?.emailDigest)}
-                            onChange={(value) => handleSettingChange('emailDigest', value)}
-                        />
-                        <div className="grid gap-4 pt-4 sm:grid-cols-2">
-                            <label className="space-y-2">
-                                <span className="block text-white font-semibold text-sm">Language</span>
-                                <select
-                                    value={settings?.language || 'English'}
-                                    onChange={(event) => handleSettingChange('language', event.target.value)}
-                                    className={inputClass}
-                                >
-                                    <option>English</option>
-                                    <option>Hindi</option>
-                                </select>
-                            </label>
-                            <label className="space-y-2">
-                                <span className="block text-white font-semibold text-sm">Streaming Quality</span>
-                                <select
-                                    value={settings?.quality || 'Auto'}
-                                    onChange={(event) => handleSettingChange('quality', event.target.value)}
-                                    className={inputClass}
-                                >
-                                    <option>Auto</option>
-                                    <option>HD</option>
-                                    <option>Full HD</option>
-                                    <option>4K</option>
-                                </select>
-                            </label>
-                        </div>
                     </div>
                 </section>
 

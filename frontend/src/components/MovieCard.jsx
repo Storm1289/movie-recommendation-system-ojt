@@ -29,6 +29,7 @@ export default function MovieCard({ movie, rank, showMatch }) {
     const genre = movie.genre?.split(',')[0]?.trim() || '';
     const inList = isInWatchlist(movie.id);
     const matchScore = movie.match_score ?? 70 + ((Number(movie.id) || 0) * 13 % 28);
+    const canUseWatchlist = !movie?.is_external;
 
     const handleWatchlist = async (e) => {
         e.preventDefault();
@@ -101,16 +102,18 @@ export default function MovieCard({ movie, rank, showMatch }) {
                         </span>
                         Info
                     </span>
-                    <button
-                        onClick={handleWatchlist}
-                        className={`rounded-full px-5 py-2 text-xs font-bold transition-colors flex items-center gap-2 font-headline tracking-wide shadow-lg ${inList
-                            ? 'bg-primary text-black hover:bg-primary-fixed'
-                            : 'bg-black/60 border border-white/20 text-white hover:bg-white/20'
-                            }`}
-                    >
-                        <span className="material-symbols-outlined text-[16px]">{inList ? 'check' : 'add'}</span>
-                        {inList ? 'In List' : 'Watchlist'}
-                    </button>
+                    {canUseWatchlist ? (
+                        <button
+                            onClick={handleWatchlist}
+                            className={`rounded-full px-5 py-2 text-xs font-bold transition-colors flex items-center gap-2 font-headline tracking-wide shadow-lg ${inList
+                                ? 'bg-primary text-black hover:bg-primary-fixed'
+                                : 'bg-black/60 border border-white/20 text-white hover:bg-white/20'
+                                }`}
+                        >
+                            <span className="material-symbols-outlined text-[16px]">{inList ? 'check' : 'add'}</span>
+                            {inList ? 'In List' : 'Watchlist'}
+                        </button>
+                    ) : null}
                 </div>
             </div>
 
