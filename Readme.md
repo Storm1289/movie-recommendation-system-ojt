@@ -1,6 +1,6 @@
 # CineStream — System Design & Architecture
 
-> **A full-stack movie recommendation platform with content-based filtering, Wikipedia-backed enrichment, community reviews, social login, and a premium cinematic UI.**
+> **A full-stack movie recommendation platform with content-based filtering, Wikipedia-backed enrichment, community reviews, Google/local auth, guest access, and a premium cinematic UI.**
 
 ---
 
@@ -46,7 +46,7 @@
 - **Wikipedia Enrichment** — Automatic fetching of plot, cast, director, budget, and box office
 - **MongoDB Atlas Storage** — Cloud-hosted MongoDB used by the backend through PyMongo
 - **Community Reviews** — User comments and 1–10 star ratings
-- **Social Login + Guest Mode** — Google, Facebook, email/password, and guest preview access
+- **Google Sign-In + Guest Mode** — Google, email/password, and guest preview access
 - **Dynamic Rankings** — Monthly scoring algorithm blending popularity, recency, and votes
 - **Region-Aware Streaming Links** — Platform links for India, US, UK, and more
 - **Premium Cinematic UI** — Netflix-inspired dark theme with glassmorphism and micro-animations
@@ -95,9 +95,9 @@
 │  └────────────────────────────────────────────────────────┘  │
 │                                                               │
 │  ┌────────────────────────────────────────────────────────┐  │
-│  │         Pickle Files (./pickles/)                      │  │
+│  │         JSON Artifacts (./pickles/)                    │  │
 │  │  ┌──────────────────┐ ┌────────────────────────────┐   │  │
-│  │  │ movies_df.pkl    │ │ similarity_matrix.pkl      │   │  │
+│  │  │ movies_list.json │ │ recommendations.json       │   │  │
 │  │  └──────────────────┘ └────────────────────────────┘   │  │
 │  └────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────┘
@@ -125,8 +125,8 @@
 | **DB Driver** | PyMongo 4.16 | Official MongoDB Python driver |
 | **ML / NLP** | scikit-learn | TF-IDF Vectorizer + Cosine Similarity |
 | **Data Processing** | Pandas | DataFrame operations for model building |
-| **Serialization** | Pickle | Persist similarity matrix to disk |
-| **Authentication** | Google OAuth, Facebook Login, local auth | Sign-in and account linking |
+| **Serialization** | JSON artifacts | Persist precomputed recommendation lookups |
+| **Authentication** | Google Sign-In, local auth | Sign-in and account linking |
 | **External Data** | Wikipedia REST API | Movie details, cast, plot, budget enrichment |
 
 ---
@@ -168,7 +168,7 @@ graph TB
 
     subgraph Data["💾 Data Layer"]
         MongoDB[(MongoDB<br/>cinestream DB)]
-        Pickles["Pickle Files<br/>similarity_matrix.pkl<br/>movies_df.pkl"]
+        Pickles["JSON Artifacts<br/>recommendations.json<br/>movies_list.json"]
     end
 
     subgraph External["🌐 External Services"]
@@ -196,15 +196,15 @@ graph TB
 backend/
 ├── main.py              # FastAPI app — 12+ REST endpoints
 ├── database.py          # MongoDB connection (PyMongo client)
-├── models.py            # Document ↔ Dict converters (Movie, Comment, UserRating)
+├── models/              # Pydantic schemas + MongoDB document converters
 ├── recommendation.py    # TF-IDF + Cosine Similarity engine
 ├── ranking.py           # Dynamic monthly score calculator
 ├── seed.py              # Database seeder — 63 curated movies
 ├── wiki_service.py      # Wikipedia enrichment and streaming helpers
 ├── requirements.txt     # Python dependencies
 └── pickles/
-    ├── similarity_matrix.pkl   # Precomputed cosine similarity matrix
-    └── movies_df.pkl           # Serialized movies DataFrame
+    ├── recommendations.json   # Precomputed recommendation lookup table
+    └── movies_list.json       # Serialized lightweight movie records
 ```
 
 ### 5.2 Database Layer — MongoDB
@@ -306,10 +306,10 @@ db.comments.createIndex({ "movie_id": 1 })
 
 ### 5.4 API Layer — FastAPI
 
-FastAPI serves as the REST API backend with CORS middleware enabled for cross-origin requests from the React frontend. In the current project it also handles email/password auth, Google login, Facebook login, guest-compatible state, watchlists, ratings, comments, wiki enrichment, and streaming links.
+FastAPI serves as the REST API backend with CORS middleware enabled for cross-origin requests from the React frontend. In the current project it handles email/password auth, Google login, guest-compatible state, watchlists, ratings, comments, wiki enrichment, search, and streaming links.
 
 **Startup Lifecycle:**
-1. Load pickled recommendation model (similarity matrix + DataFrame)
+1. Load precomputed JSON recommendation artifacts
 2. Spawn background thread to recalculate monthly ranking scores
 3. Begin accepting HTTP requests
 
@@ -322,24 +322,24 @@ Client Request → FastAPI Router → Endpoint Handler → PyMongo Query → Mon
 
 ```mermaid
 flowchart LR
-    A["Movie Data<br/>(overview + genre)"] --> B["TF-IDF<br/>Vectorizer"]
+    A["Movie Data<br/>(overview + genre + director)"] --> B["TF-IDF<br/>Vectorizer"]
     B --> C["TF-IDF Matrix<br/>(N × 5000)"]
     C --> D["Cosine<br/>Similarity"]
-    D --> E["Similarity Matrix<br/>(N × N)"]
-    E --> F["Pickle<br/>Serialize"]
-    F --> G["similarity_matrix.pkl"]
+    D --> E["Top-N Similar Movies<br/>per Movie"]
+    E --> F["JSON<br/>Serialize"]
+    F --> G["recommendations.json"]
 
-    H["User selects<br/>Movie X"] --> I["Load Matrix<br/>from Pickle"]
-    I --> J["Sort by<br/>similarity[X]"]
+    H["User selects<br/>Movie X"] --> I["Load JSON<br/>Artifacts"]
+    I --> J["Lookup by<br/>movie_id"]
     J --> K["Return Top N<br/>similar movies"]
 ```
 
 **Algorithm:**
-1. **Feature Engineering:** Combine `overview` + `genre` into a single text field per movie
+1. **Feature Engineering:** Combine `overview` + `genre` + weighted `director` into a single text field per movie
 2. **Vectorization:** TF-IDF with English stop words, max 5,000 features
-3. **Similarity:** Cosine similarity between all movie pairs → N×N matrix
-4. **Persistence:** Pickle both the similarity matrix and the DataFrame to disk
-5. **Inference:** Given movie index, sort the corresponding row descending, return top N
+3. **Similarity:** Cosine similarity between all movie pairs
+4. **Persistence:** Save a lightweight `movie_id -> recommended movies` lookup plus movie records as JSON
+5. **Inference:** Given a movie ID, return the precomputed top matches from the JSON cache
 
 ### 5.6 Ranking Engine
 
@@ -415,7 +415,7 @@ frontend/src/
 ├── App.jsx              # Router + Layout definitions
 ├── index.css            # Global styles + CSS custom properties
 ├── api/
-│   └── api.js           # Axios HTTP client (12 API functions)
+│   └── api.js           # Axios HTTP client for movies, auth, user state, comments, and ratings
 ├── context/
 │   └── AppContext.jsx   # Global state (auth, watchlist, guest mode, settings)
 ├── components/
@@ -501,11 +501,16 @@ server: {
 | `fetchTopMonth()` | GET | `/api/movies/top-month` |
 | `fetchMovie(id)` | GET | `/api/movies/:id` |
 | `fetchRecommendations(id)` | GET | `/api/movies/:id/recommend` |
+| `fetchWatchMovieUrl(id)` | GET | `/api/movies/:id/watch-url` |
+| `fetchUserRecommendations(userId)` | GET | `/api/users/:id/recommendations` |
 | `searchMovies(query)` | GET | `/api/search` |
 | `fetchGenres()` | GET | `/api/genres` |
+| `fetchDirectors()` | GET | `/api/directors` |
 | `fetchWikiDetails(id)` | GET | `/api/movies/:id/wiki` |
 | `fetchComments(id)` | GET | `/api/movies/:id/comments` |
 | `postComment(id, data)` | POST | `/api/movies/:id/comments` |
+| `editComment(movieId, commentId, data)` | PUT | `/api/movies/:id/comments/:comment_id` |
+| `deleteComment(movieId, commentId, userEmail)` | DELETE | `/api/movies/:id/comments/:comment_id` |
 | `rateMovie(id, data)` | POST | `/api/movies/:id/rate` |
 | `fetchStreaming(id, country)` | GET | `/api/movies/:id/streaming` |
 
@@ -527,7 +532,7 @@ graph TD
 | Page | Description | API Calls |
 |------|-------------|-----------|
 | **Landing** | Marketing page with hero, features showcase | None |
-| **Login** | Email/password + Google + Facebook auth | auth endpoints |
+| **Login** | Email/password + Google sign-in | auth endpoints |
 | **Home** | Dashboard: hero slider + 4 movie rows | trending, topMonth, movies (rating), movies (date) |
 | **Discover** | Browse all movies with genre filter + sort | movies (paginated), genres |
 | **MovieDetail** | Full detail: poster, wiki info, cast, comments, ratings, streaming, recommendations | movie, wiki, comments, recommendations, streaming |
@@ -565,15 +570,13 @@ sequenceDiagram
     participant User
     participant React
     participant FastAPI
-    participant Pickle
+    participant JSON
     participant MongoDB
 
     User->>React: Views Movie #42
     React->>FastAPI: GET /api/movies/42/recommend
-    FastAPI->>Pickle: Load similarity_matrix.pkl
-    Pickle-->>FastAPI: NxN similarity matrix
-    FastAPI->>FastAPI: Sort similarity[42] descending
-    FastAPI->>FastAPI: Get top 10 similar indices
+    FastAPI->>JSON: Load recommendations.json
+    JSON-->>FastAPI: Precomputed recommendations for movie 42
     FastAPI->>MongoDB: Find movies by IDs
     MongoDB-->>FastAPI: 10 movie documents
     FastAPI-->>React: { recommendations: [...] }
@@ -668,8 +671,10 @@ erDiagram
 | `GET` | `/api/movies/top-month` | — | Top 10 by monthly score |
 | `GET` | `/api/movies/{id}` | — | Single movie detail |
 | `GET` | `/api/movies/{id}/recommend` | `top_n` | Similar movies (ML) |
-| `GET` | `/api/search` | `q` | Search by title (regex) |
+| `GET` | `/api/movies/{id}/watch-url` | — | IMDb/info page watch link |
+| `GET` | `/api/search` | `q`, `deep` | Search local titles, optionally fallback to external results |
 | `GET` | `/api/genres` | — | All unique genres |
+| `GET` | `/api/directors` | — | Top directors from cached metadata |
 
 ### Auth and User
 
@@ -678,10 +683,13 @@ erDiagram
 | `POST` | `/api/auth/signup` | Create an email/password account |
 | `POST` | `/api/auth/login` | Login with email/password |
 | `POST` | `/api/auth/google` | Login with Google |
-| `POST` | `/api/auth/facebook` | Login with Facebook |
 | `GET` | `/api/users/{user_id}/state` | Fetch user, watchlist, settings, and stats |
+| `GET` | `/api/users/{user_id}/recommendations` | Fetch personalized recommendations |
+| `GET` | `/api/users/{user_id}/reviews` | Fetch the user's review history |
+| `GET` | `/api/users/{user_id}/ratings` | Fetch the user's rating history |
 | `PUT` | `/api/users/{user_id}/settings` | Update saved user settings |
 | `PUT` | `/api/users/{user_id}/profile` | Update display name and avatar fallback |
+| `PUT` | `/api/users/{user_id}/email` | Update local account email |
 | `PUT` | `/api/users/{user_id}/password` | Update local account password |
 | `DELETE` | `/api/users/{user_id}` | Delete a user account |
 | `POST` | `/api/users/{user_id}/watchlist/{movie_id}` | Add a movie to the watchlist |
@@ -699,6 +707,8 @@ erDiagram
 |--------|----------|------|-------------|
 | `GET` | `/api/movies/{id}/comments` | — | Get all comments |
 | `POST` | `/api/movies/{id}/comments` | `{user_name, content, rating}` | Post comment |
+| `PUT` | `/api/movies/{id}/comments/{comment_id}` | `{user_email, content, rating}` | Edit a comment |
+| `DELETE` | `/api/movies/{id}/comments/{comment_id}` | `user_email` | Delete a comment |
 | `POST` | `/api/movies/{id}/rate` | `{user_id, rating}` | Rate a movie (1-10) |
 
 ### Streaming
@@ -708,17 +718,23 @@ erDiagram
 | `GET` | `/api/movies/{id}/streaming` | `country` | Region-aware platform links |
 
 **Special ID Format:**  
-The `{id}` parameter supports both integer IDs (`42`) and wiki-prefixed IDs (`wiki:The%20Dark%20Knight`). Wiki IDs auto-create a movie entry in the database with Wikipedia data.
+The `{id}` parameter supports integer IDs (`42`), slugs, and external search IDs like `external:The%20Dark%20Knight%20(2008%20film)`. External IDs are resolved into lightweight movie payloads with Wikipedia-backed metadata.
 
 ---
 
 ## 10. Recommendation Algorithm — Deep Dive
 
-### Phase 1: Model Building (Offline — `seed.py`)
+### Phase 1: Model Building (Offline)
 
 ```python
 # 1. Combine text features
-df["combined"] = df["overview"] + " " + df["genre"]
+df["combined"] = (
+    df["overview"].fillna("") + " "
+    + df["genre"].fillna("") + " "
+    + df["genre"].fillna("") + " "
+    + director.fillna("") + " "
+    + director.fillna("")
+)
 
 # 2. Vectorize with TF-IDF
 tfidf = TfidfVectorizer(stop_words="english", max_features=5000)
@@ -727,39 +743,32 @@ tfidf_matrix = tfidf.fit_transform(df["combined"])
 
 # 3. Compute pairwise similarity
 similarity = cosine_similarity(tfidf_matrix)
-# Shape: (63, 63) — each cell = similarity score between two movies
 
-# 4. Serialize to disk
-pickle.dump(similarity, open("similarity_matrix.pkl", "wb"))
-pickle.dump(df, open("movies_df.pkl", "wb"))
+# 4. Save lightweight JSON artifacts
+recommendations_map[str(movie_id)] = [movies_dict_list[i] for i in top_movie_indices]
+RECOMMENDATIONS_JSON.write_text(json.dumps(recommendations_map))
+MOVIES_JSON.write_text(json.dumps(movies_dict_list))
 ```
 
 ### Phase 2: Inference (Online — `/api/movies/{id}/recommend`)
 
 ```python
-# 1. Load precomputed matrix
-similarity, df = load_model()
+# 1. Load precomputed JSON artifacts
+recommendations_map, _ = load_model()
 
-# 2. Find the movie's index in the DataFrame
-idx = df[df["id"] == movie_id].index[0]
+# 2. Lookup by movie ID
+recs = recommendations_map.get(str(movie_id), [])
 
-# 3. Get similarity scores for this movie against all others
-scores = list(enumerate(similarity[idx]))
-
-# 4. Sort descending, skip self, take top N
-scores = sorted(scores, key=lambda x: x[1], reverse=True)
-top_scores = scores[1:top_n+1]
-
-# 5. Map indices back to movie records
-return df.iloc[[i[0] for i in top_scores]]
+# 3. Return top N saved matches
+return recs[:top_n]
 ```
 
 ### Why TF-IDF + Cosine Similarity?
 
 - **No user history required** — pure content-based, works from day one
 - **Interpretable** — similarity is based on shared plot themes and genres
-- **Fast inference** — precomputed matrix makes lookups O(N log N) for sorting
-- **Low resource** — pickled matrix for 63 movies is ~30KB
+- **Fast inference** — runtime only performs a JSON lookup
+- **Low resource** — serverless deploys avoid pandas/scikit-learn at request time
 
 ---
 
@@ -797,12 +806,12 @@ This produces a 0–10 scale score that naturally surfaces:
 
 ## 12. Metadata Enrichment Notes
 
-The current project documentation assumes **no Gemini dependency in the active app flow**.
+The current project does not require Gemini for its primary movie recommendation flow.
 
-- Movie enrichment is driven by the Wikipedia REST API and local parsing
-- Recommendation results come from precomputed TF-IDF pickles, not an LLM
+- Movie enrichment is driven by the Wikipedia API plus local parsing
+- Recommendation results come from precomputed TF-IDF JSON artifacts, not an LLM
 - Genre values are sanitized before they are returned to the frontend so corrupted text does not leak into chips, cards, or filters
-- If any Gemini-related code still exists in the repository, treat it as optional or legacy support rather than a required runtime dependency
+- Gemini-assisted metadata hints are optional and should be treated as best-effort enrichment rather than a required runtime dependency
 
 ---
 
@@ -811,7 +820,7 @@ The current project documentation assumes **no Gemini dependency in the active a
 | Concern | Implementation |
 |---------|---------------|
 | **CORS** | `allow_origins=["*"]` — open for development; restrict in production |
-| **Auth** | Backend APIs support local, Google, and Facebook sign-in; frontend also keeps per-user local state |
+| **Auth** | Backend APIs support local and Google sign-in; frontend also keeps per-user local state |
 | **Input Validation** | Pydantic models validate all POST request bodies |
 | **Rate Limits** | Not implemented — add in production |
 | **SQL Injection** | N/A — MongoDB uses parameterized queries natively |
