@@ -139,6 +139,15 @@ def _score_external_search_result(result: dict, query: str) -> int:
     return score
 
 
+def _is_real_catalog_movie(doc: dict) -> bool:
+    tmdb_id = doc.get("tmdb_id")
+    if isinstance(tmdb_id, int) and tmdb_id >= 9000000:
+        return False
+    if doc.get("source") == "external_search":
+        return False
+    return True
+
+
 def _fetch_imdb_title_id(title: str, year: str) -> str | None:
     query = quote(f"{title} {year}".strip())
 
@@ -212,14 +221,16 @@ def search(q: str = "", deep: bool = Query(False), db=Depends(get_db)):
     query_tokens = [token for token in _normalize_title(q).split() if token]
     regex_pattern = ".*".join(re.escape(token) for token in query_tokens) if query_tokens else re.escape(q)
     regex = re.compile(regex_pattern, re.IGNORECASE)
-    local_movies = list(db.movies.find({"title": {"$regex": regex}}))
+    local_movies = [
+        movie for movie in db.movies.find({"title": {"$regex": regex}})
+        if _is_real_catalog_movie(movie)
+    ]
     if local_movies and not deep:
         return {"movies": [Movie.from_doc(m) for m in local_movies], "source": "database"}
+    if not deep:
+        return {"movies": [], "source": "database"}
 
-    if local_movies and deep:
-        source = "external"
-    else:
-        source = "external"
+    source = "external"
 
     from wiki_service import search_wiki_movies
 

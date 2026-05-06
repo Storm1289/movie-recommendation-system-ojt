@@ -61,6 +61,7 @@ def resolve_movie_or_fail(movie_id: str, db) -> dict:
                     movie = {
                         "id": new_id,
                         "tmdb_id": 9000000 + new_id,
+                        "source": "external_search",
                         "title": title,
                         "overview": "",
                         "rating": 0.0,
