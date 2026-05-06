@@ -131,6 +131,21 @@
 
 ---
 
+### Why TMDb Was Used
+
+TMDb was used as the primary source for structured catalog data because it provides clean and consistent movie metadata such as:
+
+- title
+- overview
+- poster and backdrop images
+- release date
+- popularity
+- vote count
+
+This makes it well suited for building the base movie catalog and UI. Wikipedia is used alongside it for enrichment fields like cast, director, plot, budget, and box office.
+
+---
+
 ## 4. System Architecture Diagram
 
 ```mermaid
@@ -808,6 +823,7 @@ This produces a 0–10 scale score that naturally surfaces:
 
 The current project does not require Gemini for its primary movie recommendation flow.
 
+- TMDb is used for structured base catalog fields and image assets
 - Movie enrichment is driven by the Wikipedia API plus local parsing
 - Recommendation results come from precomputed TF-IDF JSON artifacts, not an LLM
 - Genre values are sanitized before they are returned to the frontend so corrupted text does not leak into chips, cards, or filters
