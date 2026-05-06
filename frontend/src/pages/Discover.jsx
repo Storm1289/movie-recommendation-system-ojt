@@ -40,12 +40,13 @@ export default function Discover() {
     useEffect(() => {
         setLoading(true);
         const q = searchParams.get('q');
+        const deepSearch = searchParams.get('deep') === '1';
         
         const genreQuery = appliedFilters.genres.length > 0 ? appliedFilters.genres.join(',') : undefined;
         const directorQuery = appliedFilters.directors.length > 0 ? appliedFilters.directors.join(',') : undefined;
 
         if (q) {
-            searchMovies(q)
+            searchMovies(q, { deep: deepSearch })
                 .then((res) => {
                     setMovies(res.data.movies);
                     setSearchSource(res.data?.source || 'database');
@@ -157,7 +158,9 @@ export default function Discover() {
                         </p>
                         {searchParams.get('q') && searchSource === 'external' ? (
                             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                                Pulled online because this title is not in your local database
+                                {searchParams.get('deep') === '1'
+                                    ? 'Showing deep search results from online sources'
+                                    : 'Pulled online because this title is not in your local database'}
                             </p>
                         ) : null}
                     </div>

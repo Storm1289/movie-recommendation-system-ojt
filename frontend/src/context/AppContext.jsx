@@ -67,13 +67,16 @@ export function AppProvider({ children }) {
     const [watchlist, setWatchlist] = useState(() => readWatchlist(user));
     const [settings, setSettings] = useState(() => readSettings(user));
     const [userStats, setUserStats] = useState(() => readStats(user));
+    const [syncedUserId, setSyncedUserId] = useState(() => (user?.id ? null : null));
     const [authModal, setAuthModal] = useState(DEFAULT_AUTH_MODAL);
+    const isUserStateLoading = Boolean(user?.id && syncedUserId !== user.id);
 
     const applyUserState = (payload) => {
         setUser(payload.user || null);
         setWatchlist(payload.watchlist || []);
         setSettings({ ...DEFAULT_SETTINGS, ...(payload.settings || {}) });
         setUserStats({ ...DEFAULT_STATS, ...(payload.stats || {}) });
+        setSyncedUserId(payload.user?.id ?? null);
         setAuthModal(DEFAULT_AUTH_MODAL);
     };
 
@@ -95,6 +98,7 @@ export function AppProvider({ children }) {
         setWatchlist([]);
         setSettings({ ...DEFAULT_SETTINGS });
         setUserStats({ ...DEFAULT_STATS });
+        setSyncedUserId(null);
         closeAuthModal();
     }, [closeAuthModal]);
 
@@ -114,6 +118,7 @@ export function AppProvider({ children }) {
                     setWatchlist(res.data.watchlist || []);
                     setSettings({ ...DEFAULT_SETTINGS, ...(res.data.settings || {}) });
                     setUserStats({ ...DEFAULT_STATS, ...(res.data.stats || {}) });
+                    setSyncedUserId(user.id);
                 })
                 .catch((error) => {
                     if (isCancelled) return;
@@ -122,6 +127,7 @@ export function AppProvider({ children }) {
                         return;
                     }
                     console.error('Failed to sync user state', error);
+                    setSyncedUserId(user.id);
                 });
 
             return () => {
@@ -134,6 +140,7 @@ export function AppProvider({ children }) {
             setWatchlist(readWatchlist(user));
             setSettings(readSettings(user));
             setUserStats(readStats(user));
+            setSyncedUserId(user?.id ?? null);
         });
 
         return () => {
@@ -312,7 +319,7 @@ export function AppProvider({ children }) {
 
     return (
         <AppContext.Provider value={{
-            user, isGuestUser, authModal, openAuthModal, closeAuthModal,
+            user, isGuestUser, isUserStateLoading, authModal, openAuthModal, closeAuthModal,
             login, signup, loginWithGoogle, continueAsGuest, logout,
             updateProfile, changeEmail, changePassword, deleteAccount,
             watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist,

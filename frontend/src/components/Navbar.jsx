@@ -15,7 +15,7 @@ const primaryNavItems = [
 export default function Navbar() {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
-    const [searchSource, setSearchSource] = useState('database');
+    const [searchMode, setSearchMode] = useState('local');
     const [isSearching, setIsSearching] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -67,7 +67,7 @@ export default function Navbar() {
         if (!query.trim()) {
             setResults([]);
             setShowDropdown(false);
-            setSearchSource('database');
+            setSearchMode('local');
             return;
         }
 
@@ -78,9 +78,8 @@ export default function Navbar() {
 
         searchTimeout.current = setTimeout(async () => {
             try {
-                const res = await searchMovies(query.trim());
+                const res = await searchMovies(query.trim(), { deep: searchMode === 'deep' });
                 setResults(res.data.movies?.slice(0, 6) || []);
-                setSearchSource(res.data?.source || 'database');
             } catch (error) {
                 console.error('Search failed', error);
             } finally {
@@ -89,13 +88,13 @@ export default function Navbar() {
         }, 400);
 
         return () => clearTimeout(searchTimeout.current);
-    }, [query]);
+    }, [query, searchMode]);
 
     const handleSearch = (e) => {
         e.preventDefault();
         if (!query.trim()) return;
 
-        navigate(`/discover?q=${encodeURIComponent(query.trim())}`);
+        navigate(`/discover?q=${encodeURIComponent(query.trim())}${searchMode === 'deep' ? '&deep=1' : ''}`);
         setShowDropdown(false);
         setIsSearchOpen(false);
     };
@@ -104,7 +103,21 @@ export default function Navbar() {
         setShowDropdown(false);
         setIsSearchOpen(false);
         setQuery('');
-        setSearchSource('database');
+        setSearchMode('local');
+    };
+
+    const handleDeepSearch = () => {
+        if (!query.trim()) return;
+        setSearchMode('deep');
+        setShowDropdown(true);
+        setIsSearching(true);
+    };
+
+    const handleBackToDatabase = () => {
+        if (!query.trim()) return;
+        setSearchMode('local');
+        setShowDropdown(true);
+        setIsSearching(true);
     };
 
     const handleLogout = () => {
@@ -195,7 +208,10 @@ export default function Navbar() {
                                     <input
                                         ref={inputRef}
                                         value={query}
-                                        onChange={(e) => setQuery(e.target.value)}
+                                        onChange={(e) => {
+                                            setQuery(e.target.value);
+                                            setSearchMode('local');
+                                        }}
                                         onFocus={() => {
                                             setIsSearchOpen(true);
                                             if (query.trim()) setShowDropdown(true);
@@ -219,7 +235,7 @@ export default function Navbar() {
                                     ) : results.length > 0 ? (
                                         <div>
                                             <div className="border-b border-white/5 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">
-                                                {searchSource === 'external' ? 'Fetched online for this search' : 'Results from your database'}
+                                                {searchMode === 'deep' ? 'Fetched online for this search' : 'Results from your database'}
                                             </div>
                                             <ul className="py-2">
                                             {results.map((movie, idx) => {
@@ -255,7 +271,7 @@ export default function Navbar() {
                                                                     <p className="truncate text-xs text-slate-400">
                                                                         {movie.genre || movie.release_date?.split('-')[0] || 'Unknown Genre'}
                                                                     </p>
-                                                                    {movie.is_external ? (
+                                                                    {searchMode === 'deep' && movie.is_external ? (
                                                                         <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
                                                                             Online
                                                                         </span>
@@ -271,11 +287,51 @@ export default function Navbar() {
                                                 );
                                             })}
                                             </ul>
+                                            <div className="border-t border-white/5 px-4 py-3">
+                                                {searchMode === 'deep' ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleBackToDatabase}
+                                                        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                                                    >
+                                                        Back to Database Results
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleDeepSearch}
+                                                        className="w-full rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
+                                                    >
+                                                        Deep Search Online
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     ) : (
                                         <div className="p-6 text-center text-slate-400">
                                             <span className="material-symbols-outlined mb-2 text-3xl text-slate-500">sentiment_dissatisfied</span>
-                                            <p className="text-sm">No movies found right now.</p>
+                                            <p className="text-sm">
+                                                {searchMode === 'deep' ? 'No online results found for this search.' : 'No movies found in your database.'}
+                                            </p>
+                                            <div className="mt-4">
+                                                {searchMode === 'deep' ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleBackToDatabase}
+                                                        className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                                                    >
+                                                        Back to Database Results
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleDeepSearch}
+                                                        className="rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
+                                                    >
+                                                        Deep Search Online
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                 </div>

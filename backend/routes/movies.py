@@ -204,15 +204,22 @@ def _fallback_wiki_search_results(query: str) -> list[dict]:
     return results
 
 @router.get("/api/search")
-def search(q: str = "", db=Depends(get_db)):
+def search(q: str = "", deep: bool = Query(False), db=Depends(get_db)):
     """Search local movies by title using a case-insensitive match."""
     if not q:
         return {"movies": []}
 
-    regex = re.compile(re.escape(q), re.IGNORECASE)
+    query_tokens = [token for token in _normalize_title(q).split() if token]
+    regex_pattern = ".*".join(re.escape(token) for token in query_tokens) if query_tokens else re.escape(q)
+    regex = re.compile(regex_pattern, re.IGNORECASE)
     local_movies = list(db.movies.find({"title": {"$regex": regex}}))
-    if local_movies:
+    if local_movies and not deep:
         return {"movies": [Movie.from_doc(m) for m in local_movies], "source": "database"}
+
+    if local_movies and deep:
+        source = "external"
+    else:
+        source = "external"
 
     from wiki_service import search_wiki_movies
 
@@ -241,7 +248,7 @@ def search(q: str = "", db=Depends(get_db)):
                 "is_external": True,
             })
 
-    return {"movies": external_movies, "source": "external"}
+    return {"movies": external_movies, "source": source}
 
 
 @router.get("/api/movies")

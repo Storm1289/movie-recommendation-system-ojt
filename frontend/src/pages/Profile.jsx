@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchUserRatings, fetchUserReviews } from '../api/api';
 import MovieCard from '../components/MovieCard';
 import { useApp } from '../context/AppContext';
-import { getValidImageUrl } from '../utils/imageUtils';
+import { fetchWikiImageFallback, getValidImageUrl } from '../utils/imageUtils';
 import { moviePath } from '../utils/movieRoutes';
 import Settings from './Settings';
 
@@ -40,7 +40,24 @@ function ActivityCard({ label, value, isActive, onClick }) {
 }
 
 function ActivityListItem({ movie, eyebrow, title, meta, copy, extra }) {
-    const posterUrl = getValidImageUrl(movie?.poster_path, 'w200');
+    const [posterUrl, setPosterUrl] = useState(() => getValidImageUrl(movie?.poster_path, 'w200'));
+    const [hidePoster, setHidePoster] = useState(false);
+
+    const handlePosterError = async () => {
+        if (!movie?.title || hidePoster) {
+            setHidePoster(true);
+            return;
+        }
+
+        const year = movie.release_date?.split('-')[0] || '';
+        const fallback = await fetchWikiImageFallback(movie.title, year);
+        if (fallback && fallback !== posterUrl) {
+            setPosterUrl(fallback);
+            return;
+        }
+
+        setHidePoster(true);
+    };
 
     return (
         <Link
@@ -48,8 +65,8 @@ function ActivityListItem({ movie, eyebrow, title, meta, copy, extra }) {
             className="group flex gap-4 rounded-2xl border border-white/5 bg-surface-container-low p-4 transition-colors hover:border-white/10 hover:bg-surface-container"
         >
             <div className="h-24 w-16 shrink-0 overflow-hidden rounded-xl bg-surface-container">
-                {posterUrl ? (
-                    <img src={posterUrl} alt={movie?.title || title} className="h-full w-full object-cover" />
+                {posterUrl && !hidePoster ? (
+                    <img src={posterUrl} alt={movie?.title || title} className="h-full w-full object-cover" onError={handlePosterError} />
                 ) : (
                     <div className="flex h-full w-full items-center justify-center">
                         <span className="material-symbols-outlined text-on-surface-variant">movie</span>
@@ -68,7 +85,7 @@ function ActivityListItem({ movie, eyebrow, title, meta, copy, extra }) {
 }
 
 export default function Profile() {
-    const { user, watchlist, userStats } = useApp();
+    const { user, watchlist, userStats, isUserStateLoading } = useApp();
     const [activeTab, setActiveTab] = useState('overview');
     const [failedAvatarUrl, setFailedAvatarUrl] = useState('');
     const [reviewHistory, setReviewHistory] = useState([]);
@@ -139,14 +156,18 @@ export default function Profile() {
         ? user.avatar
         : user?.name?.[0]?.toUpperCase() || 'A';
 
-    const watchlistPreview = useMemo(() => watchlist.slice(0, activeTab === 'overview' ? 5 : watchlist.length), [activeTab, watchlist]);
+    const scrollToSettings = () => {
+        setActiveTab('overview');
+        window.requestAnimationFrame(() => {
+            document.getElementById('profile-settings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    };
 
     const sideNavItems = [
         { key: 'overview', icon: 'person', label: 'Profile Overview' },
         { key: 'watchlist', icon: 'bookmark', label: 'Watchlist' },
         { key: 'ratings', icon: 'star', label: 'Ratings' },
         { key: 'reviews', icon: 'forum', label: 'Reviews' },
-        { key: 'settings', icon: 'settings', label: 'Settings' },
     ];
 
     const renderWatchlist = () => (
@@ -159,7 +180,7 @@ export default function Profile() {
 
             {watchlist.length > 0 ? (
                 <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                    {watchlistPreview.map((movie) => (
+                    {watchlist.map((movie) => (
                         <MovieCard key={movie.id} movie={movie} />
                     ))}
                 </div>
@@ -275,6 +296,23 @@ export default function Profile() {
         </section>
     );
 
+    const renderOverview = () => (
+        <section id="profile-settings" className="flex-1 px-6 lg:px-12 py-8 w-full max-w-5xl">
+            <Settings />
+        </section>
+    );
+
+    if (isUserStateLoading) {
+        return (
+            <div className="bg-surface text-on-surface min-h-screen flex items-center justify-center">
+                <div className="flex flex-col items-center gap-5">
+                    <div className="h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                    <p className="text-sm font-semibold uppercase tracking-[0.24em] text-on-surface-variant">Loading Profile</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary min-h-screen flex">
             <aside className="hidden lg:flex w-64 border-r border-white/5 bg-[#131313] flex-col py-8 z-40 h-screen sticky top-0 shrink-0">
@@ -367,21 +405,16 @@ export default function Profile() {
                             </div>
                         </div>
 
-                        <button onClick={() => setActiveTab('settings')} className="hidden md:flex px-8 py-3 bg-white text-black font-headline font-bold text-sm uppercase tracking-widest rounded-full hover:bg-primary hover:text-black transition-all active:scale-95 mb-2 items-center justify-center">
+                        <button onClick={scrollToSettings} className="hidden md:flex px-8 py-3 bg-white text-black font-headline font-bold text-sm uppercase tracking-widest rounded-full hover:bg-primary hover:text-black transition-all active:scale-95 mb-2 items-center justify-center">
                             Edit Profile
                         </button>
                     </div>
                 </section>
 
-                {(activeTab === 'overview' || activeTab === 'watchlist') && renderWatchlist()}
+                {activeTab === 'overview' && renderOverview()}
+                {activeTab === 'watchlist' && renderWatchlist()}
                 {activeTab === 'ratings' && renderRatings()}
                 {activeTab === 'reviews' && renderReviews()}
-
-                {activeTab === 'settings' && (
-                    <div className="flex-1 px-6 lg:px-12 py-8 w-full max-w-5xl">
-                        <Settings />
-                    </div>
-                )}
 
                 <footer className="w-full py-8 px-6 lg:px-12 text-center border-t border-white/5 mt-auto bg-[#0e0e0e]">
                     <p className="text-on-surface-variant font-inter text-[10px] tracking-widest uppercase mb-2">
