@@ -95,7 +95,7 @@
 │  └────────────────────────────────────────────────────────┘  │
 │                                                               │
 │  ┌────────────────────────────────────────────────────────┐  │
-│  │         JSON Artifacts (./pickles/)                    │  │
+│  │         JSON Artifacts (./artifacts/)                  │  │
 │  │  ┌──────────────────┐ ┌────────────────────────────┐   │  │
 │  │  │ movies_list.json │ │ recommendations.json       │   │  │
 │  │  └──────────────────┘ └────────────────────────────┘   │  │
@@ -217,7 +217,7 @@ backend/
 ├── seed.py              # Database seeder — 63 curated movies
 ├── wiki_service.py      # Wikipedia enrichment and streaming helpers
 ├── requirements.txt     # Python dependencies
-└── pickles/
+└── artifacts/
     ├── recommendations.json   # Precomputed recommendation lookup table
     └── movies_list.json       # Serialized lightweight movie records
 ```
